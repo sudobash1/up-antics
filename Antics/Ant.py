@@ -6,20 +6,5 @@ class Ant:
         self.alive = True
         self.carrying = False
 
-    def getId(self):
-        return self.id
-
-    def getCoords(self):
-        return self.coords
-
-    def getType(self):
-        return self.type
-
     def die(self):
         self.alive = False
-
-    def isAlive(self):
-        return self.alive
-
-    def isCarrying(self):
-        return self.carrying

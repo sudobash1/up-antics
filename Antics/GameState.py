@@ -4,15 +4,6 @@ class GameState:
         self.inventories = inputInventories
         self.phase = inputPhase
 
-    def getBoard(self):
-        return self.board
-
-    def getInventories(self):
-        return self.inventories
-
-    def getPhase(self):
-        return self.phase
-
     def applyMove(self, inputMove):
         fromX = fromLoc.getCoords()[0]
         fromY = fromLoc.getCoords()[1]
