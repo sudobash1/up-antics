@@ -18,4 +18,4 @@ class GameState:
         self.board[toX][toY].ant = tempAnt
 
     def clone(self):
-        
+        return GameState(self.board.clone(), self.inventories.clone(), self.phase.clone())
