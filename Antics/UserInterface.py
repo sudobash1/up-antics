@@ -1,3 +1,8 @@
+##
+#UserInterface
+#Description: This class renders the game board through pygame library method calls
+#
+##
 import pygame
 from pygame.locals import *
 
