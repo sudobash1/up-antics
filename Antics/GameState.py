@@ -1,3 +1,12 @@
+##
+#GameState
+#Description: The current state of the game.
+#
+#Variables:
+#   board - The game Board being used.
+#   inventories - A tuple containing the Inventory for each player.
+#   phase - The current phase of the game.
+##
 class GameState:
     def __init__(self, inputBoard, inputInventories, inputPhase):
         self.board = inputBoard
