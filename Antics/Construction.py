@@ -2,6 +2,7 @@
 #Construction
 #Description: Parent class for static (non-Ant) objects on the board.
 #
+#Variables:
 #   id - A reference to a Construction that can be manually tracked, so that
 #       the programmer can define Construction equality.
 #   coords - An int[] of length 2, representing the Construction's position on
