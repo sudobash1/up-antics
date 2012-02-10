@@ -1,12 +1,12 @@
 ##
 #Ant
 #Description: This class represents an ant on the board. All information
-#   pertaining to ants that may be required by the game is stored in this
+#   pertaining to Ants that may be required by the game is stored in this
 #   class.
 #
 #Variables:
 #   id - A reference to an Ant that can be manually tracked, so that the
-#       programmer can define ant equality.
+#       programmer can define Ant equality.
 #   coords - An int[] of length 2, representing the Ant's position on the
 #       board.  Positions start at (0, 0) in the upper left and increase down
 #       and to the right.
