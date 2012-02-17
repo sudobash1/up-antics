@@ -14,6 +14,7 @@
 #       an array of stats for various ant types.
 #   alive - A boolean representing if the Ant's alive or not.
 #   carrying - A boolean representing if the Ant's carrying food or not.
+#   player - The id of the player that owns the Ant
 ##
 class Ant:
 
@@ -25,13 +26,15 @@ class Ant:
     #   inputId - The id to use for refrencing the ant (int)
     #   inputCoords - The position on the board to place the Ant at (int[])
     #   inputType - The type of ant to create (int)
+    #   inputPlayer - The id of the player that owns the Ant (int)
     ##
-    def __init__(self, inputId, inputCoords, inputType):
+    def __init__(self, inputId, inputCoords, inputType, inputPlayer):
         self.id = inputId
         self.coords = inputCoords
         self.type = inputType
         self.alive = True
         self.carrying = False
+        self.player = inputPlayer
 
     ##
     #die
