@@ -10,6 +10,16 @@
 #   coords - The coordinates of this location
 ##
 class Location:
+
+    ##
+    #__init__
+    #Description: Creates a new Location
+    #
+    #Parameters:
+    #   inputPassable - A boolean describing if the Location can be passed through by an Ant (boolean)
+    #   inputMoveCost - The cost of moving through the Location (int)
+    #   inputCoordinates - Where on the Board the Location is ((int, int))
+    ##
 	def __init__(self, inputPassable, inputMoveCost, inputCoordinates):
 		self.isPassable = inputPassable
 		self.movementCost = inputMoveCost

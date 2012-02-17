@@ -8,11 +8,28 @@
 #   phase - The current phase of the game.
 ##
 class GameState:
+
+    ##
+    #__init__
+    #Description: Creates a new GameState
+    #
+    #Parameters:
+    #   inputBoard - The Board to be used by the GameState (Board)
+    #   inputInventories - A tuple containing the Inventory for each player ((Inventory, Inventory))
+    #   inputPhase - The phase of the game (int)
+    ##
     def __init__(self, inputBoard, inputInventories, inputPhase):
         self.board = inputBoard
         self.inventories = inputInventories
         self.phase = inputPhase
 
+    ##
+    #applyMove
+    #Description: Makes the required changes to the GameState based off of the given move
+    #
+    #Parameters:
+    #   inputMove - The move to make (Move)
+    ##
     def applyMove(self, inputMove):
         fromX = fromLoc.getCoords()[0]
         fromY = fromLoc.getCoords()[1]
@@ -26,5 +43,11 @@ class GameState:
         self.board[fromX][fromY].ant = None
         self.board[toX][toY].ant = tempAnt
 
+    ##
+    #clone
+    #Description: Returns a deep copy of itself
+    #
+    #Return: The GameState identical to the original
+    ##
     def clone(self):
         return GameState(self.board.clone(), self.inventories.clone(), self.phase.clone())

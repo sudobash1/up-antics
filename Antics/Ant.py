@@ -19,7 +19,7 @@ class Ant:
 
     ##
     #__init__
-    #Creates a new Ant
+    #Description: Creates a new Ant
     #
     #Parameters:
     #   inputId - The id to use for refrencing the ant (int)

@@ -10,6 +10,15 @@
 #       down and to the right.
 ##
 class Construction:
+
+    ##
+    #__init__
+    #Description: Creates a new Construction. Only ever called by subclasses.
+    #
+    #Parameters:
+    #   inputId - The id used to reference the Construction (int)
+    #   inputCoords - The position to put the Construction (int[])
+    ##
     def __init__(self, inputId, inputCoords):
         self.id = inputId
         self.coords = inputCoords

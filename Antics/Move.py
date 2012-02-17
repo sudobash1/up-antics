@@ -10,6 +10,17 @@
 #   unitType - This identifies the type of a unit(only relevant to Moves of type build)
 ##
 class Move:
+
+    ##
+    #__init__
+    #Description: Creates a new Move
+    #
+    #Parameters:
+    #   inputMoveType - The type of move the Player is making (int)
+    #   inputToLoc - The Location the Ant is moving to (Location)
+    #   inputFromLoc - The Location the Ant is moving from (Location)
+    #   inputUnitType - The type of unit being moved (int)
+    ##
     def __init__(self, inputMoveType, inputToLoc, inputFromLoc, inputUnitType):
         self.moveType = inputMoveType
         self.toLoc = inputToLoc
