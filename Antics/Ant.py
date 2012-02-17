@@ -16,6 +16,16 @@
 #   carrying - A boolean representing if the Ant's carrying food or not.
 ##
 class Ant:
+
+    ##
+    #__init__
+    #Creates a new Ant
+    #
+    #Parameters:
+    #   inputId - The id to use for refrencing the ant (int)
+    #   inputCoords - The position on the board to place the Ant at (int[])
+    #   inputType - The type of ant to create (int)
+    ##
     def __init__(self, inputId, inputCoords, inputType):
         self.id = inputId
         self.coords = inputCoords
