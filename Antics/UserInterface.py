@@ -26,6 +26,7 @@ class UserInterface:
         self.screen.blit(self.ants[ant.type], (Xpixel, Ypixel))
         
     def drawBoard(self, currentState):
+        self.screen.fill(WHITE)
         for row in xrange(0, len(currentState.board)):
             for col in xrange(0, len(currentState.board[row])):
                 currentLoc = currentState.board[row][col]
@@ -39,6 +40,7 @@ class UserInterface:
         pygame.display.flip()
     
     def initAssets(self):
+        global CELL_SIZE
         #Load textures as Surfaces.
         self.grass = pygame.image.load("grass.bmp")
         self.ants = []
@@ -71,7 +73,11 @@ a=UserInterface((760,760))
 a.initAssets()
 b = [[ Location.Location(True, 1, (row, col)) for col in xrange(0, BOARD_SIZE[0])] for row in xrange(0, BOARD_SIZE[1])]
 b[0][0].ant = Ant.Ant(0, (0,0), 0, 0)
+b[1][0].ant = Ant.Ant(0, (1,0), 0, 0)
 c = GameState.GameState(b, "inventories", "phase")
 
 while(True):
     a.drawBoard(c)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.exit()
