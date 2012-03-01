@@ -43,9 +43,9 @@ class UserInterface:
     def initAssets(self):
         global CELL_SIZE
         #Load textures as Surfaces. Should convert these surfaces later for optimal speed.
-        self.grass = pygame.image.load("grass.bmp")
+        self.grass = pygame.image.load("..\\Antics Mockup\\grass.bmp")
         self.ants = []
-        self.ants.append(pygame.image.load("ant.bmp"))
+        self.ants.append(pygame.image.load("..\\Antics Mockup\\ant.bmp"))
         #Make CELL_SIZE equal to the size of an ant image.
         CELL_SIZE = self.grass.get_rect()
         #Make White transparent (alpha 0) for all textures.
