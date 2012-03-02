@@ -1,3 +1,6 @@
+QUEEN = 0
+
+
 ##
 #Ant
 #Description: This class represents an ant on the board. All information
@@ -17,7 +20,7 @@
 #   player - The id of the player that owns the Ant
 ##
 class Ant:
-
+    
     ##
     #__init__
     #Description: Creates a new Ant
