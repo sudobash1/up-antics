@@ -10,8 +10,6 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 CELL_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 10
-#Board size is in cells, not pixels.
-BOARD_SIZE = Rect(0,0,10,10)
 
 def add(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
@@ -98,9 +96,9 @@ class UserInterface:
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(add(event.pos, event.rel)):
-                        self.handleButton(key, 0)
+                        self.buttons[key][2] = 0
                     else:
-                        self.handleButton(key, 1)
+                        self.buttons[key][2] = 1
         
     def drawBoard(self, currentState):
         self.handleEvents()
@@ -115,7 +113,7 @@ class UserInterface:
         for key in self.buttons:
             self.drawButton(key)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
-        self.drawScoreBoard(1,2)
+        self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
         pygame.display.flip()
     
     def initAssets(self):
@@ -152,16 +150,3 @@ class UserInterface:
         'load':[700,600, 1, self.loadAI],
         'start':[700,650, 1, self.startGame]
         }
-      
-#Stuff that shouldn't exist in the final product.
-#I'm using all this to check my drawboard method.
-import GameState, Location, Inventory, Ant
-a=UserInterface((860,700))
-a.initAssets()
-b = [[ Location.Location(True, 1, (row, col)) for col in xrange(0, BOARD_SIZE.width)] for row in xrange(0, BOARD_SIZE.height)]
-b[0][0].ant = Ant.Ant(0, (0,0), 0, 0)
-b[1][0].ant = Ant.Ant(0, (1,0), 0, 0)
-c = GameState.GameState(b, "inventories", "phase")
-
-while(True):
-    a.drawBoard(c)

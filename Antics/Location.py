@@ -20,9 +20,9 @@ class Location:
     #   inputMoveCost - The cost of moving through the Location (int)
     #   inputCoordinates - Where on the Board the Location is ((int, int))
     ##
-	def __init__(self, inputPassable, inputMoveCost, inputCoordinates):
-		self.isPassable = inputPassable
-		self.movementCost = inputMoveCost
-		self.ant = None
-		self.constr = None
-		self.coords = inputCoordinates
+    def __init__(self, inputPassable, inputMoveCost, inputCoordinates):
+        self.isPassable = inputPassable
+        self.movementCost = inputMoveCost
+        self.ant = None
+        self.constr = None
+        self.coords = inputCoordinates
