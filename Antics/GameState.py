@@ -6,6 +6,7 @@
 #   board - The game Board being used.
 #   inventories - A tuple containing the Inventory for each player.
 #   phase - The current phase of the game.
+#	whoseTurn - The ID of the Player who's turn it currently is.
 ##
 class GameState:
 
@@ -17,11 +18,13 @@ class GameState:
     #   inputBoard - The Board to be used by the GameState (Board)
     #   inputInventories - A tuple containing the Inventory for each player ((Inventory, Inventory))
     #   inputPhase - The phase of the game (int)
+	#	inputTurn - The ID of the Player who's turn it is (int)
     ##
-    def __init__(self, inputBoard, inputInventories, inputPhase):
+    def __init__(self, inputBoard, inputInventories, inputPhase, inputTurn):
         self.board = inputBoard
         self.inventories = inputInventories
         self.phase = inputPhase
+		self.whoseTurn = inputTurn
 
     ##
     #applyMove
