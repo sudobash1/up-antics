@@ -45,9 +45,6 @@ class UserInterface:
     def gameModeAIAI(self):
         print "Clicked GAME MODE AI AI"
     
-    def loadAI(self):
-        print "Clicked LOAD AI"
-    
     def startGame(self):
         print "Clicked START GAME"
     
@@ -147,6 +144,5 @@ class UserInterface:
         'tournament':[700,450, 1, self.gameModeTournament],
         'human':[700,500, 1, self.gameModeHumanAI],
         'ai':[700,550, 1, self.gameModeAIAI],
-        'load':[700,600, 1, self.loadAI],
         'start':[700,650, 1, self.startGame]
         }

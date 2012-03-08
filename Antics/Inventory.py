@@ -23,14 +23,26 @@ class Inventory:
     ##
     def __init__(self, playerId, antArray, inputFood, inputConstructions):
         self.player = playerId
-        self.ants = antArray
         self.foodCount = inputFood
+        self.ants = antArray
         self.queen = self.findQueen(antArray)
         self.constructions = inputConstructions
-        self.anthill = findAnthill(constructions)
+        self.anthill = self.findAnthill(inputConstructions)
         
     def findQueen(self, antArr):
+        if antArr == None:
+            return None
+        
         for checkAnt in antArr:
             if checkAnt.type == Ant.QUEEN: return checkAnt
+            
+        return None
+        
+    def findAnthill(self, constructionArr):
+        if constructionArr == None:
+            return None
+        
+        for checkConstruction in constructionArr:
+            if checkConstruction.type == Building.ANTHILL: return checkConstruction
             
         return None
