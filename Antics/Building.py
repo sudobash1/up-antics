@@ -17,14 +17,12 @@ class Building(Construction):
     #Description: Creates a new Building
     #
     #Parameters:
-    #   inputId - The id used to reference the Building (int)
     #   inputCoords - The location to place the new Building (int[])
     #   inputPlayer - The playerId of the Player that owns the Building (int)
     #   inputHealth - The amount of captureHealth to give the Building (int)
     ##
-	def __init__(self,inputId,inputCoords, inputType, inputPlayer, inputHealth):
-        super(Building,self).__init__(inputId,inputCoords)
-		self.type = inputType
+	def __init__(self,inputCoords, inputType, inputPlayer, inputHealth):
+        super(Building,self).__init__(inputCoords, inputType)
 		self.player = inputPlayer
 		self.captureHealth = inputHealth		
 	

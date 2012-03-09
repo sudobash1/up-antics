@@ -21,7 +21,7 @@ class Inventory:
     #   inputFood - The amount of food in the Inventory (int)
     #   inputConstructions - An array containing all of the Player's Constructions (Construction[])
     ##
-    def __init__(self, playerId, antArray, inputFood, inputConstructions):
+    def __init__(self, playerId, antArray, inputConstructions, inputFood):
         self.player = playerId
         self.foodCount = inputFood
         self.ants = antArray
