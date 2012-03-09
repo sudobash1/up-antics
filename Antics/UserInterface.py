@@ -48,6 +48,14 @@ class UserInterface:
     def startGame(self):
         print "Clicked START GAME"
     
+    def notify(self, message):
+        self.lastNotification = message
+    
+    def drawNotification(self):
+        messageSurface = self.gameFont.render(self.lastNotification, True, BLACK)
+        messageLocation = (700, 400)
+        self.screen.blit(messageSurface, messageLocation)
+    
     def drawConstruction(self, item, position):
         Xpixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.width * position[1]
         Ypixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.height * position[0]
@@ -71,7 +79,6 @@ class UserInterface:
         self.screen.blit(label1, scoreLocation)
         self.screen.blit(label2, add(scoreLocation, (0, label2.get_rect().height)))
         
-
     def handleButton(self, key, released):
         if self.buttons[key][2] != released and released == 1:
             self.buttons[key][3]()
@@ -111,6 +118,8 @@ class UserInterface:
             self.drawButton(key)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
         self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
+        #Draw notifications just above menu buttons.
+        self.drawNotifications()
         pygame.display.flip()
     
     def initAssets(self):
