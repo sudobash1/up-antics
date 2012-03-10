@@ -53,4 +53,4 @@ class GameState:
     #Return: The GameState identical to the original
     ##
     def clone(self):
-        return GameState(self.board.clone(), self.inventories.clone(), self.phase.clone())
+        return GameState(self.board.clone(), self.inventories.clone(), self.phase, self.whoseTurn)

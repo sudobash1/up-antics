@@ -19,12 +19,11 @@ class Building(Construction):
     #Parameters:
     #   inputCoords - The location to place the new Building (int[])
     #   inputPlayer - The playerId of the Player that owns the Building (int)
-    #   inputHealth - The amount of captureHealth to give the Building (int)
     ##
-	def __init__(self,inputCoords, inputType, inputPlayer, inputHealth):
+    def __init__(self,inputCoords, inputType, inputPlayer):
         super(Building,self).__init__(inputCoords, inputType)
-		self.player = inputPlayer
-		self.captureHealth = inputHealth		
-	
-	
-	
+        self.player = inputPlayer
+        self.captureHealth = CONSTR_STATS[inputType][1] #This probably won't work!
+    
+    
+    

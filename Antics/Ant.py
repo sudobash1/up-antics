@@ -1,5 +1,18 @@
+#Types of ants
 QUEEN = 0
+WORKER = 1
+DRONE = 2
+D_SOLDIER = 3
+I_SOLDIER = 4
 
+#Unit stats array
+#(movement, health, attack, range, cost)[type]
+UNIT_STATS = []
+UNIT_STATS.append((3, 3, 2, 1, None)) #Queen
+UNIT_STATS.append((1, 2, 1, 1, 1)) #Worker
+UNIT_STATS.append((3, 2, 1, 1, 1)) #Drone 
+UNIT_STATS.append((2, 3, 2, 1, 2)) #Direct soldier
+UNIT_STATS.append((1, 3, 1, 2, 2)) #Indirect soldier
 
 ##
 #Ant

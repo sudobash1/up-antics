@@ -18,7 +18,19 @@ class Player:
     ##
     def __init__(self, inputPlayerId):
         self.playerId = inputPlayerId
-
+    
+    ##
+    #getPlacement
+    #Description: called during setup phase for each Construction that must be placed by the player.
+    #   These items are: 1 Anthill on the player's side; 9 grass on the player's side; and 2 food on the enemy's side.
+    #
+    #Parameters:
+    #   construction - the Construction to be placed.
+    #   currentState - the state of the game at this point in time.
+    ##
+    def getPlacement(self, construction, currentState):
+        #implemented by students to return their next move
+    
     ##
     #getMove
     #Description: Gets the next move from the Player.
