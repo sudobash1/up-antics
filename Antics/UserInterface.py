@@ -161,3 +161,5 @@ class UserInterface:
         'ai':[700,550, 1, self.gameModeAIAI],
         'start':[700,650, 1, self.startGame]
         }
+        #Initial vaue for callback function that will be used to get cell clicks in game
+        self.locationCallback = self.locationClicked
