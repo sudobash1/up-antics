@@ -96,6 +96,9 @@ class UserInterface:
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
                         self.handleButton(key, 0)
+                #Additionally, check if a cell on the board has been clicked.
+                if event.pos.x % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos.y % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
+                    self.locationClicked((event.pos.x / (CELL_SPACING + CELL_SIZE.width), event.pos.y / (CELL_SPACING + CELL_SIZE.height)))
             elif event.type == pygame.MOUSEBUTTONUP:
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
