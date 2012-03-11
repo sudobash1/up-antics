@@ -97,8 +97,8 @@ class UserInterface:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
                         self.handleButton(key, 0)
                 #Additionally, check if a cell on the board has been clicked.
-                if event.pos.x % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos.y % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
-                    self.locationClicked((event.pos.x / (CELL_SPACING + CELL_SIZE.width), event.pos.y / (CELL_SPACING + CELL_SIZE.height)))
+                if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
+                    self.locationClicked((event.pos[0] / (CELL_SPACING + CELL_SIZE.width), event.pos[1] / (CELL_SPACING + CELL_SIZE.height)))
             elif event.type == pygame.MOUSEBUTTONUP:
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
@@ -125,7 +125,7 @@ class UserInterface:
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
         self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
         #Draw notifications just above menu buttons.
-        self.drawNotifications()
+        self.drawNotification()
         pygame.display.flip()
     
     def initAssets(self):
@@ -163,3 +163,5 @@ class UserInterface:
         }
         #Initial vaue for callback function that will be used to get cell clicks in game
         self.locationCallback = self.locationClicked
+        #Intial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
+        self.lastNotification = None

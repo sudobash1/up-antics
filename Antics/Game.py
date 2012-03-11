@@ -37,11 +37,10 @@ class Game:
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
         self.ui = UserInterface((860,700))
         self.ui.initAssets()
-        self.ui.buttons['start'][3] = self.startGame()
-        self.ui.buttons['tournament'][3] = self.tournamentPath()
-        self.ui.buttons['human'][3] = self.humanPath()
-        self.ui.buttons['ai'][3] = self.aiPath()
-        self.runGame()
+        self.ui.buttons['start'][3] = self.startGame
+        self.ui.buttons['tournament'][3] = self.tournamentPath
+        self.ui.buttons['human'][3] = self.humanPath
+        self.ui.buttons['ai'][3] = self.aiPath
         self.mode = None
         #self.scores
         
