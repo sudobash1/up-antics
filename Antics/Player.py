@@ -1,8 +1,8 @@
 ##
 #Player
 #Description: The responsbility of this class is to interact with the game by
-#deciding a valid move based on a given game state. This class has methods that
-#will be implemented by students in Dr. Nuxoll's AI course.
+#deciding a valid move based on a given game state. This class is abstract and
+#should not be instantiated.
 #
 #Variables:
 #   playerId - The id of the player.
@@ -27,9 +27,12 @@ class Player:
     #Parameters:
     #   construction - the Construction to be placed.
     #   currentState - the state of the game at this point in time.
+    #
+    #Return: The coordinates of where the construction is to be placed
     ##
     def getPlacement(self, construction, currentState):
-        #implemented by students to return their next move
+        #method template, not implemented
+        pass
     
     ##
     #getMove
@@ -41,7 +44,8 @@ class Player:
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-        #implemented by students to return their next move
+        #method template, not implemented
+        pass
     
     ##
     #getAttack
@@ -51,4 +55,5 @@ class Player:
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, enemyLocations):
-        #implemented by students to select which enemy ant to attack
+        #method template, not implemented
+        pass

@@ -103,7 +103,7 @@ class Game:
                     elif self.state.phase == PLAY_PHASE:
                         pass
                     else:
-                        #something went wrong
+                        #something went wrong, exit gracefully
                         pass
                     
                     break
