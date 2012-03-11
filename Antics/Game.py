@@ -9,6 +9,7 @@ from GameState import *
 from Inventory import *
 from Location import *
 from Ant import *
+from Player import *
 
 #Player IDs
 PLAYER_ONE = 0
@@ -53,17 +54,16 @@ class Game:
             if self.mode == TOURNAMENT_MODE:
                 #Check stuff is valid for tournament mode
                 self.mode = None
-                
+            
             #If game mode is human vs AI
             if self.mode == HUMAN_MODE:
                 #Add the human player to the player list
-                self.players.append(Player(len(self.players))
+                self.players.append(Player(len(self.players)))
                 
                 #Check right number of players
-                if not len(self.players) == 2:
-                    self.state.phase = MENU_PHASE
-                
-                
+                if len(self.players) != 2:
+                    self.mode = MENU_PHASE
+            
             #If game mode is AI vs AI
             if self.mode == AI_MODE:
                 #Check stuff is valid for AvA mode
@@ -72,15 +72,16 @@ class Game:
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
                 #init game stuffs
-                    #build a list of things to place
-                        #things to place: anthill/queen, 9 obstacles, 2 food sources (for opponent)
-                        constrsToPlace = []
-                        constrsToPlace += [Building(None, ANTHILL, i) for i in xrange(0,2)]
-                        constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
-                        constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
-                                
+                #build a list of things to place
+                #things to place: anthill/queen, 9 obstacles, 2 food sources (for opponent)
+                constrsToPlace = []
+                constrsToPlace += [Building(None, ANTHILL, i) for i in xrange(0,2)]
+                constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
+                constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
+                
                 while self.isGameOver(PLAYER_ONE) and not self.isGameOver(PLAYER_TWO):
                     #WE NEED TO DRAW THE BOARD AGAIN!!!
+                    self.ui.drawBoard(self.state)
                 
                     if self.state.phase == SETUP_PHASE:
                         destination = self.players[self.state.whoseTurn].getPlacement(constrsToPlace[0], self.state.clone())
@@ -94,14 +95,16 @@ class Game:
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
                             #Bad location (from AI), exit gracefully
-                            
+                            pass
+                        
                         if not constrsToPlace:
                             self.state.phase == PLAY_PHASE
                         
                     elif self.state.phase == PLAY_PHASE:
-                        
+                        pass
                     else:
                         #something went wrong
+                        pass
                     
                     break
                     #check what type first player is
@@ -168,6 +171,7 @@ class Game:
     def locationClickedCallback(self, coords):
         #Check if valid location clicked (check context based on current phase?)
         #If valid, add location to movelist, or perform attack on location.
+        pass
     
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
