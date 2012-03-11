@@ -11,13 +11,13 @@ BLACK = (0, 0, 0)
 CELL_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 10
 
-def add(tuple1, tuple2):
+def addCoords(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
         return None
     else:
         return tuple([tuple1[i] + tuple2[i] for i in range(0, len(tuple1))])
 
-def subtract(tuple1, tuple2):
+def subtractCoords(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
         return None
     else:
@@ -48,6 +48,9 @@ class UserInterface:
     def startGame(self):
         print "Clicked START GAME"
     
+    def locationClicked(self, coords):
+        print "Clicked LOCATION " + str(coords)
+    
     def notify(self, message):
         self.lastNotification = message
     
@@ -68,16 +71,16 @@ class UserInterface:
     
     def drawButton(self, key):
         label = self.gameFont.render(key, True, BLACK)
-        offset = subtract(self.buttonRect.center, label.get_rect().center)
+        offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
         self.screen.blit(self.buttonTextures[self.buttons[key][2]], self.buttons[key][:2])
-        self.screen.blit(label, add(self.buttons[key][:2], offset))
+        self.screen.blit(label, addCoords(self.buttons[key][:2], offset))
     
     def drawScoreBoard(self, player1Score, player2Score):
         label1 = self.gameFont.render("Player 1: " + str(player1Score) + " Food", True, BLACK)
         label2 = self.gameFont.render("Player 2: " + str(player2Score) + " Food", True, BLACK)
         scoreLocation = (700, 160)
         self.screen.blit(label1, scoreLocation)
-        self.screen.blit(label2, add(scoreLocation, (0, label2.get_rect().height)))
+        self.screen.blit(label2, addCoords(scoreLocation, (0, label2.get_rect().height)))
         
     def handleButton(self, key, released):
         if self.buttons[key][2] != released and released == 1:
@@ -99,7 +102,7 @@ class UserInterface:
                         self.handleButton(key, 1)
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
                 for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][:2]).collidepoint(add(event.pos, event.rel)):
+                    if self.buttonRect.move(self.buttons[key][:2]).collidepoint(addCoords(event.pos, event.rel)):
                         self.buttons[key][2] = 0
                     else:
                         self.buttons[key][2] = 1

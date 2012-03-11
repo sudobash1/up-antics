@@ -165,6 +165,10 @@ class Game:
         #Revert working directory to parent.
         os.chdir('..')
     
+    def locationClickedCallback(self, coords):
+        #Check if valid location clicked (check context based on current phase?)
+        #If valid, add location to movelist, or perform attack on location.
+    
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
         opponentId = (playerId + 1) % 2
