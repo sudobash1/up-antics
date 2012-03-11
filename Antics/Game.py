@@ -79,7 +79,7 @@ class Game:
                 constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
                 
                 while self.isGameOver(PLAYER_ONE) and not self.isGameOver(PLAYER_TWO):
-                    #WE NEED TO DRAW THE BOARD AGAIN!!!
+                    #Draw the board again (to recognize user input in game loop)
                     self.ui.drawBoard(self.state)
                 
                     if self.state.phase == SETUP_PHASE:

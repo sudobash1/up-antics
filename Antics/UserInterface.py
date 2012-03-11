@@ -133,9 +133,17 @@ class UserInterface:
         #Declare the name of the folder that all textures are in.
         texFolder = "Textures"
         #Load textures as Surfaces. Should convert these surfaces later for optimal speed.
-        self.grass = pygame.image.load(os.path.join(texFolder, "grass.bmp"))
+        self.constructions = []
+        self.constructions.append(pygame.image.load(os.path.join(texFolder, "anthill.bmp")))
+        self.constructions.append(pygame.image.load(os.path.join(texFolder, "antTunnel.bmp")))
+        self.constructions.append(pygame.image.load(os.path.join(texFolder, "grass.bmp")))
+        self.constructions.append(pygame.image.load(os.path.join(texFolder, "food.bmp")))
         self.ants = []
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "ant.bmp")))
+        self.ants.append(pygame.image.load(os.path.join(texFolder, "queen.bmp")))
+        self.ants.append(pygame.image.load(os.path.join(texFolder, "worker.bmp")))
+        self.ants.append(pygame.image.load(os.path.join(texFolder, "drone.bmp")))
+        self.ants.append(pygame.image.load(os.path.join(texFolder, "direct.bmp")))
+        self.ants.append(pygame.image.load(os.path.join(texFolder, "indirect.bmp")))
         #Button textures
         self.buttonTextures = []
         self.buttonTextures.append(pygame.image.load(os.path.join(texFolder, "buttonDown.bmp")))
