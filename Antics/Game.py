@@ -2,14 +2,13 @@
 #Game
 #Description: Keeps track of game logic and manages the play loop.
 ##
-import os
+import os, re, sys
 from UserInterface import *
 from Construction import *
 from GameState import *
 from Inventory import *
 from Location import *
 from Ant import *
-from Player import *
 
 #Player IDs
 PLAYER_ONE = 0
@@ -49,24 +48,6 @@ class Game:
         while True:
             self.ui.drawBoard(self.state)
             #Determine current chosen game mode. Enter different execution paths based on the mode, which must be chosen by clicking a button.
-            #If game mode is tournament
-            if self.mode == TOURNAMENT_MODE:
-                #Check stuff is valid for tournament mode
-                self.mode = None
-            
-            #If game mode is human vs AI
-            if self.mode == HUMAN_MODE:
-                #Add the human player to the player list
-                self.players.append(Player(len(self.players)))
-                
-                #Check right number of players
-                if len(self.players) != 2:
-                    self.mode = MENU_PHASE
-            
-            #If game mode is AI vs AI
-            if self.mode == AI_MODE:
-                #Check stuff is valid for AvA mode
-                self.mode = None
             
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
@@ -83,8 +64,10 @@ class Game:
                     self.ui.drawBoard(self.state)
                 
                     if self.state.phase == SETUP_PHASE:
-                        destination = self.players[self.state.whoseTurn].getPlacement(constrsToPlace[0], self.state.clone())
-                        if isValidPlacement(destination):
+                        currentPlayer = self.players[self.state.whoseTurn]
+                        destination = currentPlayer.getPlacement(constrsToPlace[0], self.state.clone())
+                        validPlace = isValidPlacement(destination)
+                        if validPlace:
                             constr = constrsToPlace.pop(0)
                             #give constr its coords
                             constr.coords = destination
@@ -93,8 +76,11 @@ class Game:
                             #change player turn
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
-                            #Bad location (from AI), exit gracefully
-                            pass
+                            if currentPlayer is AIPlayer:
+                                #exit gracefully
+                                exit(0)
+                            elif validPlace != None:
+                                self.ui.notify("Invalid placement")
                         
                         if not constrsToPlace:
                             self.state.phase == PLAY_PHASE
@@ -118,7 +104,8 @@ class Game:
                         #check isGameOver If so, break 
                 
     def startGame(self):
-        self.state.phase = SETUP_PHASE
+        if self.mode != None:
+            self.state.phase = SETUP_PHASE
                 
     def tournamentPath(self):
         #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
@@ -126,17 +113,22 @@ class Game:
             return
         #Attempt to load the AI files
         self.loadAIs()
-        #If successful, set the mode.
-        self.mode = TOURNAMENT_MODE
+        #Check right number of players, if successful set the mode.
+        if len(self.players) >= 2:
+            self.mode = TOURNAMENT_MODE
+        self.mode = None # DELETE THIS LINE LATER!!
         
     def humanPath(self):
         #If already in human mode, do nothing.
         if self.mode == HUMAN_MODE:
             return
         #Attempt to load the AI files
-        self.loadAIs()
-        #If successful, set the mode.
-        self.mode = HUMAN_MODE
+        self.loadAIs() 
+        #Add the human player to the player list
+        self.players.append(HumanPlayer(len(self.players)))                
+        #Check right number of players, if successful set the mode.
+        if len(self.players) == 2:
+            self.mode = HUMAN_MODE
     
     def aiPath(self):
         #If already in ai mode, do nothing.
@@ -144,8 +136,10 @@ class Game:
             return
         #Attempt to load the AI files
         self.loadAIs()
-        #If successful, set the mode.
-        self.mode = AI_MODE
+        #Check right number of players, if successful set the mode.
+        if len(self.players) == 2:
+            self.mode = AI_MODE
+        self.mode = None # DELETE THIS LINE LATER!!
     
     def loadAIs(self):
         #Reset the player list in case some have been loaded already
@@ -154,6 +148,12 @@ class Game:
         filesInAIFolder = os.listdir("AI")
         #Change directory to AI subfolder so modules can be loaded (they won't load as filenames).
         os.chdir('AI')
+        #IF WE FOUND A BUG IN PYTHON!!!!
+        #Details: changing directory, then importing in python terminal will first check subdirectories for modules.
+        #   However, modules will not be foud if this function is used. Does it have to do with it being in a function?
+        #Add current directory in python's import search order.
+        sys.path.insert(0, os.getcwd())
+        #Make player instances from all AIs in folder.
         for file in filesInAIFolder:
             if re.match(".*\.py", file):
                 moduleName = file.rstrip('.py')
@@ -163,14 +163,23 @@ class Game:
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append(temp.Player(len(self.players)))
+                self.players.append(temp.AIPlayer(len(self.players)))
+        #Remove current directory from python's import search order.
+        sys.path.pop(0)
         #Revert working directory to parent.
         os.chdir('..')
     
     def locationClickedCallback(self, coords):
-        #Check if valid location clicked (check context based on current phase?)
-        #If valid, add location to movelist, or perform attack on location.
-        pass
+        #Check if its human player's turn
+        if self.phase != MENU_PHASE and self.players[self.whoseTurn] is HumanPlayer:
+            currentPlayer = self.players[self.whoseTurn]
+           
+            #add location to human player's movelist, context-free since Game will check appropriatocity...??
+            if len(currentPlayer.moveList) != 0 and coords == currentPlayer.moveList[-1]:
+                currentPlayer.moveList.pop()
+            else:
+                currentPlayer.moveList.append(coords)
+            
     
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
@@ -198,6 +207,9 @@ class Game:
         #    (inputMove.toLoc.ant == None) 
     
     def isValidAttack(self):
+        pass
+        
+    def isValidPlacement(self):
         pass
 
 

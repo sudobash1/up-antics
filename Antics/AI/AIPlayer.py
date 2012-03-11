@@ -16,6 +16,7 @@
     ##
     def __init__(self, inputPlayerId):
         super(HumanPlayer,self).__init__(inputPlayerId)
+        self.author = "Max Ackley and Cole Mercer"
     
     ##
     #getPlacement
@@ -29,8 +30,8 @@
     #Return: The coordinates of where the construction is to be placed
     ##
     def getPlacement(self, construction, currentState):
-        #method template, not implemented
         #implemented by students to return their next move
+        return (0,0)
     
     ##
     #getMove
@@ -42,7 +43,6 @@
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-        #method template, not implemented
         #implemented by students to return their next move
     
     ##
@@ -53,5 +53,4 @@
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, enemyLocations):
-        #method template, not implemented
         #implemented by students to select which enemy ant to attack

@@ -151,9 +151,10 @@ class UserInterface:
         #Button rectangle
         self.buttonRect = self.buttonTextures[0].get_rect()
         #Make CELL_SIZE equal to the size of an ant image.
-        CELL_SIZE = self.grass.get_rect()
+        CELL_SIZE = self.constructions[0].get_rect()
         #Make White transparent (alpha 0) for all textures (well, buttons don't actually need it).
-        self.grass.set_colorkey(WHITE)
+        for construction in self.constructions:
+            construction.set_colorkey(WHITE)
         for ant in self.ants:
             ant.set_colorkey(WHITE)
         #Set up fonts.
