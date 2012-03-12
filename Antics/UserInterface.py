@@ -1,6 +1,7 @@
 ##
 #UserInterface
-#Description: This class renders the game board through pygame library method calls
+#Description: This class renders the game board through pygame library method calls,
+#   and handles user input events.
 #
 ##
 import pygame, os, sys
@@ -24,27 +25,62 @@ def subtractCoords(tuple1, tuple2):
         return tuple([tuple1[i] - tuple2[i] for i in range(0, len(tuple1))])
 
 class UserInterface:
+    ##
+    #__init__
+    #Description: Creates a new UserInterface
+    #
+    #Parameters:
+    #   inputSize - the size of the window to be created, in pixels.
+    ##
     def __init__(self, inputSize):
         self.screen = pygame.display.set_mode(inputSize)
     
+    ##
+    #submitMove
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def submitMove(self):
         print "Clicked SUBMIT MOVE"
     
+    ##
+    #submitWait
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def submitWait(self):
         print "Clicked SUBMIT WAIT"
     
+    ##
+    #submitEndTurn
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def submitEndTurn(self):
         print "Clicked SUBMIT END TURN"
     
+    ##
+    #gameModeTournament
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def gameModeTournament(self):
         print "Clicked GAME MODE TOURNAMENT"
     
+    ##
+    #gameModeHumanAI
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def gameModeHumanAI(self):
         print "Clicked GAME MODE HUMAN AI"
     
+    ##
+    #gameModeAIAI
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def gameModeAIAI(self):
         print "Clicked GAME MODE AI AI"
     
+    ##
+    #startGame
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def startGame(self):
         print "Clicked START GAME"
     
@@ -59,22 +95,53 @@ class UserInterface:
         messageLocation = (700, 400)
         self.screen.blit(messageSurface, messageLocation)
     
+    ##
+    #drawConstruction
+    #Description: Draws a non-moving structure of the specified type to the specified location on the game board.
+    #
+    #Parameters:
+    #   item - an object subclassed from Construction.
+    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
+    ##
     def drawConstruction(self, item, position):
         Xpixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.width * position[1]
         Ypixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.height * position[0]
         self.screen.blit(self.constructions[item.type], (Xpixel, Ypixel))
     
+    ##
+    #drawAnt
+    #Description: Draws an Ant of the specified type to the specified location on the game board.
+    #
+    #Parameters:
+    #   ant - an Ant object.
+    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
+    ##
     def drawAnt(self, ant, position):
         Xpixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.width * position[1]
         Ypixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.height * position[0]
         self.screen.blit(self.ants[ant.type], (Xpixel, Ypixel))
     
+    ##
+    #drawButton
+    #Description: Draws a button to the board. All necessary information is contained in self.buttons under the given key.
+    #
+    #Parameters:
+    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
+    ##
     def drawButton(self, key):
         label = self.gameFont.render(key, True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
         self.screen.blit(self.buttonTextures[self.buttons[key][2]], self.buttons[key][:2])
         self.screen.blit(label, addCoords(self.buttons[key][:2], offset))
     
+    ##
+    #drawScoreBoard
+    #Description: Draws the scores of both players as given.
+    #
+    #Parameters:
+    #   player1Score - the integer value of player 1's food stock.
+    #   player2Score - the integer value of player 2's food stock.
+    ##
     def drawScoreBoard(self, player1Score, player2Score):
         label1 = self.gameFont.render("Player 1: " + str(player1Score) + " Food", True, BLACK)
         label2 = self.gameFont.render("Player 2: " + str(player2Score) + " Food", True, BLACK)
@@ -82,12 +149,30 @@ class UserInterface:
         self.screen.blit(label1, scoreLocation)
         self.screen.blit(label2, addCoords(scoreLocation, (0, label2.get_rect().height)))
         
+    ##
+    #handleButton
+    #Description: Handles the finer details of what happens when a user is clicking on buttons.
+    #   The button will only be counted as clicked if the user both presses and releases a mouse
+    #   button while hovering over the game button. If clicked, a callback function will be used
+    #   to notify Game.py.
+    #
+    #Parameters:
+    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
+    #   released - an integer/boolean that represents the state of the button: 1 if the button
+    #   is released, or 0 if the button is depressed.
+    ##
     def handleButton(self, key, released):
         if self.buttons[key][2] != released and released == 1:
             self.buttons[key][3]()
         
         self.buttons[key][2] = released
     
+    ##
+    #handleEvents
+    #Description: Handles the more generic mouse movements. Finds out what has been
+    #   clicked, and either calls handleButton on the activated button, or returns
+    #   the board coordinates of the cell that was clicked.
+    ##
     def handleEvents(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -109,7 +194,14 @@ class UserInterface:
                         self.buttons[key][2] = 0
                     else:
                         self.buttons[key][2] = 1
-        
+    
+    ##
+    #drawBoard
+    #Description: This is the bread and butter of the UserInterface class. Everything
+    #   starts drawing from here.
+    #
+    #Parameters:
+    #   currentState - 
     def drawBoard(self, currentState):
         self.handleEvents()
         self.screen.fill(WHITE)
