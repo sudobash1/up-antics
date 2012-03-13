@@ -1,3 +1,5 @@
+from Construction import *
+
 ##
 #Building
 #Description: Represents any static object that can be placed on the board

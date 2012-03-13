@@ -1,3 +1,5 @@
+from Player import *
+
 ##
 #HumanPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -30,7 +32,9 @@ class HumanPlayer(Player):
     #Return: The coordinates of where the construction is to be placed
     ##
     def getPlacement(self, construction, currentState):
-        target = moveList[0]
+        if len(self.moveList) == 0:
+            return None
+        target = self.moveList[0]
         self.moveList = []
         return target
         

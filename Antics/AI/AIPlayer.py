@@ -1,4 +1,4 @@
-from Player import Player
+from Player import *
 
 ##
 #AIPlayer
@@ -18,8 +18,6 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        import pdb
-        pdb.set_trace()
         super(AIPlayer,self).__init__(inputPlayerId)
         self.author = "Max Ackley and Cole Mercer"
     

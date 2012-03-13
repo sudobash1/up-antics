@@ -53,4 +53,5 @@ class GameState(object):
     #Return: The GameState identical to the original
     ##
     def clone(self):
-        return GameState(self.board.clone(), self.inventories.clone(), self.phase, self.whoseTurn)
+        newBoard = [[self.board[row][col].clone() for col in xrange(0,len(self.board))] for row in xrange(0,len(self.board))]
+        return GameState(newBoard, [self.inventories[0].clone(), self.inventories[1].clone()], self.phase, self.whoseTurn)

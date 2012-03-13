@@ -20,3 +20,9 @@ class Location(object):
         self.ant = None
         self.constr = None
         self.coords = inputCoordinates
+        
+    def clone(self):
+        newLoc = Location(self.coords)
+        newLoc.ant = self.ant
+        newLoc.constr = self.constr
+        return newLoc

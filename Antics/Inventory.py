@@ -23,11 +23,11 @@ class Inventory(object):
     ##
     def __init__(self, playerId, antArray, inputConstructions, inputFood):
         self.player = playerId
-        self.foodCount = inputFood
         self.ants = antArray
         self.queen = self.findQueen(antArray)
         self.constructions = inputConstructions
-        self.anthill = self.findAnthill(inputConstructions)
+        self.anthill = self.findAnthill(inputConstructions)      
+        self.foodCount = inputFood
         
     def findQueen(self, antArr):
         if antArr == None:
@@ -46,3 +46,6 @@ class Inventory(object):
             if checkConstruction.type == Building.ANTHILL: return checkConstruction
             
         return None
+        
+    def clone(self):
+        return Inventory(self.player,self.ants,self.constructions,self.foodCount)

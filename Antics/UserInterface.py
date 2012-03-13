@@ -9,7 +9,9 @@ from pygame.locals import *
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (150, 0, 0)
 CELL_SIZE = Rect(0,0,10,10)
+BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 10
 
 def addCoords(tuple1, tuple2):
@@ -91,9 +93,8 @@ class UserInterface(object):
         self.lastNotification = message
     
     def drawNotification(self):
-        messageSurface = self.gameFont.render(self.lastNotification, True, BLACK)
-        messageLocation = (700, 400)
-        self.screen.blit(messageSurface, messageLocation)
+        messageSurface = self.notifyFont.render(self.lastNotification, True, RED)
+        self.screen.blit(messageSurface, self.messageLocation)
     
     ##
     #drawConstruction
@@ -145,9 +146,8 @@ class UserInterface(object):
     def drawScoreBoard(self, player1Score, player2Score):
         label1 = self.gameFont.render("Player 1: " + str(player1Score) + " Food", True, BLACK)
         label2 = self.gameFont.render("Player 2: " + str(player2Score) + " Food", True, BLACK)
-        scoreLocation = (700, 160)
-        self.screen.blit(label1, scoreLocation)
-        self.screen.blit(label2, addCoords(scoreLocation, (0, label2.get_rect().height)))
+        self.screen.blit(label1, self.scoreLocation)
+        self.screen.blit(label2, addCoords(self.scoreLocation, (0, label2.get_rect().height)))
         
     ##
     #handleButton
@@ -183,7 +183,10 @@ class UserInterface(object):
                         self.handleButton(key, 0)
                 #Additionally, check if a cell on the board has been clicked.
                 if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
-                    self.locationClicked((event.pos[0] / (CELL_SPACING + CELL_SIZE.width), event.pos[1] / (CELL_SPACING + CELL_SIZE.height)))
+                    x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
+                    y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
+                    if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
+                        self.locationClicked((x, y))
             elif event.type == pygame.MOUSEBUTTONUP:
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
@@ -252,15 +255,20 @@ class UserInterface(object):
         #Set up fonts.
         pygame.font.init()
         self.gameFont = pygame.font.Font(None, 25)
+        self.notifyFont = pygame.font.Font(None, 15)
+        #Where should scores be drawn?
+        self.scoreLocation = (800, 160)
+        #Where should notifications be drawn?
+        self.messageLocation = (800, 400)
         #Button statistics in order: x, y, buttonState(pressed/released)
         self.buttons = {
-        'move':[700,10, 1, self.submitMove],
-        'wait':[700,60, 1, self.submitWait],
-        'end':[700,110, 1, self.submitEndTurn],
-        'tournament':[700,450, 1, self.gameModeTournament],
-        'human':[700,500, 1, self.gameModeHumanAI],
-        'ai':[700,550, 1, self.gameModeAIAI],
-        'start':[700,650, 1, self.startGame]
+        'move':[800,10, 1, self.submitMove],
+        'wait':[800,60, 1, self.submitWait],
+        'end':[800,110, 1, self.submitEndTurn],
+        'tournament':[800,450, 1, self.gameModeTournament],
+        'human':[800,500, 1, self.gameModeHumanAI],
+        'ai':[800,550, 1, self.gameModeAIAI],
+        'start':[800,650, 1, self.startGame]
         }
         #Initial vaue for callback function that will be used to get cell clicks in game
         self.locationCallback = self.locationClicked

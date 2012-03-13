@@ -2,11 +2,12 @@
 #Game
 #Description: Keeps track of game logic and manages the play loop.
 ##
-import os, re, sys
+import os, re, sys, HumanPlayer
 from UserInterface import *
 from Construction import *
 from GameState import *
 from Inventory import *
+from Building import *
 from Location import *
 from Ant import *
 
@@ -34,14 +35,18 @@ class Game(object):
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
-        self.ui = UserInterface((860,700))
+        self.scores = [0,0]
+        self.mode = None
+        self.ui = UserInterface((960,700))
         self.ui.initAssets()
+        #UI Callback functions
         self.ui.buttons['start'][3] = self.startGame
         self.ui.buttons['tournament'][3] = self.tournamentPath
         self.ui.buttons['human'][3] = self.humanPath
         self.ui.buttons['ai'][3] = self.aiPath
-        self.mode = None
-        #self.scores
+        self.ui.locationClicked = self.locationClickedCallback
+        
+    
         
     def runGame(self):
         # initialize board be ready for player input for game parameter
@@ -51,6 +56,7 @@ class Game(object):
             
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
+                print "Game Started!"
                 #init game stuffs
                 #build a list of things to place
                 #things to place: anthill/queen, 9 obstacles, 2 food sources (for opponent)
@@ -59,14 +65,14 @@ class Game(object):
                 constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
                 constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
                 
-                while self.isGameOver(PLAYER_ONE) and not self.isGameOver(PLAYER_TWO):
+                while not self.isGameOver(PLAYER_ONE) and not self.isGameOver(PLAYER_TWO):
                     #Draw the board again (to recognize user input in game loop)
                     self.ui.drawBoard(self.state)
                 
                     if self.state.phase == SETUP_PHASE:
                         currentPlayer = self.players[self.state.whoseTurn]
                         destination = currentPlayer.getPlacement(constrsToPlace[0], self.state.clone())
-                        validPlace = isValidPlacement(destination)
+                        validPlace = self.isValidPlacement(destination)
                         if validPlace:
                             constr = constrsToPlace.pop(0)
                             #give constr its coords
@@ -76,7 +82,7 @@ class Game(object):
                             #change player turn
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
-                            if currentPlayer is AIPlayer:
+                            if str(currentPlayer).find("AIPlayer") != -1:
                                 #exit gracefully
                                 exit(0)
                             elif validPlace != None:
@@ -91,7 +97,6 @@ class Game(object):
                         #something went wrong, exit gracefully
                         pass
                     
-                    break
                     #check what type first player is
                         #get move(list of locs) from first player until end turn is submitted
                         #If computer player, check validMove 
@@ -125,7 +130,7 @@ class Game(object):
         #Attempt to load the AI files
         self.loadAIs() 
         #Add the human player to the player list
-        self.players.append(HumanPlayer(len(self.players)))                
+        self.players.insert(0, HumanPlayer.HumanPlayer(len(self.players)))                
         #Check right number of players, if successful set the mode.
         if len(self.players) == 2:
             self.mode = HUMAN_MODE
@@ -156,7 +161,7 @@ class Game(object):
         sys.path.insert(0, os.getcwd())
         #Make player instances from all AIs in folder.
         for file in filesInAIFolder:
-            if re.match(".*\.py", file):
+            if re.match(".*\.py$", file):
                 moduleName = file.rstrip('.py')
                 #Check to see if the file is already loaded.
                 temp = __import__(moduleName, globals(), locals(), [], -1)
@@ -171,9 +176,11 @@ class Game(object):
         os.chdir('..')
     
     def locationClickedCallback(self, coords):
+        import pdb
+        pdb.set_trace()
         #Check if its human player's turn
-        if self.phase != MENU_PHASE and self.players[self.whoseTurn] is HumanPlayer:
-            currentPlayer = self.players[self.whoseTurn]
+        if self.state.phase != MENU_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+            currentPlayer = self.players[self.state.whoseTurn]
            
             #add location to human player's movelist, context-free since Game will check appropriatocity...??
             if len(currentPlayer.moveList) != 0 and coords == currentPlayer.moveList[-1]:
@@ -185,6 +192,9 @@ class Game(object):
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
         opponentId = (playerId + 1) % 2
+        
+        #temp, remove later
+        return False
         
         #if ((self.state.phase == PLAY_PHASE) and 
         #((self.state.inventories[playerId].queen.isAlive == False) or
@@ -210,8 +220,11 @@ class Game(object):
     def isValidAttack(self):
         pass
         
-    def isValidPlacement(self):
-        pass
+    def isValidPlacement(self, target):
+        #temp, remove later
+        if target == None:
+            return None
+        return True
 
 
 a = Game()
