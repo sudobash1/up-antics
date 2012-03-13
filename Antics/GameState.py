@@ -8,7 +8,7 @@
 #   phase - The current phase of the game.
 #    whoseTurn - The ID of the Player who's turn it currently is.
 ##
-class GameState:
+class GameState(object):
 
     ##
     #__init__

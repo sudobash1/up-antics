@@ -10,7 +10,7 @@
 #    constructions - An array of all the Player's Constructions
 #   foodCount - The amount of food that the player has to use
 ##
-class Inventory:
+class Inventory(object):
 
     ##
     #__init__

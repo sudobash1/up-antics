@@ -26,7 +26,7 @@ MENU_PHASE = 0
 SETUP_PHASE = 1
 PLAY_PHASE = 2
 
-class Game:
+class Game(object):
     def __init__(self):
         self.players = []
         #BOARDS ARE SQUARE
@@ -129,6 +129,7 @@ class Game:
         #Check right number of players, if successful set the mode.
         if len(self.players) == 2:
             self.mode = HUMAN_MODE
+            self.ui.notify("Mode changed to human")
     
     def aiPath(self):
         #If already in ai mode, do nothing.

@@ -24,7 +24,7 @@ def subtractCoords(tuple1, tuple2):
     else:
         return tuple([tuple1[i] - tuple2[i] for i in range(0, len(tuple1))])
 
-class UserInterface:
+class UserInterface(object):
     ##
     #__init__
     #Description: Creates a new UserInterface

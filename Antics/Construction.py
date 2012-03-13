@@ -24,7 +24,7 @@ CONSTR_STATS.append((1,None)) #Food
 #       the board.  Positions start at (0, 0) in the upper left and increase
 #       down and to the right.
 ##
-class Construction:
+class Construction(object):
 
     ##
     #__init__

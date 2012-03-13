@@ -7,7 +7,7 @@
 #   constr - The construction found at this location 
 #   coords - The coordinates of this location
 ##
-class Location:
+class Location(object):
 
     ##
     #__init__

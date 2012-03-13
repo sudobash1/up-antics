@@ -9,7 +9,7 @@
 #    locList - The list of Locations representing the path to take
 #   unitType - This identifies the type of a unit(only relevant to Moves of type build)
 ##
-class Move:
+class Move(object):
 
     ##
     #__init__

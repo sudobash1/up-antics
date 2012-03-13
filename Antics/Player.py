@@ -7,7 +7,7 @@
 #Variables:
 #   playerId - The id of the player.
 ##
-class Player:
+class Player(object):
 
     ##
     #__init__

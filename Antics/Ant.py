@@ -32,7 +32,7 @@ UNIT_STATS.append((1, 3, 1, 2, 2)) #Indirect soldier
 #   carrying - A boolean representing if the Ant's carrying food or not.
 #   player - The id of the player that owns the Ant
 ##
-class Ant:
+class Ant(object):
     
     ##
     #__init__

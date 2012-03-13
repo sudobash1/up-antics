@@ -1,3 +1,5 @@
+from Player import Player
+
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -7,6 +9,7 @@
 #Variables:
 #   playerId - The id of the player.
 ##
+class AIPlayer(Player):
 
     #__init__
     #Description: Creates a new Player
@@ -15,7 +18,9 @@
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(HumanPlayer,self).__init__(inputPlayerId)
+        import pdb
+        pdb.set_trace()
+        super(AIPlayer,self).__init__(inputPlayerId)
         self.author = "Max Ackley and Cole Mercer"
     
     ##
@@ -44,6 +49,7 @@
     ##
     def getMove(self, currentState):
         #implemented by students to return their next move
+        pass
     
     ##
     #getAttack
@@ -54,3 +60,4 @@
     ##
     def getAttack(self, enemyLocations):
         #implemented by students to select which enemy ant to attack
+        pass
