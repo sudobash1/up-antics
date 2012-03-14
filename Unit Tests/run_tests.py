@@ -1,7 +1,7 @@
 import os
 
 directoryContents = os.listdir(os.getcwd())
-unitTestFiles = filter(lamda x: x.endswith('.py') and x != 'run_tests.py', directoryContents)
+unitTestFiles = filter(lamda x: x.startswith('test_') and x.endswith('.py') and x != 'run_tests.py', directoryContents)
 unitTestModules = [__import__(file.rstrip('.py'), globals(), locals(), [], -1) for file in unitTestFiles]
 
 failures = False
