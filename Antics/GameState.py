@@ -1,3 +1,15 @@
+#Player IDs
+PLAYER_ONE = 0
+PLAYER_TWO = 1
+
+#Length of the board (it's square)
+BOARD_LENGTH = 10
+
+#Game Phases
+MENU_PHASE = 0
+SETUP_PHASE = 1
+PLAY_PHASE = 2
+
 ##
 #GameState
 #Description: The current state of the game.
@@ -18,7 +30,7 @@ class GameState(object):
     #   inputBoard - The Board to be used by the GameState (Board)
     #   inputInventories - A tuple containing the Inventory for each player ((Inventory, Inventory))
     #   inputPhase - The phase of the game (int)
-    #    inputTurn - The ID of the Player who's turn it is (int)
+    #   inputTurn - The ID of the Player who's turn it is (int)
     ##
     def __init__(self, inputBoard, inputInventories, inputPhase, inputTurn):
         self.board = inputBoard
@@ -46,6 +58,30 @@ class GameState(object):
         self.board[fromX][fromY].ant = None
         self.board[toX][toY].ant = tempAnt
 
+    ##
+    #coordLookup
+    #Description: Returns the appropriate coordinates for the given
+    #   player to allow both players to play from top of the board.
+    #
+    #Return: Correct coordinate location for player
+    ##
+    def coordLookup(self, coords, player):
+        if player == PLAYER_ONE:
+            return coords
+        else:
+            return (BOARD_LENGTH - 1 - coords[0], BOARD_LENGTH - 1 - coords[1])
+    
+    ##
+    #flipBoard
+    #Description: Flips the board (so Player Two sees self on top side)
+    #
+    ##
+    def flipBoard(self):
+        for col in self.board:
+            col.reverse()
+            
+        self.board.reverse()
+    
     ##
     #clone
     #Description: Returns a deep copy of itself

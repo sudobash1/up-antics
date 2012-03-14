@@ -36,6 +36,7 @@ class UserInterface(object):
     ##
     def __init__(self, inputSize):
         self.screen = pygame.display.set_mode(inputSize)
+        pygame.display.set_caption("aNTiCS")
     
     ##
     #submitMove
@@ -45,11 +46,11 @@ class UserInterface(object):
         print "Clicked SUBMIT MOVE"
     
     ##
-    #submitWait
+    #submitBuild
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     ##
-    def submitWait(self):
-        print "Clicked SUBMIT WAIT"
+    def submitBuild(self):
+        print "Clicked SUBMIT BUILD"
     
     ##
     #submitEndTurn
@@ -105,8 +106,8 @@ class UserInterface(object):
     #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
     ##
     def drawConstruction(self, item, position):
-        Xpixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.width * position[1]
-        Ypixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.height * position[0]
+        Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
+        Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
         self.screen.blit(self.constructions[item.type], (Xpixel, Ypixel))
     
     ##
@@ -118,8 +119,8 @@ class UserInterface(object):
     #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
     ##
     def drawAnt(self, ant, position):
-        Xpixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.width * position[1]
-        Ypixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.height * position[0]
+        Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
+        Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
         self.screen.blit(self.ants[ant.type], (Xpixel, Ypixel))
     
     ##
@@ -208,13 +209,13 @@ class UserInterface(object):
     def drawBoard(self, currentState):
         self.handleEvents()
         self.screen.fill(WHITE)
-        for row in xrange(0, len(currentState.board)):
-            for col in xrange(0, len(currentState.board[row])):
-                currentLoc = currentState.board[row][col]
+        for col in xrange(0, len(currentState.board)):
+            for row in xrange(0, len(currentState.board[col])):
+                currentLoc = currentState.board[col][row]
                 if currentLoc.constr != None:
-                    self.drawConstruction(currentLoc.constr, (row, col))
+                    self.drawConstruction(currentLoc.constr, (col, row))
                 if currentLoc.ant != None:
-                    self.drawAnt(currentLoc.ant, (row, col))
+                    self.drawAnt(currentLoc.ant, (col, row))
         for key in self.buttons:
             self.drawButton(key)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
@@ -263,7 +264,7 @@ class UserInterface(object):
         #Button statistics in order: x, y, buttonState(pressed/released)
         self.buttons = {
         'move':[800,10, 1, self.submitMove],
-        'wait':[800,60, 1, self.submitWait],
+        'build':[800,60, 1, self.submitBuild],
         'end':[800,110, 1, self.submitEndTurn],
         'tournament':[800,450, 1, self.gameModeTournament],
         'human':[800,500, 1, self.gameModeHumanAI],

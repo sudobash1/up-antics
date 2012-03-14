@@ -11,33 +11,22 @@ from Building import *
 from Location import *
 from Ant import *
 
-#Player IDs
-PLAYER_ONE = 0
-PLAYER_TWO = 1
-
-BOARD_LENGTH = 10
-
 #Game Modes
 TOURNAMENT_MODE = 0
 HUMAN_MODE = 1
 AI_MODE = 2
 
-#Game Phases
-MENU_PHASE = 0
-SETUP_PHASE = 1
-PLAY_PHASE = 2
-
 class Game(object):
     def __init__(self):
         self.players = []
         #BOARDS ARE SQUARE
-        board = [[Location((row, col)) for col in xrange(0,BOARD_LENGTH)] for row in xrange(0,BOARD_LENGTH)]
+        board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
         self.scores = [0,0]
         self.mode = None
-        self.ui = UserInterface((960,700))
+        self.ui = UserInterface((960,750))
         self.ui.initAssets()
         #UI Callback functions
         self.ui.buttons['start'][3] = self.startGame
@@ -45,9 +34,7 @@ class Game(object):
         self.ui.buttons['human'][3] = self.humanPath
         self.ui.buttons['ai'][3] = self.aiPath
         self.ui.locationClicked = self.locationClickedCallback
-        
-    
-        
+          
     def runGame(self):
         # initialize board be ready for player input for game parameter
         while True:
@@ -71,25 +58,35 @@ class Game(object):
                 
                     if self.state.phase == SETUP_PHASE:
                         currentPlayer = self.players[self.state.whoseTurn]
-                        destination = currentPlayer.getPlacement(constrsToPlace[0], self.state.clone())
-                        validPlace = self.isValidPlacement(destination)
+                        
+                        #if the player is player two, flip the board
+                        theState = self.state.clone()
+                        if theState.whoseTurn == PLAYER_TWO:
+                            theState.flipBoard()
+                            
+                        #get the placement from the player
+                        target = currentPlayer.getPlacement(constrsToPlace[0], theState)
+                        validPlace = self.isValidPlacement(constrsToPlace[0], target)
                         if validPlace:
+                            #translate coords to match player
+                            target = self.state.coordLookup(target, theState.whoseTurn)
+                            #get construction to place
                             constr = constrsToPlace.pop(0)
                             #give constr its coords
-                            constr.coords = destination
+                            constr.coords = target
                             #put constr on board
-                            self.state.board[destination[0]][destination[1]].constr = constr
-                            #change player turn
+                            self.state.board[target[0]][target[1]].constr = constr
+                            #change player turn in actual state
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
-                            if str(currentPlayer).find("AIPlayer") != -1:
+                            if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
                                 exit(0)
                             elif validPlace != None:
-                                self.ui.notify("Invalid placement")
+                                self.ui.notify("Invalid placement: " + str(target[0]) + ", " + str(target[1]))
                         
                         if not constrsToPlace:
-                            self.state.phase == PLAY_PHASE
+                            self.state.phase = PLAY_PHASE
                         
                     elif self.state.phase == PLAY_PHASE:
                         pass
@@ -130,7 +127,7 @@ class Game(object):
         #Attempt to load the AI files
         self.loadAIs() 
         #Add the human player to the player list
-        self.players.insert(0, HumanPlayer.HumanPlayer(len(self.players)))                
+        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(len(self.players)))                
         #Check right number of players, if successful set the mode.
         if len(self.players) == 2:
             self.mode = HUMAN_MODE
@@ -176,8 +173,6 @@ class Game(object):
         os.chdir('..')
     
     def locationClickedCallback(self, coords):
-        import pdb
-        pdb.set_trace()
         #Check if its human player's turn
         if self.state.phase != MENU_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             currentPlayer = self.players[self.state.whoseTurn]
@@ -220,12 +215,40 @@ class Game(object):
     def isValidAttack(self):
         pass
         
-    def isValidPlacement(self, target):
-        #temp, remove later
+    def isValidPlacement(self, item, target):
+        #If no target, return None (human vs ai caught by caller)
         if target == None:
             return None
-        return True
-
+                
+        #check item type
+        if item.type == ANTHILL or item.type == GRASS:
+            #check target is on the board
+            if target[0] >= 0 and target[0] < BOARD_LENGTH:
+                #Nobody can place in the center two rows of the board or on their opponents side
+                if target[1] >= 0 and target[1] < BOARD_LENGTH / 2 - 1:
+                    #change target to access appropriate players locations
+                    target = self.state.coordLookup(target, self.state.whoseTurn)
+                    #make sure nothing is there yet
+                    if self.state.board[target[0]][target[1]].constr == None:
+                        #valid placement
+                        return True
+                    
+        #check item type
+        if item.type == FOOD:
+            #check target is on the board
+            if target[0] >= 0 and target[0] < BOARD_LENGTH:
+                #Must place food on your opponents side
+                if target[1] < BOARD_LENGTH and target[1] >= BOARD_LENGTH / 2 + 1:
+                #change target to access appropriate players locations
+                #
+                    target = self.state.coordLookup(target, self.state.whoseTurn)
+                    #make sure nothing is there yet
+                    if self.state.board[target[0]][target[1]].constr == None:
+                        #valid placement
+                        return True
+        #invalid move
+        return False
+    
 
 a = Game()
 a.runGame()

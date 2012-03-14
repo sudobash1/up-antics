@@ -20,6 +20,7 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId)
         self.author = "Max Ackley and Cole Mercer"
+        self.placed = 0
     
     ##
     #getPlacement
@@ -34,7 +35,11 @@ class AIPlayer(Player):
     ##
     def getPlacement(self, construction, currentState):
         #implemented by students to return their next move
-        return (0,0)
+        self.placed = self.placed + 1
+        if self.placed - 1 < 10:
+            return (self.placed - 1,0)
+        else:
+            return (self.placed - 11, 7)
     
     ##
     #getMove
