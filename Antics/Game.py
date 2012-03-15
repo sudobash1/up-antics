@@ -113,6 +113,8 @@ class Game(object):
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
+                        move.fromLoc = self.state.coordLookup(move.fromLoc)
+                        
                         #make sure it's a valid move
                         validMove = isValidMove(move)
                         
@@ -120,17 +122,41 @@ class Game(object):
                         if validMove:
                             #check move type
                             if move.moveType == MOVE:
-                            
+                                #take ant from fromLoc
+                                antToMove = self.state.board[move.fromLoc[0]][move.fromLoc[1]].ant
+                                #change ant's coords and hasMoved status
+                                antToMove.coords = (move.locList[-1][0], move.locList[-1][1])
+                                antToMove.hasMoved = True
+                                #remove ant from location
+                                self.state.board[move.fromLoc[0]][move.fromLoc[1]].ant = None
+                                #put ant at last loc in locList
+                                self.state.board[move.locList[-1][0]][move.locList[-1][1]] = antToMove   
                             elif move.moveType == BUILD:
-                            
+                                # TODO: finish!!
+                                pass
                             elif move.moveType == END:
-                            
+                                
+                                for ant in self.state.inventories[self.state.whoseTurn].ants:
+                                    #reset hasMoved on all ants of player
+                                    ant.hasMoved = False
+                                    #affect capture health of buildings
+                                    constrUnderAnt = self.state.board[ant.coords[0]][ant.coords[1]].constr
+                                    if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
+                                        constrUnderAnt.captureHealth -= 1
+                                        if constrUnderAnt.captureHealth == 0:
+                                            constrUnderAnt.player = self.state.whoseTurn
+                                            constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][2]
+                                        
+                               
+                                
+                                #switch whose turn it is
+                                pass
                             else:
                                 #exit, invalid move type
+                                pass
                         else:
-                        
-                        #if move type check if player wants to attack
-                        pass
+                            #if move type check if player wants to attack
+                            pass
                     else:
                         #something went wrong, exit gracefully
                         pass
@@ -245,7 +271,15 @@ class Game(object):
         #    (inputMove.toLoc.coords[1] < 10) and 
         #    (inputMove.toLoc.coords[1] >= 0) and 
         #    (inputMove.fromLoc.ant.player == inputPlayer) and
-        #    (inputMove.toLoc.ant == None) 
+        #    (inputMove.toLoc.ant == None)
+        
+        #for MOVE type
+        #within valid range?
+        #is it your ant?
+        #hasn't moved yet?
+        #path unblocked?
+        #within movement cost?
+        
     
     def isValidAttack(self):
         pass

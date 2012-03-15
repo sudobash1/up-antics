@@ -22,6 +22,7 @@ UNIT_STATS.append((1, 3, 1, 2, 2)) #Indirect soldier
 #   type - Ants come in all shapes and sizes. Type is an int that indexes into
 #       an array of stats for various ant types.
 #   alive - A boolean representing if the Ant's alive or not.
+#   hasMoved - A boolean representing if the ant has moved yet this turn
 #   carrying - A boolean representing if the Ant's carrying food or not.
 #   player - The id of the player that owns the Ant
 ##
@@ -40,6 +41,7 @@ class Ant(object):
         self.coords = inputCoords
         self.type = inputType
         self.alive = True
+        self.hasMoved = False
         self.carrying = False
         self.player = inputPlayer
 
