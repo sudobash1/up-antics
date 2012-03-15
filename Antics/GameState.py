@@ -1,14 +1,6 @@
-#Player IDs
-PLAYER_ONE = 0
-PLAYER_TWO = 1
+from Constants import *
 
-#Length of the board (it's square)
-BOARD_LENGTH = 10
 
-#Game Phases
-MENU_PHASE = 0
-SETUP_PHASE = 1
-PLAY_PHASE = 2
 
 ##
 #GameState

@@ -1,3 +1,5 @@
+from Constants import *
+
 ##
 #Inventory
 #Description: This class keeps track of the resources at a player's disposal
@@ -24,26 +26,24 @@ class Inventory(object):
     def __init__(self, playerId, antArray, inputConstructions, inputFood):
         self.player = playerId
         self.ants = antArray
-        self.queen = self.findQueen(antArray)
-        self.constructions = inputConstructions
-        self.anthill = self.findAnthill(inputConstructions)      
+        self.constructions = inputConstructions      
         self.foodCount = inputFood
         
-    def findQueen(self, antArr):
-        if antArr == None:
+    def getQueen(self):
+        if self.ants == None:
             return None
         
-        for checkAnt in antArr:
-            if checkAnt.type == Ant.QUEEN: return checkAnt
+        for checkAnt in self.ants:
+            if checkAnt.type == QUEEN: return checkAnt
             
         return None
         
-    def findAnthill(self, constructionArr):
-        if constructionArr == None:
+    def getAnthill(self):
+        if self.constructions == None:
             return None
         
-        for checkConstruction in constructionArr:
-            if checkConstruction.type == Building.ANTHILL: return checkConstruction
+        for checkConstruction in self.constructions:
+            if checkConstruction.type == ANTHILL: return checkConstruction
             
         return None
         

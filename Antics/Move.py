@@ -21,7 +21,7 @@ class Move(object):
     #    inputLocList - A list of Locations representing the path to take (List<Location>)
     #   inputUnitType - The type of unit being built (int)
     ##
-    def __init__(self, inputMoveType, inputFromLoc, inputLocList,inputUnitType):
+    def __init__(self, inputMoveType, inputFromLoc, inputLocList, inputUnitType):
         self.moveType = inputMoveType
         self.fromLoc = inputFromLoc
         self.locList = inputLocList

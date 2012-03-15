@@ -1,9 +1,4 @@
-#Types of ants
-QUEEN = 0
-WORKER = 1
-DRONE = 2
-D_SOLDIER = 3
-I_SOLDIER = 4
+from Constants import *
 
 #Unit stats array
 #(movement, health, attack, range, cost)[type]
@@ -21,8 +16,6 @@ UNIT_STATS.append((1, 3, 1, 2, 2)) #Indirect soldier
 #   class.
 #
 #Variables:
-#   id - A reference to an Ant that can be manually tracked, so that the
-#       programmer can define Ant equality.
 #   coords - An int[] of length 2, representing the Ant's position on the
 #       board.  Positions start at (0, 0) in the upper left and increase down
 #       and to the right.
@@ -39,13 +32,11 @@ class Ant(object):
     #Description: Creates a new Ant
     #
     #Parameters:
-    #   inputId - The id to use for refrencing the ant (int)
     #   inputCoords - The position on the board to place the Ant at (int[])
     #   inputType - The type of ant to create (int)
     #   inputPlayer - The id of the player that owns the Ant (int)
     ##
-    def __init__(self, inputId, inputCoords, inputType, inputPlayer):
-        self.id = inputId
+    def __init__(self, inputCoords, inputType, inputPlayer):
         self.coords = inputCoords
         self.type = inputType
         self.alive = True

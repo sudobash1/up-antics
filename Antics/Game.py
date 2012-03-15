@@ -5,16 +5,12 @@
 import os, re, sys, HumanPlayer
 from UserInterface import *
 from Construction import *
+from Constants import *
 from GameState import *
 from Inventory import *
 from Building import *
 from Location import *
 from Ant import *
-
-#Game Modes
-TOURNAMENT_MODE = 0
-HUMAN_MODE = 1
-AI_MODE = 2
 
 class Game(object):
     def __init__(self):
@@ -76,6 +72,8 @@ class Game(object):
                             constr.coords = target
                             #put constr on board
                             self.state.board[target[0]][target[1]].constr = constr
+                            #update the inventory
+                            self.state.inventories[self.state.whoseTurn].constructions.append(constr)
                             #change player turn in actual state
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
@@ -86,24 +84,60 @@ class Game(object):
                                 self.ui.notify("Invalid placement: " + str(target[0]) + ", " + str(target[1]))
                         
                         if not constrsToPlace:
+                            #if we're finished placing, add in queens and move to play phase
+                            
+                            #get anthill coords
+                            p1AnthillCoords = self.state.inventories[PLAYER_ONE].getAnthill().coords
+                            p2AnthillCoords = self.state.inventories[PLAYER_TWO].getAnthill().coords
+                            #create queen ants
+                            p1Queen = Ant(p1AnthillCoords, QUEEN, PLAYER_ONE)
+                            p2Queen = Ant(p2AnthillCoords, QUEEN, PLAYER_TWO)
+                            #put queens on board
+                            self.state.board[p1Queen.coords[0]][p1Queen.coords[1]].ant = p1Queen
+                            self.state.board[p2Queen.coords[0]][p2Queen.coords[1]].ant = p2Queen
+                            #add the queens to the inventories
+                            self.state.inventories[PLAYER_ONE].ants.append(p1Queen)
+                            self.state.inventories[PLAYER_TWO].ants.append(p2Queen)                           
+                            #change to play phase
                             self.state.phase = PLAY_PHASE
                         
                     elif self.state.phase == PLAY_PHASE:
+                        currentPlayer = self.players[self.state.whoseTurn]
+                        
+                        #if the player is player two, flip the board
+                        theState = self.state.clone()
+                        if theState.whoseTurn == PLAYER_TWO:
+                            theState.flipBoard()
+                        
+                        #get the move from the current player
+                        move = currentPlayer.getMove(theState)
+                        
+                        #make sure it's a valid move
+                        validMove = isValidMove(move)
+                        
+                        #complete the move if valid
+                        if validMove:
+                            #check move type
+                            if move.moveType == MOVE:
+                            
+                            elif move.moveType == BUILD:
+                            
+                            elif move.moveType == END:
+                            
+                            else:
+                                #exit, invalid move type
+                        else:
+                        
+                        #if move type check if player wants to attack
                         pass
                     else:
                         #something went wrong, exit gracefully
                         pass
                     
-                    #check what type first player is
-                        #get move(list of locs) from first player until end turn is submitted
-                        #If computer player, check validMove 
-                        #check if player wants to attack
-                        #check isGameOver. If so, break
-                    #Don't check what type second player is, because player 1 can't be human
-                        #get move(list of locs) from second until end turn is submitted 
-                        #If computer player, check ValidMove
-                        #check if player wants to attack 
-                        #check isGameOver If so, break 
+                  
+                      
+          
+                  
                 
     def startGame(self):
         if self.mode != None:

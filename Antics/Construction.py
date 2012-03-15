@@ -1,8 +1,4 @@
-#Types
-ANTHILL = 0
-TUNNEL = 1
-GRASS = 2
-FOOD = 3
+from Constants import *
 
 #Contruction stats array
 #(movement cost, capture health)[type]
