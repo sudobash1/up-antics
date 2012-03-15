@@ -46,7 +46,7 @@ class Game(object):
                 print "Game Started!"
                 #init game stuffs
                 #build a list of things to place
-                #things to place: anthill/queen, 9 obstacles, 2 food sources (for opponent)
+                #things to place: 2 anthill/queen, 9 obstacles, 2 food sources (for opponent)
                 constrsToPlace = []
                 constrsToPlace += [Building(None, ANTHILL, i) for i in xrange(0,2)]
                 constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
