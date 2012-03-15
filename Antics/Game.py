@@ -1,7 +1,3 @@
-##
-#Game
-#Description: Keeps track of game logic and manages the play loop.
-##
 import os, re, sys, HumanPlayer
 from UserInterface import *
 from Construction import *
@@ -11,6 +7,11 @@ from Inventory import *
 from Building import *
 from Location import *
 from Ant import *
+
+##
+#Game
+#Description: Keeps track of game logic and manages the play loop.
+##
 
 class Game(object):
     def __init__(self):
