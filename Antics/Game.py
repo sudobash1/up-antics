@@ -7,6 +7,7 @@ from Inventory import *
 from Building import *
 from Location import *
 from Ant import *
+from Move import *
 
 ##
 #Game
@@ -102,7 +103,7 @@ class Game(object):
                             #change to play phase
                             self.state.phase = PLAY_PHASE
                         
-                    elif self.state.phase == PLAY_PHASE:
+                    elif self.state.phase == PLAY_PHASE: ####AT SOMEPOINT PASS VALID ATTACKS TO UI
                         currentPlayer = self.players[self.state.whoseTurn]
                         
                         #if the player is player two, flip the board
@@ -242,18 +243,24 @@ class Game(object):
                 #Need to check this here or it may try to get the last element of the list when it is empty
                 if self.checkMoveStart(coord):
                     currentPlayer.moveList.append(coord)
-            elif self.checkMovePath(currentPlayer.moveList[-1], coord): 
-                #add the coord to the move list
-                currentPlayer.moveList.append(coord)
-                
-                #enact the theoretical move
-                startCoord = currentPlayer.moveList[0]
-                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
-                move = Move(MOVE, currentPlayer.moveList, antToMove.type)
-                
-                #if the move wasn't valid, remove added coord from move list              
-                if not isValidMove(move):
-                    currentPlayer.moveList.pop()
+            else:
+                onList = False
+                for checkCoord in currentPlayer.moveList:
+                    if checkCoord == coord:
+                        onList = True
+                        
+                if not onList and self.checkMovePath(currentPlayer.moveList[-1], coord): 
+                    #add the coord to the move list so we can check if it makes a valid move
+                    currentPlayer.moveList.append(coord)
+                    
+                    #enact the theoretical move
+                    startCoord = currentPlayer.moveList[0]
+                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
+                    move = Move(MOVE, currentPlayer.moveList, antToMove.type)
+                    
+                    #if the move wasn't valid, remove added coord from move list              
+                    if not self.isValidMove(move):
+                        currentPlayer.moveList.pop()
             
             #give moveList to UI so it can hightlight the player's path
             self.ui.moveList = currentPlayer.moveList
@@ -298,7 +305,7 @@ class Game(object):
             return False
         
         #for MOVE and BUILD type moves
-        if move.type == MOVE:
+        if move.moveType == MOVE:
             firstCoord = move.coordList[0]
             #check valid start location (good coords and ant ownership)
             if self.checkMoveStart(firstCoord):
@@ -307,7 +314,7 @@ class Game(object):
                 movePoints = UNIT_STATS[antToMove.type][MOVEMENT]             
                 previousCoord = None
                 
-                for coord in move.toCoordList:
+                for coord in move.coordList:
                     #if first runthough, need to set up previous coord
                     if previousCoord == None:
                         previousCoord = coord
@@ -316,7 +323,7 @@ class Game(object):
                     if not self.checkMovePath(previousCoord, coord):
                         return False
                     #subtract cost of loc from movement points
-                    constrAtLoc = self.state.board[coord[0]][coord[1]]
+                    constrAtLoc = self.state.board[coord[0]][coord[1]].constr
                     if constrAtLoc == None:
                         movePoints -= 1
                     else:
@@ -330,7 +337,7 @@ class Game(object):
                 else:
                     return False
                         
-        elif move.type == BUILD:
+        elif move.moveType == BUILD:
             #coord list must contain one point for build
             if not len(move.coordList) == 1:
                 return False
@@ -340,7 +347,7 @@ class Game(object):
             if self.checkBuildStart(buildCoord):
                 #we're building either an ant or constr for sure
                
-                if self.state.board[buildCoord[0]][buildCoord[1]].ant == None
+                if self.state.board[buildCoord[0]][buildCoord[1]].ant == None:
                 #we know we're building an ant
                     buildCost = None
                     #check buildType for valid ant

@@ -20,6 +20,6 @@ class Move(object):
     ##
     def __init__(self, inputMoveType, inputCoordList, inputBuildType):
         self.moveType = inputMoveType
-        self.coordList = inputToCoordList
+        self.coordList = inputCoordList
         self.buildType = inputBuildType
     
