@@ -229,16 +229,19 @@ class Game(object):
         os.chdir('..')
     
     def locationClickedCallback(self, coord):
+        currentPlayer = self.players[self.state.whoseTurn]
+        
         #Check if its human player's turn
         if self.state.phase != MENU_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
-            currentPlayer = self.players[self.state.whoseTurn]
            
             #add location to human player's movelist if appropriatocity is valid
             if len(currentPlayer.moveList) != 0 and coord == currentPlayer.moveList[-1]:
                 currentPlayer.moveList.pop()
-            elif len(currentPlayer.moveList) == 0 and checkMoveStart(coord):
-                currentPlayer.moveList.append(coord)
-            elif checkMovePath(currentPlayer.moveList[-1], coord): 
+            elif len(currentPlayer.moveList) == 0:
+                #Need to check this here or it may try to get the last element of the list when it is empty
+                if self.checkMoveStart(coord):
+                    currentPlayer.moveList.append(coord)
+            elif self.checkMovePath(currentPlayer.moveList[-1], coord): 
                 #add the coord to the move list
                 currentPlayer.moveList.append(coord)
                 
@@ -309,7 +312,7 @@ class Game(object):
                     return False
                         
         elif move.type == BUILD:
-        
+            pass
         elif move.type == END:
             return True
         else:
