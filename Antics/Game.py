@@ -113,10 +113,11 @@ class Game(object):
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
-                        move.fromLoc = self.state.coordLookup(move.fromLoc)
+                        if not move == None:
+                            move.coordList[0] = self.state.coordLookup(move.coordList[0])
                         
                         #make sure it's a valid move
-                        validMove = isValidMove(move)
+                        validMove = self.isValidMove(move)
                         
                         #complete the move if valid
                         if validMove:
@@ -153,6 +154,7 @@ class Game(object):
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #exit, invalid move type
+                                #human can give None move, AI can't
                                 pass
                         else:
                             #if move type check if player wants to attack
@@ -229,11 +231,10 @@ class Game(object):
         os.chdir('..')
     
     def locationClickedCallback(self, coord):
-        currentPlayer = self.players[self.state.whoseTurn]
-        
-        #Check if its human player's turn
-        if self.state.phase != MENU_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
-           
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(self.players[whoseTurn]) is HumanPlayer.HumanPlayer:
             #add location to human player's movelist if appropriatocity is valid
             if len(currentPlayer.moveList) != 0 and coord == currentPlayer.moveList[-1]:
                 currentPlayer.moveList.pop()
@@ -253,9 +254,14 @@ class Game(object):
                 #if the move wasn't valid, remove added coord from move list              
                 if not isValidMove(move):
                     currentPlayer.moveList.pop()
-        
-        self.ui.moveList = currentPlayer.moveList
-    
+            
+            #give moveList to UI so it can hightlight the player's path
+            self.ui.moveList = currentPlayer.moveList
+            
+        #Check if its human player's turn during set up phase
+        if self.state.phase == SETUP_PHASE and type(self.players[whoseTurn]) is HumanPlayer.HumanPlayer:
+            currentPlayer.moveList.append(coord)
+                
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
         opponentId = (playerId + 1) % 2
@@ -273,7 +279,11 @@ class Game(object):
        
     #checks to see if the move is valid for the current player
     #maybe put in GameState to make available to students
+    #Returns None if no move is given
     def isValidMove(self, move):
+        #check for no move
+        if move == None:
+            return None
         #check for an empty coord list
         if len(move.coordList) == 0:
             return False
@@ -323,7 +333,11 @@ class Game(object):
     
     def isValidAttack(self):
         pass
-        
+    ##
+    #isValidPlacement
+    #
+    #Returns None if no target is given
+    ##
     def isValidPlacement(self, item, target):
         #If no target, return None (human vs ai caught by caller)
         if target == None:
