@@ -1,5 +1,6 @@
+import random
 from Player import *
-
+import Constants as const
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -19,8 +20,7 @@ class AIPlayer(Player):
     ##
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId)
-        self.author = "Max Ackley and Cole Mercer"
-        self.placed = 0
+        self.author = "Mooooonk! I need a monk!"
     
     ##
     #getPlacement
@@ -35,11 +35,30 @@ class AIPlayer(Player):
     ##
     def getPlacement(self, construction, currentState):
         #implemented by students to return their next move
-        self.placed = self.placed + 1
-        if self.placed - 1 < 10:
-            return (self.placed - 1,0)
+        if construction.type == const.ANTHILL or construction.type == const.GRASS:
+            move = None
+            while move == None:
+                #Choose any x location
+                x = random.randint(0, 9)
+                #Choose any y location on your side of the board
+                y = random.randint(0, 3)
+                #Set the move if this space is empty
+                if currentState.board[x][y].constr == None:
+                    move = (x, y)
+            return move
+        elif construction.type == const.FOOD:
+            move = None
+            while move == None:
+                #Choose any x location
+                x = random.randint(0, 9)
+                #Choose any y location on enemy side of the board
+                y = random.randint(6, 9)
+                #Set the move if this space is empty
+                if currentState.board[x][y].constr == None:
+                    move = (x, y)
+            return move
         else:
-            return (self.placed - 11, 7)
+            return (0, 0)
     
     ##
     #getMove

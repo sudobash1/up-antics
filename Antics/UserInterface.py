@@ -214,8 +214,7 @@ class UserInterface(object):
         #Find the X and Y coordinates to draw the shade at.
         shadeXpixel = Xpixel - CELL_SPACING
         shadeYpixel = Ypixel - CELL_SPACING
-        #Draw the cell
-        pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
+        #Draw the shade for the cell
         if self.moveList != []:
             #Draw the shadeRect if currentLoc is in moveList
             if currentLoc.coords in self.moveList[:-1]:
@@ -223,6 +222,8 @@ class UserInterface(object):
             #Draw brighter if the currentLoc is the last move selected
             if currentLoc.coords == self.moveList[-1]:
                 pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        #Draw the cell itself
+        pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
         #Draw what's in this cell
         if currentLoc.constr != None:
             self.drawConstruction(currentLoc.constr, (col, row))
