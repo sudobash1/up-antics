@@ -1,12 +1,12 @@
 from Constants import *
 
 #Contruction stats array
-#(movement cost, capture health)[type]
+#(movement cost, capture health, build cost)[type]
 CONSTR_STATS = []
-CONSTR_STATS.append((1,3)) #Anthill
-CONSTR_STATS.append((1,2)) #Tunnel
-CONSTR_STATS.append((2,None)) #Grass
-CONSTR_STATS.append((1,None)) #Food
+CONSTR_STATS.append((1,3,None)) #Anthill
+CONSTR_STATS.append((1,2,3)) #Tunnel
+CONSTR_STATS.append((2,None,None)) #Grass
+CONSTR_STATS.append((1,None,None)) #Food
 
 ##
 #Construction

@@ -148,7 +148,7 @@ class Game(object):
                                         constrUnderAnt.captureHealth -= 1
                                         if constrUnderAnt.captureHealth == 0:
                                             constrUnderAnt.player = self.state.whoseTurn
-                                            constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][2]
+                                            constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
                                             
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
@@ -246,7 +246,7 @@ class Game(object):
                 #add the coord to the move list
                 currentPlayer.moveList.append(coord)
                 
-                #create a theoretical move
+                #enact the theoretical move
                 startCoord = currentPlayer.moveList[0]
                 antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                 move = Move(MOVE, currentPlayer.moveList, antToMove.type)
@@ -284,18 +284,27 @@ class Game(object):
         #check for no move
         if move == None:
             return None
+        
+        #check for no move type
+        if move.moveType == None:
+            return False
+            
+        #for END type moves
+        if move.moveType == END:
+            return True
+        
         #check for an empty coord list
-        if len(move.coordList) == 0:
+        if move.coordList == None or len(move.coordList) == 0:
             return False
         
-        #for MOVE type
+        #for MOVE and BUILD type moves
         if move.type == MOVE:
             firstCoord = move.coordList[0]
-            #check valid from-location (good coords and ant ownership)
-            if checkMoveStart(firstCoord):
+            #check valid start location (good coords and ant ownership)
+            if self.checkMoveStart(firstCoord):
                 #get ant to move
                 antToMove = self.state.board[firstCoord[0]][firstCoord[1]].ant
-                movePoints = UNIT_STATS[antToMove.type][0]             
+                movePoints = UNIT_STATS[antToMove.type][MOVEMENT]             
                 previousCoord = None
                 
                 for coord in move.toCoordList:
@@ -304,14 +313,14 @@ class Game(object):
                         previousCoord = coord
                         continue  
                     #if any to-coords are invalid, return invalid move
-                    if not checkMovePath(previousCoord, coord):
+                    if not self.checkMovePath(previousCoord, coord):
                         return False
                     #subtract cost of loc from movement points
                     constrAtLoc = self.state.board[coord[0]][coord[1]]
                     if constrAtLoc == None:
                         movePoints -= 1
                     else:
-                        movePoints -= CONSTR_STATS[constrAtLoc.type][0]
+                        movePoints -= CONSTR_STATS[constrAtLoc.type][MOVE_COST]
                         
                     previousCoord = coord
                     
@@ -322,17 +331,45 @@ class Game(object):
                     return False
                         
         elif move.type == BUILD:
-            pass
-        elif move.type == END:
-            return True
+            #coord list must contain one point for build
+            if not len(move.coordList) == 1:
+                return False
+        
+            buildCoord = move.coordList[0]
+            #check valid start location
+            if self.checkBuildStart(buildCoord):
+                #we're building either an ant or constr for sure
+               
+                if self.state.board[buildCoord[0]][buildCoord[1]].ant == None
+                #we know we're building an ant
+                    buildCost = None
+                    #check buildType for valid ant
+                    if move.buildType == WORKER:
+                        buildCost = UNIT_STATS[WORKER][MOVEMENT]
+                    elif move.buildType == DRONE:
+                        buildCost = UNIT_STATS[DRONE][MOVEMENT]
+                    elif move.buildType == D_SOLDIER:
+                        buildCost = UNIT_STATS[D_SOLDIER][MOVEMENT]
+                    elif move.buildType == I_SOLDIER:
+                        buildCost = UNIT_STATS[I_SOLDIER][MOVEMENT]
+                    else:
+                        return False
+                    
+                    #check the player has enough food
+                    if self.state.inventories[self.state.whoseTurn].foodCount >= buildCost:
+                        return True
+                    else:   
+                        return False
+                else:
+                #we know we're building a construction
+                    buildCost = CONSTR_STATS[TUNNEL][COST]
+                    return self.state.inventories[self.state.whoseTurn].foodCount >= buildCost
+                
+            
         else:
             #what the heck kind of move is this?
             pass
         
-        
-    
-    def isValidAttack(self):
-        pass
     ##
     #isValidPlacement
     #
@@ -371,6 +408,9 @@ class Game(object):
                         return True
         #invalid move
         return False
+    
+    def isValidAttack(self):
+        pass
 
     ##
     #checkMoveStart 
@@ -389,8 +429,29 @@ class Game(object):
                     return True
                     
         return False
-            
     
+    ##
+    #checkBuildStart 
+    #Description: Checks if the location is valid to build from.
+    # (bounds and building ownership)
+    ##    
+    def checkBuildStart(self, coord):
+        #check location is on board
+        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
+                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
+            loc = self.state.board[coord[0]][coord[1]]
+            #check that an empty anthill exists at the loc
+            if not loc.constr == None and loc.constr.type == ANTHILL and loc.ant == None:
+                #check that it's the player's anthill
+                if loc.constr.player == self.state.whoseTurn:
+                    return True
+            #check that an ant exists at an empty location
+            elif not loc.ant == None and loc.ant.type == WORKER and loc.constr == None:
+                #check that it's the player's ant
+                if loc.ant.player == self.state.whoseTurn:
+                    return True
+                    
+        return False
 
     ##
     #checkMovePath

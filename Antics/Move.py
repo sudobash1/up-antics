@@ -5,7 +5,7 @@
 #Variables:
 #   moveType - This represents the type of move the player has made(moveAnt,build and endTurn)
 #   coordList - The list of coordinates representing the path to take, does not include fromCoord
-#   unitType - This identifies the type of a unit(only relevant to Moves of type build)
+#   buildType - This identifies the type of a unit(only relevant to Moves of type build)
 ##
 class Move(object):
 
@@ -16,10 +16,10 @@ class Move(object):
     #Parameters:
     #   inputMoveType - The type of move the Player is making (int)
     #   inputCoordList - A list of coordinates representing the path to take (List<(int,int)>)
-    #   inputUnitType - The type of unit being built (int)
+    #   inputBuildType - The type of unit being built (int)
     ##
-    def __init__(self, inputMoveType, inputCoordList, inputUnitType):
+    def __init__(self, inputMoveType, inputCoordList, inputBuildType):
         self.moveType = inputMoveType
         self.coordList = inputToCoordList
-        self.unitType = inputUnitType
+        self.buildType = inputBuildType
     

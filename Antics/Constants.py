@@ -39,3 +39,15 @@ FOOD = 3
 MOVE = 0
 BUILD = 1
 END = 2
+
+#Indices into unit stats
+MOVEMENT = 0
+HEALTH = 1
+ATTACK = 2
+RANGE = 3
+COST = 4
+
+#Indices into construction stats
+MOVE_COST = 0
+CAP_HEALTH = 1
+COST = 2
