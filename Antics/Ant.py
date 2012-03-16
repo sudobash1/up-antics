@@ -33,7 +33,7 @@ class Ant(object):
     #Description: Creates a new Ant
     #
     #Parameters:
-    #   inputCoords - The position on the board to place the Ant at (int[])
+    #   inputCoords - The position on the board to place the Ant at (int,int)
     #   inputType - The type of ant to create (int)
     #   inputPlayer - The id of the player that owns the Ant (int)
     ##

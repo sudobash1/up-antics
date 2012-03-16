@@ -15,12 +15,12 @@ from Ant import *
 
 class Game(object):
     def __init__(self):
-        self.players = []
         #BOARDS ARE SQUARE
         board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
+        self.players = []
         self.scores = [0,0]
         self.mode = None
         self.ui = UserInterface((960,750))
@@ -122,20 +122,22 @@ class Game(object):
                         if validMove:
                             #check move type
                             if move.moveType == MOVE:
+                                startCoord = move.coordList[0]
+                                endCoord = move.coordList[-1]
+                                
                                 #take ant from fromLoc
-                                antToMove = self.state.board[move.fromLoc[0]][move.fromLoc[1]].ant
+                                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                                 #change ant's coords and hasMoved status
-                                antToMove.coords = (move.locList[-1][0], move.locList[-1][1])
+                                antToMove.coords = (endCoord[0], endCoord[1])
                                 antToMove.hasMoved = True
                                 #remove ant from location
-                                self.state.board[move.fromLoc[0]][move.fromLoc[1]].ant = None
+                                self.state.board[startCoord[0]][startCoord[1]].ant = None
                                 #put ant at last loc in locList
-                                self.state.board[move.locList[-1][0]][move.locList[-1][1]] = antToMove   
+                                self.state.board[endCoord[0]][endCoord[1]] = antToMove   
                             elif move.moveType == BUILD:
                                 # TODO: finish!!
                                 pass
                             elif move.moveType == END:
-                                
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
                                     #reset hasMoved on all ants of player
                                     ant.hasMoved = False
@@ -146,11 +148,9 @@ class Game(object):
                                         if constrUnderAnt.captureHealth == 0:
                                             constrUnderAnt.player = self.state.whoseTurn
                                             constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][2]
-                                        
-                               
-                                
+                                            
                                 #switch whose turn it is
-                                pass
+                                self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #exit, invalid move type
                                 pass
@@ -159,12 +159,7 @@ class Game(object):
                             pass
                     else:
                         #something went wrong, exit gracefully
-                        pass
-                    
-                  
-                      
-          
-                  
+                        pass             
                 
     def startGame(self):
         if self.mode != None:
@@ -233,17 +228,30 @@ class Game(object):
         #Revert working directory to parent.
         os.chdir('..')
     
-    def locationClickedCallback(self, coords):
+    def locationClickedCallback(self, coord):
         #Check if its human player's turn
         if self.state.phase != MENU_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             currentPlayer = self.players[self.state.whoseTurn]
            
-            #add location to human player's movelist, context-free since Game will check appropriatocity...??
-            if len(currentPlayer.moveList) != 0 and coords == currentPlayer.moveList[-1]:
+            #add location to human player's movelist if appropriatocity is valid
+            if len(currentPlayer.moveList) != 0 and coord == currentPlayer.moveList[-1]:
                 currentPlayer.moveList.pop()
-            else:
-                currentPlayer.moveList.append(coords)
-            
+            elif len(currentPlayer.moveList) == 0 and checkMoveStart(coord):
+                currentPlayer.moveList.append(coord)
+            elif checkMovePath(currentPlayer.moveList[-1], coord): 
+                #add the coord to the move list
+                currentPlayer.moveList.append(coord)
+                
+                #create a theoretical move
+                startCoord = currentPlayer.moveList[0]
+                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
+                move = Move(MOVE, currentPlayer.moveList, antToMove.type)
+                
+                #if the move wasn't valid, remove added coord from move list              
+                if not isValidMove(move):
+                    currentPlayer.moveList.pop()
+        
+        self.ui.moveList = currentPlayer.moveList
     
     # once end game has been reached, display screen "player x wins!" OK/Play Again button
     def isGameOver(self, playerId):
@@ -259,26 +267,55 @@ class Game(object):
            # return True
         # else:
           # return False
-        
-    def isValidMove(self, inputMove, inputPlayer):
-        pass
-        #if (inputMove.fromLoc.coords[0] < 10) and 
-        #    (inputMove.fromLoc.coords[0] >= 0) and 
-        #    (inputMove.fromLoc.coords[1] < 10) and 
-        #    (inputMove.fromLoc.coords[1] >= 0) and 
-        #    (inputMove.toLoc.coords[0] < 10) and 
-        #    (inputMove.toLoc.coords[0] >= 0) and 
-        #    (inputMove.toLoc.coords[1] < 10) and 
-        #    (inputMove.toLoc.coords[1] >= 0) and 
-        #    (inputMove.fromLoc.ant.player == inputPlayer) and
-        #    (inputMove.toLoc.ant == None)
+       
+    #checks to see if the move is valid for the current player
+    #maybe put in GameState to make available to students
+    def isValidMove(self, move):
+        #check for an empty coord list
+        if len(move.coordList) == 0:
+            return False
         
         #for MOVE type
-        #within valid range?
-        #is it your ant?
-        #hasn't moved yet?
-        #path unblocked?
-        #within movement cost?
+        if move.type == MOVE:
+            firstCoord = move.coordList[0]
+            #check valid from-location (good coords and ant ownership)
+            if checkMoveStart(firstCoord):
+                #get ant to move
+                antToMove = self.state.board[firstCoord[0]][firstCoord[1]].ant
+                movePoints = UNIT_STATS[antToMove.type][0]             
+                previousCoord = None
+                
+                for coord in move.toCoordList:
+                    #if first runthough, need to set up previous coord
+                    if previousCoord == None:
+                        previousCoord = coord
+                        continue  
+                    #if any to-coords are invalid, return invalid move
+                    if not checkMovePath(previousCoord, coord):
+                        return False
+                    #subtract cost of loc from movement points
+                    constrAtLoc = self.state.board[coord[0]][coord[1]]
+                    if constrAtLoc == None:
+                        movePoints -= 1
+                    else:
+                        movePoints -= CONSTR_STATS[constrAtLoc.type][0]
+                        
+                    previousCoord = coord
+                    
+                #within movement range and hasn't moved yet?
+                if movePoints >= 0 and antToMove.hasMoved == False:
+                    return True
+                else:
+                    return False
+                        
+        elif move.type == BUILD:
+        
+        elif move.type == END:
+            return True
+        else:
+            #what the heck kind of move is this?
+            pass
+        
         
     
     def isValidAttack(self):
@@ -317,7 +354,48 @@ class Game(object):
                         return True
         #invalid move
         return False
+
+    ##
+    #checkMoveStart 
+    #Description: Checks if the location is valid to move from.
+    # (bounds and ant ownership)
+    ##
+    def checkMoveStart(self, coord):
+        #check location is on board
+        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
+                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
+            antToMove = self.state.board[coord[0]][coord[1]].ant
+            #check that an ant exists at the loc
+            if not antToMove ==  None:
+                #check that it's the player's ant
+                if antToMove.player == self.state.whoseTurn:
+                    return True
+                    
+        return False
+            
     
+
+    ##
+    #checkMovePath
+    #Description: Checks if the location is valid to move to.
+    # (clear path, adjacent locations) 
+    #
+    #fromCoord must always be checked by the time it's passed
+    #(either in checkMoveStart or previous checkMovePath call)
+    ##
+    def checkMovePath(self, fromCoord, toCoord):
+        #check location is on board
+        if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
+                toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
+            #check that squares are adjacent (difference on only one axis is 1)
+            if ((abs(fromCoord[0] - toCoord[0]) == 1 and abs(fromCoord[1] - toCoord[1]) == 0) or
+                    (abs(fromCoord[0] - toCoord[0]) == 0 and abs(fromCoord[1] - toCoord[1]) == 1)):
+                antAtLoc = self.state.board[toCoord[0]][toCoord[1]].ant
+                #check that an ant exists at the loc
+                if antAtLoc ==  None:
+                    return True
+                    
+        return False
 
 a = Game()
 a.runGame()

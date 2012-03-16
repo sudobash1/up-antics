@@ -4,9 +4,7 @@
 #
 #Variables:
 #   moveType - This represents the type of move the player has made(moveAnt,build and endTurn)
-#   fromLoc - This represents the location of where Ant is moving from or being built from(this
-#       depends on the moveType)
-#    locList - The list of Locations representing the path to take
+#   coordList - The list of coordinates representing the path to take, does not include fromCoord
 #   unitType - This identifies the type of a unit(only relevant to Moves of type build)
 ##
 class Move(object):
@@ -17,13 +15,11 @@ class Move(object):
     #
     #Parameters:
     #   inputMoveType - The type of move the Player is making (int)
-    #   inputFromLoc - The Location the Ant is moving from (Location)
-    #    inputLocList - A list of Locations representing the path to take (List<Location>)
+    #   inputCoordList - A list of coordinates representing the path to take (List<(int,int)>)
     #   inputUnitType - The type of unit being built (int)
     ##
-    def __init__(self, inputMoveType, inputFromLoc, inputLocList, inputUnitType):
+    def __init__(self, inputMoveType, inputCoordList, inputUnitType):
         self.moveType = inputMoveType
-        self.fromLoc = inputFromLoc
-        self.locList = inputLocList
+        self.coordList = inputToCoordList
         self.unitType = inputUnitType
     
