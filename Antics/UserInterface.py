@@ -10,9 +10,11 @@ from pygame.locals import *
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (150, 0, 0)
+DARK_GREEN = (0, 100, 0)
+LIGHT_GREEN = (0, 255, 0)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
-CELL_SPACING = 10
+CELL_SPACING = 5
 
 def addCoords(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
@@ -133,8 +135,8 @@ class UserInterface(object):
     def drawButton(self, key):
         label = self.gameFont.render(key, True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
-        self.screen.blit(self.buttonTextures[self.buttons[key][2]], self.buttons[key][:2])
-        self.screen.blit(label, addCoords(self.buttons[key][:2], offset))
+        self.screen.blit(self.buttonTextures[self.buttons[key][1]], self.buttons[key][0])
+        self.screen.blit(label, addCoords(self.buttons[key][0], offset))
     
     ##
     #drawScoreBoard
@@ -163,16 +165,16 @@ class UserInterface(object):
     #   is released, or 0 if the button is depressed.
     ##
     def handleButton(self, key, released):
-        if self.buttons[key][2] != released and released == 1:
-            self.buttons[key][3]()
+        if self.buttons[key][1] != released and released == 1:
+            self.buttons[key][2]()
         
-        self.buttons[key][2] = released
+        self.buttons[key][1] = released
     
     ##
     #handleEvents
     #Description: Handles the more generic mouse movements. Finds out what has been
-    #   clicked, and either calls handleButton on the activated button, or returns
-    #   the board coordinates of the cell that was clicked.
+    #   clicked, and either calls handleButton on the activated button, or uses a
+    #   callback to tell the HumanPlayer what the human clicked.
     ##
     def handleEvents(self):
         for event in pygame.event.get():
@@ -180,7 +182,7 @@ class UserInterface(object):
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 0)
                 #Additionally, check if a cell on the board has been clicked.
                 if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
@@ -190,15 +192,42 @@ class UserInterface(object):
                         self.locationClicked((x, y))
             elif event.type == pygame.MOUSEBUTTONUP:
                 for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][:2]).collidepoint(event.pos):
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 1)
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
                 for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][:2]).collidepoint(addCoords(event.pos, event.rel)):
-                        self.buttons[key][2] = 0
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
+                        self.buttons[key][1] = 0
                     else:
-                        self.buttons[key][2] = 1
+                        self.buttons[key][1] = 1
     
+    def drawCell(self, currentLoc):
+        col = currentLoc.coords[0]
+        row = currentLoc.coords[1]
+        #Find the x y coordinates that this column and row map to.
+        Xpixel = CELL_SPACING * (col + 1) + CELL_SIZE.width * col
+        Ypixel = CELL_SPACING * (row + 1) + CELL_SIZE.height * row
+        #Create a Rect that shows up if the square is selected.
+        shadeWidth = 2 * CELL_SPACING + CELL_SIZE.width
+        shadeHeight = 2 * CELL_SPACING + CELL_SIZE.height
+        shadeRect = Rect(0, 0, shadeWidth, shadeHeight)
+        #Find the X and Y coordinates to draw the shade at.
+        shadeXpixel = Xpixel - CELL_SPACING
+        shadeYpixel = Ypixel - CELL_SPACING
+        #Draw the cell
+        pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
+        if self.moveList != []:
+            #Draw the shadeRect if currentLoc is in moveList
+            if currentLoc.coords in self.moveList[:-1]:
+                pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+            #Draw brighter if the currentLoc is the last move selected
+            if currentLoc.coords == self.moveList[-1]:
+                pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        #Draw what's in this cell
+        if currentLoc.constr != None:
+            self.drawConstruction(currentLoc.constr, (col, row))
+        if currentLoc.ant != None:
+            self.drawAnt(currentLoc.ant, (col, row))
     ##
     #drawBoard
     #Description: This is the bread and butter of the UserInterface class. Everything
@@ -208,14 +237,11 @@ class UserInterface(object):
     #   currentState - 
     def drawBoard(self, currentState):
         self.handleEvents()
-        self.screen.fill(WHITE)
+        self.screen.fill(BLACK)
+        pygame.draw.rect(self.screen, WHITE, self.buttonArea)
         for col in xrange(0, len(currentState.board)):
             for row in xrange(0, len(currentState.board[col])):
-                currentLoc = currentState.board[col][row]
-                if currentLoc.constr != None:
-                    self.drawConstruction(currentLoc.constr, (col, row))
-                if currentLoc.ant != None:
-                    self.drawAnt(currentLoc.ant, (col, row))
+                self.drawCell(currentState.board[col][row])
         for key in self.buttons:
             self.drawButton(key)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
@@ -223,6 +249,16 @@ class UserInterface(object):
         #Draw notifications just above menu buttons.
         self.drawNotification()
         pygame.display.flip()
+    
+    def findButtonCoords(self, index, isTop):
+        buttonSpacing = 2 * CELL_SPACING
+        buttonX = self.screen.get_width() - self.buttonRect.width - buttonSpacing
+        if isTop:
+            buttonY = (index + 1) * buttonSpacing + index * self.buttonRect.height
+            return buttonX, buttonY
+        else:
+            buttonY = self.screen.get_height() - (index + 1) * (buttonSpacing + self.buttonRect.height)
+            return buttonX, buttonY
     
     def initAssets(self):
         global CELL_SIZE
@@ -258,20 +294,25 @@ class UserInterface(object):
         self.gameFont = pygame.font.Font(None, 25)
         self.notifyFont = pygame.font.Font(None, 15)
         #Where should scores be drawn?
-        self.scoreLocation = (800, 160)
+        self.scoreLocation = self.findButtonCoords(4, True)
         #Where should notifications be drawn?
-        self.messageLocation = (800, 400)
+        self.messageLocation = self.findButtonCoords(4, False)
+        #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
+        buttonAreaSize = self.buttonRect.width + 4 * CELL_SPACING
+        self.buttonArea = Rect(self.screen.get_width() - buttonAreaSize, 0, buttonAreaSize, self.screen.get_height())
         #Button statistics in order: x, y, buttonState(pressed/released)
         self.buttons = {
-        'move':[800,10, 1, self.submitMove],
-        'build':[800,60, 1, self.submitBuild],
-        'end':[800,110, 1, self.submitEndTurn],
-        'tournament':[800,450, 1, self.gameModeTournament],
-        'human':[800,500, 1, self.gameModeHumanAI],
-        'ai':[800,550, 1, self.gameModeAIAI],
-        'start':[800,650, 1, self.startGame]
+        'move':[self.findButtonCoords(0, True), 1, self.submitMove],
+        'build':[self.findButtonCoords(1, True), 1, self.submitBuild],
+        'end':[self.findButtonCoords(2, True), 1, self.submitEndTurn],
+        'tournament':[self.findButtonCoords(3, False), 1, self.gameModeTournament],
+        'human':[self.findButtonCoords(2, False), 1, self.gameModeHumanAI],
+        'ai':[self.findButtonCoords(1, False), 1, self.gameModeAIAI],
+        'start':[self.findButtonCoords(0, False), 1, self.startGame]
         }
         #Initial vaue for callback function that will be used to get cell clicks in game
         self.locationCallback = self.locationClicked
-        #Intial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
+        #Initial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
         self.lastNotification = None
+        #Initial moveList so I know what to shade
+        self.moveList = []

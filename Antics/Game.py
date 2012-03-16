@@ -26,10 +26,10 @@ class Game(object):
         self.ui = UserInterface((960,750))
         self.ui.initAssets()
         #UI Callback functions
-        self.ui.buttons['start'][3] = self.startGame
-        self.ui.buttons['tournament'][3] = self.tournamentPath
-        self.ui.buttons['human'][3] = self.humanPath
-        self.ui.buttons['ai'][3] = self.aiPath
+        self.ui.buttons['start'][-1] = self.startGame
+        self.ui.buttons['tournament'][-1] = self.tournamentPath
+        self.ui.buttons['human'][-1] = self.humanPath
+        self.ui.buttons['ai'][-1] = self.aiPath
         self.ui.locationClicked = self.locationClickedCallback
           
     def runGame(self):
