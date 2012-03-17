@@ -99,7 +99,7 @@ class AIPlayer(Player):
             if len(placeableAnts) != 0 and placeableHill:
                 #randint returns up to the max, so no need to add or subtract for placeableHill's sake
                 toPlace = random.randint(0, 5)
-                if toPlace == 5):
+                if toPlace == 5:
                     #build a tunnel
                     location = random.randint(0, len(placeableAnts) - 1)
                     return Move(BUILD, location, TUNNEL)
@@ -124,16 +124,15 @@ class AIPlayer(Player):
         #Move first of these ants
         if antsToMove != []:
             chosen = antsToPlace[0]
-            coordList = []
+            coordList = [chosen.coords]
             totalCost = 0
-            currentLoc = chosen.coords
             lastStep = None
             while totalCost < UNIT_STATS[chosen.type][MOVEMENT]:
                 #pick a random direction that won't move me back.
                 possibleDirections = [(0, 1), (0, -1), (1, 0), (-1, 0)]
                 validDirections = []
                 for direction in possibleDirections:
-                    nextLoc = addCoords(currentLoc, direction)
+                    nextLoc = addCoords(coordList[-1], direction)
                     costOfStep = currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
                     if UNIT_STATS[chosen.type][MOVEMENT] >= totalCost + costOfStep:
                         validDirections.append(direction)
@@ -148,6 +147,7 @@ class AIPlayer(Player):
                     coordList.append(nextLoc)
                     #Add its cost to the total move cost
                     totalCost += currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
+            #Return the chosen move
             return Move(MOVE, coordList, None)
         #If I can't to anything, end turn
         return Move(END, None, None)
