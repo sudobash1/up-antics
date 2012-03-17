@@ -4,6 +4,7 @@ import Constants as const
 from Construction import CONSTR_STATS
 from Ant import UNIT_STATS
 from Move import Move
+from UserInterface import addCoords
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -124,9 +125,29 @@ class AIPlayer(Player):
         if antsToMove != []:
             chosen = antsToPlace[0]
             coordList = []
+            totalCost = 0
+            currentLoc = chosen.coords
+            lastStep = None
             while totalCost < UNIT_STATS[chosen.type][MOVEMENT]:
                 #pick a random direction that won't move me back.
-                pass
+                possibleDirections = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+                validDirections = []
+                for direction in possibleDirections:
+                    nextLoc = addCoords(currentLoc, direction)
+                    costOfStep = currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
+                    if UNIT_STATS[chosen.type][MOVEMENT] >= totalCost + costOfStep:
+                        validDirections.append(direction)
+                #If no directions are valid, break out of the loop.
+                if validDirections == []:
+                    break
+                else:
+                    #Choose a random direction
+                    randDir = random.randint(0, len(validDirections) - 1)
+                    #Apply it
+                    nextLoc = addCoords(chosen.coords, validDirections[randDir])
+                    coordList.append(nextLoc)
+                    #Add its cost to the total move cost
+                    totalCost += currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
             return Move(MOVE, coordList, None)
         #If I can't to anything, end turn
         return Move(END, None, None)

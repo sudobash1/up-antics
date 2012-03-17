@@ -20,7 +20,13 @@ class Location(object):
         self.ant = None
         self.constr = None
         self.coords = inputCoordinates
-        
+    
+    def getMoveCost(self):
+        if self.constr == None:
+            return 1
+        else:
+            return self.constr.movementCost
+    
     def clone(self):
         newLoc = Location(self.coords)
         newLoc.ant = self.ant
