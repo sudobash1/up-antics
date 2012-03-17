@@ -1,6 +1,9 @@
 import random
 from Player import *
 import Constants as const
+from Construction import CONSTR_STATS
+from Ant import UNIT_STATS
+from Move import Move
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
@@ -70,8 +73,63 @@ class AIPlayer(Player):
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-        #implemented by students to return their next move
-        pass
+        #Get my inventory
+        myInv = None
+        for inv in currentState.inventories:
+            if inv.player == self.playerId:
+                myInv = inv
+                break
+        #If my inventory is still none, then I don't have one.
+        if myInv == None:
+            return None
+        #If you have the food for an ant tunnel, try to purchase something random.
+        if myInv.foodCount >= CONSTR_STATS[TUNNEL][COST]:
+            #First detect whether you have an ant with nothing under it
+            placeableAnts = []
+            for ant in myInv.ants:
+                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None:
+                    placeableAnts.append(ant)
+            #Then detect whether you have an anthill with nothing on top of it
+            placeableHill = False
+            hill = myInv.getAnthill()
+            if currentState.board[hill.coords[0]][hill.coords[1]].ant == None:
+                placeableHill = True
+            #Choose randomly between building ants or tunnels
+            if len(placeableAnts) != 0 and placeableHill:
+                #randint returns up to the max, so no need to add or subtract for placeableHill's sake
+                toPlace = random.randint(0, 5)
+                if toPlace == 5):
+                    #build a tunnel
+                    location = random.randint(0, len(placeableAnts) - 1)
+                    return Move(BUILD, location, TUNNEL)
+                else:
+                    #build an ant
+                    return Move(BUILD, hill.coords, random.randint(QUEEN, I_SOLDIER))
+            elif len(placeableAnts) != 0:
+                #build a tunnel
+                location = random.randint(0, len(placeableAnts) - 1)
+                return Move(BUILD, location, TUNNEL)
+            elif placeableHill:
+                #build an ant
+                return Move(BUILD, hill.coords, random.randint(QUEEN, I_SOLDIER))
+            else:
+                #I have resources to build, but no place to build things
+                pass
+        #See if you can move any ants
+        antsToMove = []
+        for ant in myInv:
+            if not ant.hasMoved:
+                antsToMove.append(ant)
+        #Move first of these ants
+        if antsToMove != []:
+            chosen = antsToPlace[0]
+            coordList = []
+            while totalCost < UNIT_STATS[chosen.type][MOVEMENT]:
+                #pick a random direction that won't move me back.
+                pass
+            return Move(MOVE, coordList, None)
+        #If I can't to anything, end turn
+        return Move(END, None, None)
     
     ##
     #getAttack
@@ -81,5 +139,5 @@ class AIPlayer(Player):
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, enemyLocations):
-        #implemented by students to select which enemy ant to attack
-        pass
+        #Attack a random enemy.
+        return random.randint(0, len(enemyLocations) - 1)
