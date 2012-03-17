@@ -174,11 +174,11 @@ class UserInterface(object):
     #Parameters:
     #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
     ##
-    def drawButton(self, key):
+    def drawButton(self, key, buttons):
         label = self.gameFont.render(key, True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
-        self.screen.blit(self.buttonTextures[self.buttons[key][1]], self.buttons[key][0])
-        self.screen.blit(label, addCoords(self.buttons[key][0], offset))
+        self.screen.blit(self.buttonTextures[buttons[key][1]], buttons[key][0])
+        self.screen.blit(label, addCoords(buttons[key][0], offset))
     
     ##
     #drawScoreBoard
@@ -206,11 +206,11 @@ class UserInterface(object):
     #   released - an integer/boolean that represents the state of the button: 1 if the button
     #   is released, or 0 if the button is depressed.
     ##
-    def handleButton(self, key, released):
-        if self.buttons[key][1] != released and released == 1:
-            self.buttons[key][2]()
+    def handleButton(self, key, released, buttons):
+        if buttons[key][1] != released and released == 1:
+            buttons[key][2]()
         
-        self.buttons[key][1] = released
+        buttons[key][1] = released
     
     ##
     #handleEvents
@@ -220,12 +220,13 @@ class UserInterface(object):
     ##
     def handleEvents(self):
         for event in pygame.event.get():
+            relButtons = self.antButtons if self.buildAntMenu else self.buttons
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 0)
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 0, relButtons)
                 #Additionally, check if a cell on the board has been clicked.
                 if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
                     x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
@@ -233,15 +234,15 @@ class UserInterface(object):
                     if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
                         self.locationClicked((x, y))
             elif event.type == pygame.MOUSEBUTTONUP:
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 1)
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 1, relButtons)
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
-                        self.buttons[key][1] = 0
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
+                        relButtons[key][1] = 0
                     else:
-                        self.buttons[key][1] = 1
+                        relButtons[key][1] = 1
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -285,8 +286,10 @@ class UserInterface(object):
         for col in xrange(0, len(currentState.board)):
             for row in xrange(0, len(currentState.board[col])):
                 self.drawCell(currentState.board[col][row])
-        for key in self.buttons:
-            self.drawButton(key)
+        #Make sure we draw the right buttons
+        relButtons = self.antButtons if self.buildAntMenu else self.buttons
+        for key in relButtons:
+            self.drawButton(key, relButtons)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
         self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
         #Draw notifications just above menu buttons.
