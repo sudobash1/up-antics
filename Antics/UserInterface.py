@@ -89,6 +89,48 @@ class UserInterface(object):
     def startGame(self):
         print "Clicked START GAME"
     
+    ##
+    #submitQueen
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitQueen(self):
+        print "Clicked QUEEN"
+    
+    ##
+    #submitWorker
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitWorker(self):
+        print "Clicked WORKER"
+    
+    ##
+    #submitDrone
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitDrone(self):
+        print "Clicked DRONE"
+    
+    ##
+    #submitDSoldier
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitDSoldier(self):
+        print "Clicked DIRECT SOLDIER"
+    
+    ##
+    #submitISoldier
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitISoldier(self):
+        print "Clicked INDIRECT SOLDIER"
+    
+    ##
+    #submitNoBuild
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitNoBuild(self):
+        print "Clicked BUILD NOTHING"
+    
     def locationClicked(self, coords):
         print "Clicked LOCATION " + str(coords)
     
@@ -295,12 +337,12 @@ class UserInterface(object):
         self.gameFont = pygame.font.Font(None, 25)
         self.notifyFont = pygame.font.Font(None, 15)
         #Where should scores be drawn?
-        self.scoreLocation = self.findButtonCoords(4, True)
+        self.scoreLocation = self.findButtonCoords(6, True)
         #Where should notifications be drawn?
         self.messageLocation = self.findButtonCoords(4, False)
         #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
-        buttonAreaSize = self.buttonRect.width + 4 * CELL_SPACING
-        self.buttonArea = Rect(self.screen.get_width() - buttonAreaSize, 0, buttonAreaSize, self.screen.get_height())
+        buttonAreaWidth = self.buttonRect.width + 4 * CELL_SPACING
+        self.buttonArea = Rect(self.screen.get_width() - buttonAreaWidth, 0, buttonAreaWidth, self.screen.get_height())
         #Button statistics in order: x, y, buttonState(pressed/released)
         self.buttons = {
         'move':[self.findButtonCoords(0, True), 1, self.submitMove],
@@ -313,6 +355,17 @@ class UserInterface(object):
         }
         #Initial vaue for callback function that will be used to get cell clicks in game
         self.locationCallback = self.locationClicked
+        #Initial value for build ant menu
+        self.antButtons = {
+        'queen':[self.findButtonCoords(0, True), 1, self.submitQueen],
+        'worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
+        'drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
+        'dsoldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
+        'isoldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
+        'none':[self.findButtonCoords(5, True), 1, self.submitNoBuild]
+        }
+        #Draw the ant build menu?
+        self.buildAntMenu = False
         #Initial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
         self.lastNotification = None
         #Initial moveList so I know what to shade
