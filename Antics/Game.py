@@ -27,6 +27,9 @@ class Game(object):
         self.ui = UserInterface((960,750))
         self.ui.initAssets()
         #UI Callback functions
+        self.ui.buttons['move'][-1] = self.moveClickedCallback
+        self.ui.buttons['build'][-1] = self.buildClickedCallback
+        self.ui.buttons['end'][-1] = self.endClickedCallback
         self.ui.buttons['start'][-1] = self.startGame
         self.ui.buttons['tournament'][-1] = self.tournamentPath
         self.ui.buttons['human'][-1] = self.humanPath
@@ -230,46 +233,7 @@ class Game(object):
         sys.path.pop(0)
         #Revert working directory to parent.
         os.chdir('..')
-    
-    def locationClickedCallback(self, coord):
-        whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
-        #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(self.players[whoseTurn]) is HumanPlayer.HumanPlayer:
-            #add location to human player's movelist if appropriatocity is valid
-            if len(currentPlayer.moveList) != 0 and coord == currentPlayer.moveList[-1]:
-                currentPlayer.moveList.pop()
-            elif len(currentPlayer.moveList) == 0:
-                #Need to check this here or it may try to get the last element of the list when it is empty
-                if self.checkMoveStart(coord):
-                    currentPlayer.moveList.append(coord)
-            else:
-                onList = False
-                for checkCoord in currentPlayer.moveList:
-                    if checkCoord == coord:
-                        onList = True
-                        
-                if not onList and self.checkMovePath(currentPlayer.moveList[-1], coord): 
-                    #add the coord to the move list so we can check if it makes a valid move
-                    currentPlayer.moveList.append(coord)
-                    
-                    #enact the theoretical move
-                    startCoord = currentPlayer.moveList[0]
-                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
-                    move = Move(MOVE, currentPlayer.moveList, antToMove.type)
-                    
-                    #if the move wasn't valid, remove added coord from move list              
-                    if not self.isValidMove(move):
-                        currentPlayer.moveList.pop()
-            
-            #give moveList to UI so it can hightlight the player's path
-            self.ui.moveList = currentPlayer.moveList
-            
-        #Check if its human player's turn during set up phase
-        if self.state.phase == SETUP_PHASE and type(self.players[whoseTurn]) is HumanPlayer.HumanPlayer:
-            currentPlayer.moveList.append(coord)
-                
-    # once end game has been reached, display screen "player x wins!" OK/Play Again button
+  
     def isGameOver(self, playerId):
         opponentId = (playerId + 1) % 2
         
@@ -482,5 +446,91 @@ class Game(object):
                     
         return False
 
+    ##
+    #locationClickedCallback
+    #Description: Responds to a user clicking on a board location
+    #
+    ##
+    def locationClickedCallback(self, coord):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
+            #add location to human player's movelist if appropriatocity is valid
+            if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
+                currentPlayer.coordList.pop()
+            elif len(currentPlayer.coordList) == 0:
+                #Need to check this here or it may try to get the last element of the list when it is empty
+                if self.checkMoveStart(coord):
+                    currentPlayer.coordList.append(coord)
+            else:
+                onList = False
+                for checkCoord in currentPlayer.coordList:
+                    if checkCoord == coord:
+                        onList = True
+                        
+                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord): 
+                    #add the coord to the move list so we can check if it makes a valid move
+                    currentPlayer.coordList.append(coord)
+                    
+                    #enact the theoretical move
+                    startCoord = currentPlayer.coordList[0]
+                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
+                    move = Move(MOVE, currentPlayer.coordList, antToMove.type)
+                    
+                    #if the move wasn't valid, remove added coord from move list              
+                    if not self.isValidMove(move):
+                        currentPlayer.coordList.pop()
+            
+            #give coordList to UI so it can hightlight the player's path
+            self.ui.coordList = currentPlayer.coordList
+            
+        #Check if its human player's turn during set up phase
+        if self.state.phase == SETUP_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
+            currentPlayer.coordList.append(coord)
+
+    ##
+    #moveClickedCallback
+    #Description: Responds to a user clicking on the move button
+    #
+    ##
+    def moveClickedCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer and not len(currentPlayer.coordList) == 0:
+            currentPlayer.moveType = MOVE
+    
+    ##
+    #buildClickedCallback
+    #Description: Responds to a user clicking on the build button
+    #
+    ##
+    def buildClickedCallback(self): #ALSO NEEDS BUILD MENU STUFF!!
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer and len(currentPlayer.coordList) == 1:
+            loc = self.state.board[coordList[0][0]][coordList[0][1]]
+            #we know loc has to have an ant or constr at this point, so make sure it doesnt have both
+            if loc.constr == None or loc.ant == None:
+                currentPlayer.moveType = BUILD
+
+    ##
+    #endClickedCallback
+    #Description: Responds to a user clicking on the end button
+    #
+    ##
+    def endClickedCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
+            currentPlayer.moveType = END
+            
 a = Game()
 a.runGame()

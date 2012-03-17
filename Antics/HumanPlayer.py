@@ -7,6 +7,9 @@ from Player import *
 #
 #Variables:
 #   playerId - The id of the player.
+#   moveType - the type of move that the player is currently wanting to make
+#   buildType - the type of building that the player is currently wanting to make
+#   coordList - the list of coordinates that correspond to a valid move
 ##
 class HumanPlayer(Player):
 
@@ -18,7 +21,9 @@ class HumanPlayer(Player):
     ##
     def __init__(self, inputPlayerId):
         super(HumanPlayer,self).__init__(inputPlayerId)
-        self.moveList = []
+        self.moveType = None
+        self.buildType = None
+        self.coordList = []
         
     ##
     #getPlacement
@@ -32,10 +37,10 @@ class HumanPlayer(Player):
     #Return: The coordinates of where the construction is to be placed
     ##
     def getPlacement(self, construction, currentState):
-        if len(self.moveList) == 0:
+        if len(self.coordList) == 0:
             return None
-        target = self.moveList[0]
-        self.moveList = []
+        target = self.coordList[0]
+        self.coordList = []
         return target
         
     ##
@@ -48,8 +53,33 @@ class HumanPlayer(Player):
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-        #method template, not implemented
-        pass
+        moveType = self.moveType
+        coords = self.coordList
+        
+        #check if no move has been submitted first
+        if moveType == None:
+            return None
+        
+        #callbacks have made sure coord list 
+        #wasn't empty if we got to this point
+        
+        #clear out move type and coord list
+        self.moveType = None
+        self.coordList = []
+        
+        #create the appriopriate move
+        if self.moveType == MOVE:
+            return Move(MOVE, coords, None)
+        elif self.moveType == BUILD:
+            #callbacks have checked to make sure coord list is length 1
+            loc = currentState.board[[coords[0][0]][coords[0][1]]]
+            #we also know from callback that loc contains ant OR hill, not both
+            return Move(BUILD, coords, None) #ASSIGN BUILD TYPE!!
+        elif self.moveType == END:
+            return Move(END, None, None)
+        else:
+            #bad move type
+        
     
     ##
     #getAttack
