@@ -91,8 +91,6 @@ class AIPlayer(Player):
                 if currentState.board[ant.coords[0]][ant.coords[1]].constr == None and ant.type == WORKER:
                     placeableAnts.append(ant)
             #Then detect whether you have an anthill with nothing on top of it
-            import pdb
-            pdb.set_trace()
             placeableHill = False
             hill = myInv.getAnthill()
             if currentState.board[hill.coords[0]][hill.coords[1]].ant == None:
@@ -104,10 +102,10 @@ class AIPlayer(Player):
                 if toPlace == 5:
                     #build a tunnel
                     location = random.randint(0, len(placeableAnts) - 1)
-                    return Move(BUILD, location, TUNNEL)
+                    return Move(BUILD, [placeableAnts[location]], TUNNEL)
                 else:
                     #build an ant
-                    return Move(BUILD, hill.coords, random.randint(QUEEN, I_SOLDIER))
+                    return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
             elif len(placeableAnts) != 0:
                 #build a tunnel
                 location = random.randint(0, len(placeableAnts) - 1)
@@ -120,12 +118,12 @@ class AIPlayer(Player):
                 pass
         #See if you can move any ants
         antsToMove = []
-        for ant in myInv:
+        for ant in myInv.ants:
             if not ant.hasMoved:
                 antsToMove.append(ant)
         #Move first of these ants
         if antsToMove != []:
-            chosen = antsToPlace[0]
+            chosen = antsToMove[0]
             coordList = [chosen.coords]
             totalCost = 0
             lastStep = None
@@ -135,7 +133,11 @@ class AIPlayer(Player):
                 validDirections = []
                 for direction in possibleDirections:
                     nextLoc = addCoords(coordList[-1], direction)
-                    costOfStep = currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
+                    #Check that the move would be inside the board bounds
+                    if nextLoc[0] > 9 or nextLoc[0] < 0 or nextLoc[1] > 9 or nextLoc[1] < 0:
+                        continue
+                    #Check that the move cost would not exceed what this ant is capable of
+                    costOfStep = currentState.board[nextLoc[0]][nextLoc[1]].getMoveCost()
                     if UNIT_STATS[chosen.type][MOVEMENT] >= totalCost + costOfStep:
                         validDirections.append(direction)
                 #If no directions are valid, break out of the loop.
@@ -148,7 +150,7 @@ class AIPlayer(Player):
                     nextLoc = addCoords(chosen.coords, validDirections[randDir])
                     coordList.append(nextLoc)
                     #Add its cost to the total move cost
-                    totalCost += currentState.board[nextLoc.coords[0]][nextLoc.coords[1]].getMoveCost()
+                    totalCost += currentState.board[nextLoc[0]][nextLoc[1]].getMoveCost()
             #Return the chosen move
             return Move(MOVE, coordList, None)
         #If I can't to anything, end turn

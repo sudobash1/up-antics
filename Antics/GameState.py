@@ -1,7 +1,6 @@
 from Constants import *
-
-
-
+from Inventory import Inventory
+from Building import Building
 ##
 #GameState
 #Description: The current state of the game.
@@ -87,5 +86,28 @@ class GameState(object):
     #Return: The GameState identical to the original
     ##
     def clone(self):
-        newBoard = [[self.board[row][col].clone() for col in xrange(0,len(self.board))] for row in xrange(0,len(self.board))]
-        return GameState(newBoard, [self.inventories[0].clone(), self.inventories[1].clone()], self.phase, self.whoseTurn)
+        newBoard = []
+        ants1 = []
+        ants2 = []
+        cons1 = []
+        cons2 = []
+        food1 = self.inventories[PLAYER_ONE].foodCount
+        food2 = self.inventories[PLAYER_TWO].foodCount
+        for col in xrange(0,len(self.board)):
+            newBoard.append([])
+            for row in xrange(0,len(self.board)):
+                newLoc = self.board[col][row].clone()
+                newBoard[col].append(newLoc)
+                #Organize constructions into inventories
+                if newLoc.constr != None and type(newLoc.constr) is Building and newLoc.constr.player == PLAYER_ONE:
+                    cons1.append(newLoc.constr)
+                elif newLoc.constr != None and type(newLoc.constr) is Building and newLoc.constr.player == PLAYER_TWO:
+                    cons2.append(newLoc.constr)
+                #Organize ants into inventories
+                if newLoc.ant != None and newLoc.ant.player == PLAYER_ONE:
+                    ants1.append(newLoc.ant)
+                elif newLoc.ant != None and newLoc.ant.player == PLAYER_TWO:
+                    ants2.append(newLoc.ant)
+        #newBoard = [[self.board[row][col].clone() for col in xrange(0,len(self.board))] for row in xrange(0,len(self.board))]
+        newInventories = [Inventory(PLAYER_ONE, ants1, cons1, food1), Inventory(PLAYER_TWO, ants2, cons2, food2)]
+        return GameState(newBoard, newInventories, self.phase, self.whoseTurn)
