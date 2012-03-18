@@ -484,7 +484,7 @@ class Game(object):
                         currentPlayer.coordList.pop()
             
             #give coordList to UI so it can hightlight the player's path
-            self.ui.coordList = currentPlayer.coordList
+            self.ui.moveList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
         if self.state.phase == SETUP_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
@@ -517,6 +517,12 @@ class Game(object):
             loc = self.state.board[coordList[0][0]][coordList[0][1]]
             #we know loc has to have an ant or constr at this point, so make sure it doesnt have both
             if loc.constr == None or loc.ant == None:
+                if loc.constr == None:
+                    #a tunnel is to be built
+                    currentPlayer.buildType = TUNNEL
+                elif loc.ant == None:
+                    self.ui.buildAntMenu = True                    
+                
                 currentPlayer.moveType = BUILD
 
     ##

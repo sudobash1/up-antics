@@ -79,6 +79,7 @@ class HumanPlayer(Player):
             return Move(END, None, None)
         else:
             #bad move type
+            pass
         
     
     ##
@@ -91,3 +92,4 @@ class HumanPlayer(Player):
     def getAttack(self, enemyLocations):
         #method template, not implemented
         pass
+        

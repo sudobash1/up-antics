@@ -30,10 +30,10 @@ D_SOLDIER = 3
 I_SOLDIER = 4
 
 #Types of contructions
-ANTHILL = 0
-TUNNEL = 1
-GRASS = 2
-FOOD = 3
+ANTHILL = -4
+TUNNEL = -3
+GRASS = -2
+FOOD = -1
 
 #Types of moves
 MOVE = 0
