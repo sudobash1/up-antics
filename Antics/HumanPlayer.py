@@ -1,4 +1,6 @@
+from Constants import *
 from Player import *
+from Move import *
 
 ##
 #HumanPlayer
@@ -55,6 +57,7 @@ class HumanPlayer(Player):
     def getMove(self, currentState):
         moveType = self.moveType
         coords = self.coordList
+        chosenMove = None
         
         #check if no move has been submitted first
         if moveType == None:
@@ -63,24 +66,25 @@ class HumanPlayer(Player):
         #callbacks have made sure coord list 
         #wasn't empty if we got to this point
         
-        #clear out move type and coord list
-        self.moveType = None
-        self.coordList = []
-        
-        #create the appriopriate move
+        #create the appropriate move
         if self.moveType == MOVE:
-            return Move(MOVE, coords, None)
+            chosenMove = Move(MOVE, coords, None)
         elif self.moveType == BUILD:
             #callbacks have checked to make sure coord list is length 1
             loc = currentState.board[[coords[0][0]][coords[0][1]]]
             #we also know from callback that loc contains ant OR hill, not both
-            return Move(BUILD, coords, None) #ASSIGN BUILD TYPE!!
+            chosenMove = Move(BUILD, coords, None) #ASSIGN BUILD TYPE!!
         elif self.moveType == END:
-            return Move(END, None, None)
+            chosenMove = Move(END, None, None)
         else:
             #bad move type
             pass
         
+        #clear out move type and coord list
+        self.moveType = None
+        self.coordList = []
+        
+        return chosenMove
     
     ##
     #getAttack

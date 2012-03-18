@@ -117,11 +117,15 @@ class Game(object):
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
+                        #get the first location if the move isn't None
                         if not move == None:
-                            move.coordList[0] = self.state.coordLookup(move.coordList[0])
+                            move.coordList[0] = self.state.coordLookup(move.coordList[0], currentPlayer.playerId)
                         
                         #make sure it's a valid move
                         validMove = self.isValidMove(move)
+                        
+                        if not move == None and not validMove:
+                            print "oh no!"
                         
                         #complete the move if valid
                         if validMove:
@@ -263,6 +267,10 @@ class Game(object):
         #for END type moves
         if move.moveType == END:
             return True
+        
+        if move.moveType == MOVE and move.coordList != None:
+            import pdb
+            pdb.set_trace()
         
         #check for an empty coord list
         if move.coordList == None or len(move.coordList) == 0:
@@ -514,7 +522,7 @@ class Game(object):
         
         #Check if its human player's turn during play phase
         if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer and len(currentPlayer.coordList) == 1:
-            loc = self.state.board[coordList[0][0]][coordList[0][1]]
+            loc = self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]]
             #we know loc has to have an ant or constr at this point, so make sure it doesnt have both
             if loc.constr == None or loc.ant == None:
                 if loc.constr == None:
