@@ -190,6 +190,10 @@ class Game(object):
                                             #deposit carried food
                                             self.state.inventories[self.state.whoseTurn].foodCount += 1
                                             ant.carrying = False
+                                            
+                                #clear any currently highlighted squares
+                                self.ui.moveList = []
+                                            
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
