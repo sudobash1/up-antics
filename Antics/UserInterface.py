@@ -90,13 +90,6 @@ class UserInterface(object):
         print "Clicked START GAME"
     
     ##
-    #submitQueen
-    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
-    ##
-    def submitQueen(self):
-        print "Clicked QUEEN"
-    
-    ##
     #submitWorker
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     ##
@@ -360,7 +353,6 @@ class UserInterface(object):
         self.locationCallback = self.locationClicked
         #Initial value for build ant menu
         self.antButtons = {
-        'queen':[self.findButtonCoords(0, True), 1, self.submitQueen],
         'worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
         'drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
         'dsoldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],

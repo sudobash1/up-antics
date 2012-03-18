@@ -124,9 +124,6 @@ class Game(object):
                         #make sure it's a valid move
                         validMove = self.isValidMove(move)
                         
-                        if not move == None and not validMove:
-                            print "oh no!"
-                        
                         #complete the move if valid
                         if validMove:
                             #check move type
@@ -267,10 +264,6 @@ class Game(object):
         #for END type moves
         if move.moveType == END:
             return True
-        
-        if move.moveType == MOVE and move.coordList != None:
-            import pdb
-            pdb.set_trace()
         
         #check for an empty coord list
         if move.coordList == None or len(move.coordList) == 0:
