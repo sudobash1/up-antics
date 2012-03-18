@@ -73,7 +73,13 @@ class GameState(object):
             col.reverse()
             
         self.board.reverse()
-    
+        
+        for col in self.board:
+            for loc in col:
+                if loc.ant != None:
+                    loc.ant.coords = self.coordLookup(loc.ant.coords, PLAYER_TWO)
+                if loc.constr != None:
+                    loc.constr.coords = self.coordLookup(loc.constr.coords, PLAYER_TWO)
     ##
     #clone
     #Description: Returns a deep copy of itself

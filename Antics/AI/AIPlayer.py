@@ -1,6 +1,6 @@
 import random
 from Player import *
-import Constants as const
+from Constants import *
 from Construction import CONSTR_STATS
 from Ant import UNIT_STATS
 from Move import Move
@@ -39,7 +39,7 @@ class AIPlayer(Player):
     ##
     def getPlacement(self, construction, currentState):
         #implemented by students to return their next move
-        if construction.type == const.ANTHILL or construction.type == const.GRASS:
+        if construction.type == ANTHILL or construction.type == GRASS:
             move = None
             while move == None:
                 #Choose any x location
@@ -50,7 +50,7 @@ class AIPlayer(Player):
                 if currentState.board[x][y].constr == None:
                     move = (x, y)
             return move
-        elif construction.type == const.FOOD:
+        elif construction.type == FOOD:
             move = None
             while move == None:
                 #Choose any x location
@@ -88,9 +88,11 @@ class AIPlayer(Player):
             #First detect whether you have an ant with nothing under it
             placeableAnts = []
             for ant in myInv.ants:
-                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None:
+                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None and ant.type == WORKER:
                     placeableAnts.append(ant)
             #Then detect whether you have an anthill with nothing on top of it
+            import pdb
+            pdb.set_trace()
             placeableHill = False
             hill = myInv.getAnthill()
             if currentState.board[hill.coords[0]][hill.coords[1]].ant == None:

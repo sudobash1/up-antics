@@ -333,7 +333,7 @@ class UserInterface(object):
         self.gameFont = pygame.font.Font(None, 25)
         self.notifyFont = pygame.font.Font(None, 15)
         #Where should scores be drawn?
-        self.scoreLocation = self.findButtonCoords(6, True)
+        self.scoreLocation = self.findButtonCoords(5, True)
         #Where should notifications be drawn?
         self.messageLocation = self.findButtonCoords(4, False)
         #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
@@ -353,11 +353,11 @@ class UserInterface(object):
         self.locationCallback = self.locationClicked
         #Initial value for build ant menu
         self.antButtons = {
-        'worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
-        'drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
-        'dsoldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
-        'isoldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
-        'none':[self.findButtonCoords(5, True), 1, self.submitNoBuild]
+        'worker':[self.findButtonCoords(0, True), 1, self.submitWorker],
+        'drone':[self.findButtonCoords(1, True), 1, self.submitDrone],
+        'dsoldier':[self.findButtonCoords(2, True), 1, self.submitDSoldier],
+        'isoldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
+        'none':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
         }
         #Draw the ant build menu?
         self.buildAntMenu = False

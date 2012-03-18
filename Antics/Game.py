@@ -22,7 +22,6 @@ class Game(object):
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
         self.players = []
-        self.scores = [0,0]
         self.mode = None
         self.ui = UserInterface((960,750))
         self.ui.initAssets()
@@ -34,6 +33,11 @@ class Game(object):
         self.ui.buttons['tournament'][-1] = self.tournamentPath
         self.ui.buttons['human'][-1] = self.humanPath
         self.ui.buttons['ai'][-1] = self.aiPath
+        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
+        self.ui.antButtons['drone'][-1] = self.buildDroneCallback
+        self.ui.antButtons['dsoldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['isoldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['none'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
           
     def runGame(self):
@@ -102,7 +106,10 @@ class Game(object):
                             self.state.board[p2Queen.coords[0]][p2Queen.coords[1]].ant = p2Queen
                             #add the queens to the inventories
                             self.state.inventories[PLAYER_ONE].ants.append(p1Queen)
-                            self.state.inventories[PLAYER_TWO].ants.append(p2Queen)                           
+                            self.state.inventories[PLAYER_TWO].ants.append(p2Queen)
+                            #give the players the initial food
+                            self.state.inventories[PLAYER_ONE].foodCount = 3
+                            self.state.inventories[PLAYER_TWO].foodCount = 3
                             #change to play phase
                             self.state.phase = PLAY_PHASE
                         
@@ -116,10 +123,6 @@ class Game(object):
                         
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
-                        
-                        #get the first location if the move isn't None
-                        if not move == None:
-                            move.coordList[0] = self.state.coordLookup(move.coordList[0], currentPlayer.playerId)
                         
                         #make sure it's a valid move
                         validMove = self.isValidMove(move)
@@ -139,10 +142,26 @@ class Game(object):
                                 #remove ant from location
                                 self.state.board[startCoord[0]][startCoord[1]].ant = None
                                 #put ant at last loc in locList
-                                self.state.board[endCoord[0]][endCoord[1]] = antToMove   
+                                self.state.board[endCoord[0]][endCoord[1]].ant = antToMove   
+                                self.ui.moveList = []
                             elif move.moveType == BUILD:
-                                # TODO: finish!!
-                                pass
+                                coord = move.coordList[0]
+                                currentPlayerInv = self.state.inventories[self.state.whoseTurn]
+                                                         
+                                #subtract the cost of the item from the player's food count
+                                if move.buildType == TUNNEL:
+                                    currentPlayerInv.foodCount -= CONSTR_STATS[move.buildType][COST]
+                                    
+                                    tunnel = Building(coord, TUNNEL, self.state.whoseTurn)
+                                    self.state.board[coord[0]][coord[1]].constr = tunnel
+                                else:
+                                    currentPlayerInv.foodCount -= UNIT_STATS[move.buildType][COST]
+                                    
+                                    ant = Ant(coord, move.buildType, self.state.whoseTurn)
+                                    ant.hasMoved = True
+                                    self.state.board[coord[0]][coord[1]].ant = ant
+                                
+                                    self.ui.moveList = []                                
                             elif move.moveType == END:
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
                                     #reset hasMoved on all ants of player
@@ -177,7 +196,7 @@ class Game(object):
         if self.mode == TOURNAMENT_MODE:
             return
         #Attempt to load the AI files
-        self.loadAIs()
+        self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
             self.mode = TOURNAMENT_MODE
@@ -188,9 +207,9 @@ class Game(object):
         if self.mode == HUMAN_MODE:
             return
         #Attempt to load the AI files
-        self.loadAIs() 
+        self.loadAIs(True) 
         #Add the human player to the player list
-        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(len(self.players)))                
+        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
         #Check right number of players, if successful set the mode.
         if len(self.players) == 2:
             self.mode = HUMAN_MODE
@@ -201,13 +220,15 @@ class Game(object):
         if self.mode == AI_MODE:
             return
         #Attempt to load the AI files
-        self.loadAIs()
+        self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) == 2:
             self.mode = AI_MODE
         self.mode = None # DELETE THIS LINE LATER!!
     
-    def loadAIs(self):
+    def loadAIs(self, humanMode):
+        #If humanMode, then we're going to start AI ids at a higher number. Change modifier to reflect this
+        modifier = 1 if humanMode else 0
         #Reset the player list in case some have been loaded already
         self.players = []
         #Attempt to load AIs. Exit gracefully if user trying to load weird stuff.
@@ -229,12 +250,12 @@ class Game(object):
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append(temp.AIPlayer(len(self.players)))
+                self.players.append(temp.AIPlayer(len(self.players) + modifier))
         #Remove current directory from python's import search order.
         sys.path.pop(0)
         #Revert working directory to parent.
         os.chdir('..')
-  
+    
     def isGameOver(self, playerId):
         opponentId = (playerId + 1) % 2
         
@@ -317,13 +338,13 @@ class Game(object):
                     buildCost = None
                     #check buildType for valid ant
                     if move.buildType == WORKER:
-                        buildCost = UNIT_STATS[WORKER][MOVEMENT]
+                        buildCost = UNIT_STATS[WORKER][COST]
                     elif move.buildType == DRONE:
-                        buildCost = UNIT_STATS[DRONE][MOVEMENT]
+                        buildCost = UNIT_STATS[DRONE][COST]
                     elif move.buildType == D_SOLDIER:
-                        buildCost = UNIT_STATS[D_SOLDIER][MOVEMENT]
+                        buildCost = UNIT_STATS[D_SOLDIER][COST]
                     elif move.buildType == I_SOLDIER:
-                        buildCost = UNIT_STATS[I_SOLDIER][MOVEMENT]
+                        buildCost = UNIT_STATS[I_SOLDIER][COST]
                     else:
                         return False
                     
@@ -400,6 +421,7 @@ class Game(object):
                 if antToMove.player == self.state.whoseTurn:
                     return True
                     
+                    
         return False
     
     ##
@@ -453,17 +475,17 @@ class Game(object):
     #
     ##
     def locationClickedCallback(self, coord):
-        whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
-        
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
+        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+            whoseTurn = self.state.whoseTurn
+            currentPlayer = self.players[whoseTurn]
+            
             #add location to human player's movelist if appropriatocity is valid
             if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
                 currentPlayer.coordList.pop()
             elif len(currentPlayer.coordList) == 0:
                 #Need to check this here or it may try to get the last element of the list when it is empty
-                if self.checkMoveStart(coord):
+                if self.checkMoveStart(coord) or self.checkBuildStart(coord):
                     currentPlayer.coordList.append(coord)
             else:
                 onList = False
@@ -488,8 +510,8 @@ class Game(object):
             self.ui.moveList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
-        if self.state.phase == SETUP_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
-            currentPlayer.coordList.append(coord)
+        if self.state.phase == SETUP_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+            self.players[self.state.whoseTurn].coordList.append(coord)
 
     ##
     #moveClickedCallback
@@ -497,24 +519,23 @@ class Game(object):
     #
     ##
     def moveClickedCallback(self):
-        whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
-        
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer and not len(currentPlayer.coordList) == 0:
-            currentPlayer.moveType = MOVE
+        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
+                HumanPlayer.HumanPlayer and not len(self.players[self.state.whoseTurn].coordList) == 0):
+            self.players[self.state.whoseTurn].moveType = MOVE
     
     ##
     #buildClickedCallback
     #Description: Responds to a user clicking on the build button
     #
     ##
-    def buildClickedCallback(self): #ALSO NEEDS BUILD MENU STUFF!!
-        whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
-        
+    def buildClickedCallback(self):
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer and len(currentPlayer.coordList) == 1:
+        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
+                HumanPlayer.HumanPlayer and len(self.players[self.state.whoseTurn].coordList) == 1):
+            whoseTurn = self.state.whoseTurn
+            currentPlayer = self.players[whoseTurn]
+            
             loc = self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]]
             #we know loc has to have an ant or constr at this point, so make sure it doesnt have both
             if loc.constr == None or loc.ant == None:
@@ -531,13 +552,47 @@ class Game(object):
     #Description: Responds to a user clicking on the end button
     #
     ##
-    def endClickedCallback(self):
+    def endClickedCallback(self):     
+        #Check if its human player's turn during play phase
+        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+            self.players[self.state.whoseTurn].moveType = END
+    
+    def buildWorkerCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
         
-        #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(currentPlayer) is HumanPlayer.HumanPlayer:
-            currentPlayer.moveType = END
-            
+        self.ui.buildAntMenu = False
+        currentPlayer.buildType = WORKER
+        
+    def buildDroneCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        self.ui.buildAntMenu = False
+        currentPlayer.buildType = DRONE
+        
+    def buildDSoldierCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        self.ui.buildAntMenu = False
+        currentPlayer.buildType = D_SOLDIER
+    
+    def buildISoldierCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        self.ui.buildAntMenu = False
+        currentPlayer.buildType = I_SOLDIER  
+    
+    def buildNothingCallback(self):
+        whoseTurn = self.state.whoseTurn
+        currentPlayer = self.players[whoseTurn]
+        
+        self.ui.buildAntMenu = False
+        currentPlayer.moveType = None
+        
+    
+    
 a = Game()
 a.runGame()

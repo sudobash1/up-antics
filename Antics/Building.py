@@ -1,5 +1,5 @@
 from Construction import *
-
+from Constants import *
 ##
 #Building
 #Description: Represents any static object that can be placed on the board
@@ -25,7 +25,7 @@ class Building(Construction):
     def __init__(self,inputCoords, inputType, inputPlayer):
         super(Building,self).__init__(inputCoords, inputType)
         self.player = inputPlayer
-        self.captureHealth = CONSTR_STATS[inputType][1] #This probably won't work!
+        self.captureHealth = CONSTR_STATS[inputType][CAP_HEALTH]
     
-    
-    
+    def clone(self):
+        return Building(self.coords, self.type, self.player)

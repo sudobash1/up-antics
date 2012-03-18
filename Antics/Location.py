@@ -29,6 +29,8 @@ class Location(object):
     
     def clone(self):
         newLoc = Location(self.coords)
-        newLoc.ant = self.ant
-        newLoc.constr = self.constr
+        if self.ant != None:
+            newLoc.ant = self.ant.clone()
+        if self.constr != None:
+            newLoc.constr = self.constr.clone()
         return newLoc

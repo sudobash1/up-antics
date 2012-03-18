@@ -33,4 +33,7 @@ class Construction(object):
     def __init__(self, inputCoords, inputType):
         self.coords = inputCoords
         self.type = inputType
-        self.movementCost = CONSTR_STATS[inputType][0]
+        self.movementCost = CONSTR_STATS[inputType][MOVE_COST]
+    
+    def clone(self):
+        return Construction(self.coords, self.type)

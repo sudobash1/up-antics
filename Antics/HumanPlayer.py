@@ -55,12 +55,11 @@ class HumanPlayer(Player):
     #Return: The Move to be made
     ##
     def getMove(self, currentState):
-        moveType = self.moveType
         coords = self.coordList
         chosenMove = None
         
         #check if no move has been submitted first
-        if moveType == None:
+        if self.moveType == None:
             return None
         
         #callbacks have made sure coord list 
@@ -70,10 +69,14 @@ class HumanPlayer(Player):
         if self.moveType == MOVE:
             chosenMove = Move(MOVE, coords, None)
         elif self.moveType == BUILD:
+            if self.buildType == None: 
+                return None
             #callbacks have checked to make sure coord list is length 1
-            loc = currentState.board[[coords[0][0]][coords[0][1]]]
+            loc = currentState.board[coords[0][0]][coords[0][1]]
+           
             #we also know from callback that loc contains ant OR hill, not both
-            chosenMove = Move(BUILD, coords, None) #ASSIGN BUILD TYPE!!
+            chosenMove = Move(BUILD, coords, self.buildType)
+            
         elif self.moveType == END:
             chosenMove = Move(END, None, None)
         else:
@@ -82,6 +85,7 @@ class HumanPlayer(Player):
         
         #clear out move type and coord list
         self.moveType = None
+        self.buildType = None
         self.coordList = []
         
         return chosenMove
