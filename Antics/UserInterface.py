@@ -39,6 +39,8 @@ class UserInterface(object):
     def __init__(self, inputSize):
         self.screen = pygame.display.set_mode(inputSize)
         pygame.display.set_caption("aNTiCS")
+        icon = pygame.image.load(os.path.join("Textures", "icon.bmp"))
+        pygame.display.set_icon(icon)
     
     ##
     #submitMove
