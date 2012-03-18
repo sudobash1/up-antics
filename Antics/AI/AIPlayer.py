@@ -147,8 +147,8 @@ class AIPlayer(Player):
                     #Choose a random direction
                     randDir = random.randint(0, len(validDirections) - 1)
                     #Apply it
-                    nextLoc = addCoords(chosen.coords, validDirections[randDir])
-                    coordList.append(nextLoc)
+                    nextCoord = addCoords(coordList[-1], validDirections[randDir])
+                    coordList.append(nextCoord)
                     #Add its cost to the total move cost
                     totalCost += currentState.board[nextLoc[0]][nextLoc[1]].getMoveCost()
             #Return the chosen move
