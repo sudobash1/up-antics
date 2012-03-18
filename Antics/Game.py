@@ -127,6 +127,7 @@ class Game(object):
                         
                         if not move == None and move.coordList != None:
                             for i in xrange(0,len(move.coordList)):
+                                #translate coords of move to match player
                                 move.coordList[i] = self.state.coordLookup(move.coordList[i], self.state.whoseTurn)
                         
                         #make sure it's a valid move
@@ -150,7 +151,23 @@ class Game(object):
                                 self.state.board[endCoord[0]][endCoord[1]].ant = antToMove   
                                 self.ui.moveList = []
                                 
-                                #check if move type check if player wants to attack
+                                # #check if player wants to attack
+                                # adjacentLocs = []
+                                # adjacentLocs.append(self.state.board[endCoord[0]][endCoord[1] + 1])
+                                # adjacentLocs.append(self.state.board[endCoord[0]][endCoord[1] - 1])
+                                # adjacentLocs.append(self.state.board[endCoord[0] + 1][endCoord[1]])
+                                # adjacentLocs.append(self.state.board[endCoord[0] - 1][endCoord[1]])
+                                
+                                # #need stuff for indirect soldiers
+                                # validAttacks = []
+                                # for loc in adjacentLocs:
+                                    # if loc.ant.type != None and loc.ant.player != self.state.whoseTurn:
+                                        # validAttacks.append(self.state.coordLookup(loc.coords, self.state.whoseTurn))
+                                        
+                                # attackCoord = self.players[self.state.whoseTurn].getAttack(validAttacks)
+
+                                # if attackCoord != None and self.state.board[attackCoord[0]][attackCoord[1]].ant != None
+                                
                                 
                             elif move.moveType == BUILD:
                                 coord = move.coordList[0]
@@ -170,7 +187,8 @@ class Game(object):
                                     self.state.board[coord[0]][coord[1]].ant = ant
                                     self.state.inventories[self.state.whoseTurn].ants.append(ant)
                                 
-                                    self.ui.moveList = []                                
+                                self.ui.moveList = []    
+                                
                             elif move.moveType == END:
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
                                     #reset hasMoved on all ants of player
@@ -183,11 +201,11 @@ class Game(object):
                                             if constrUnderAnt.captureHealth == 0:
                                                 constrUnderAnt.player = self.state.whoseTurn
                                                 constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
-                                        elif constrUnderAnt.type == FOOD:
-                                            #have all ants on food sources gather food
+                                        elif constrUnderAnt.type == FOOD and ant.type == WORKER:
+                                            #have all worker ants on food sources gather food
                                             ant.carrying = True
-                                        elif constrUnderAnt.type == ANTHILL or constrUnderAnt.type == TUNNEL and ant.carrying == True:
-                                            #deposit carried food
+                                        elif (constrUnderAnt.type == ANTHILL or constrUnderAnt.type == TUNNEL) and ant.carrying == True:
+                                            #deposit carried food (only workers carry)
                                             self.state.inventories[self.state.whoseTurn].foodCount += 1
                                             ant.carrying = False
                                             
@@ -309,6 +327,8 @@ class Game(object):
         #check for an empty coord list
         if move.coordList == None or len(move.coordList) == 0:
             return False
+            
+        #CHECK THAT THE MOVE IS WELL FORMED (typewise, tuples, ints, etc)
         
         #for MOVE and BUILD type moves
         if move.moveType == MOVE:
@@ -330,7 +350,7 @@ class Game(object):
                         return False
                     #subtract cost of loc from movement points
                     constrAtLoc = self.state.board[coord[0]][coord[1]].constr
-                    if constrAtLoc == None:
+                    if constrAtLoc == None or antToMove.type == DRONE:
                         movePoints -= 1
                     else:
                         movePoints -= CONSTR_STATS[constrAtLoc.type][MOVE_COST]
