@@ -23,7 +23,7 @@ class Game(object):
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
         self.players = []
         self.mode = None
-        self.ui = UserInterface((960,750))
+        self.ui = UserInterface((865,695))
         self.ui.initAssets()
         #UI Callback functions
         self.ui.buttons['move'][-1] = self.moveClickedCallback
@@ -48,7 +48,7 @@ class Game(object):
             
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
-                print "Game Started!"
+                self.ui.notify("Game Started!")
                 
                 #init game stuffs
                 #build a list of things to place
@@ -158,7 +158,7 @@ class Game(object):
                                                          
                                 #subtract the cost of the item from the player's food count
                                 if move.buildType == TUNNEL:
-                                    currentPlayerInv.foodCount -= CONSTR_STATS[move.buildType][COST]
+                                    currentPlayerInv.foodCount -= CONSTR_STATS[move.buildType][BUILD_COST]
                                     
                                     tunnel = Building(coord, TUNNEL, self.state.whoseTurn)
                                     self.state.board[coord[0]][coord[1]].constr = tunnel
@@ -168,20 +168,28 @@ class Game(object):
                                     ant = Ant(coord, move.buildType, self.state.whoseTurn)
                                     ant.hasMoved = True
                                     self.state.board[coord[0]][coord[1]].ant = ant
+                                    self.state.inventories[self.state.whoseTurn].ants.append(ant)
                                 
                                     self.ui.moveList = []                                
                             elif move.moveType == END:
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
                                     #reset hasMoved on all ants of player
                                     ant.hasMoved = False
-                                    #affect capture health of buildings and have all ants on food sources gather
                                     constrUnderAnt = self.state.board[ant.coords[0]][ant.coords[1]].constr
-                                    if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
-                                        constrUnderAnt.captureHealth -= 1
-                                        if constrUnderAnt.captureHealth == 0:
-                                            constrUnderAnt.player = self.state.whoseTurn
-                                            constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
-                                            
+                                    if constrUnderAnt != None:
+                                        if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
+                                            #affect capture health of buildings
+                                            constrUnderAnt.captureHealth -= 1
+                                            if constrUnderAnt.captureHealth == 0:
+                                                constrUnderAnt.player = self.state.whoseTurn
+                                                constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
+                                        elif constrUnderAnt.type == FOOD:
+                                            #have all ants on food sources gather food
+                                            ant.carrying = True
+                                        elif constrUnderAnt.type == ANTHILL or constrUnderAnt.type == TUNNEL and ant.carrying == True:
+                                            #deposit carried food
+                                            self.state.inventories[self.state.whoseTurn].foodCount += 1
+                                            ant.carrying = False
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
@@ -363,7 +371,7 @@ class Game(object):
                         return False
                 else:
                 #we know we're building a construction
-                    buildCost = CONSTR_STATS[TUNNEL][COST]
+                    buildCost = CONSTR_STATS[TUNNEL][BUILD_COST]
                     return self.state.inventories[self.state.whoseTurn].foodCount >= buildCost
                 
             

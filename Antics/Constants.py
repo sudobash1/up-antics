@@ -50,4 +50,4 @@ COST = 4
 #Indices into construction stats
 MOVE_COST = 0
 CAP_HEALTH = 1
-COST = 2
+BUILD_COST = 2
