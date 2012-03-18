@@ -102,14 +102,14 @@ class AIPlayer(Player):
                 if toPlace == 5:
                     #build a tunnel
                     location = random.randint(0, len(placeableAnts) - 1)
-                    return Move(BUILD, [placeableAnts[location]], TUNNEL)
+                    return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
                 else:
                     #build an ant
                     return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
             elif len(placeableAnts) != 0:
                 #build a tunnel
                 location = random.randint(0, len(placeableAnts) - 1)
-                return Move(BUILD, [placeableAnts[location]], TUNNEL)
+                return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
             elif placeableHill:
                 #build an ant
                 return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
@@ -165,4 +165,4 @@ class AIPlayer(Player):
     ##
     def getAttack(self, enemyLocations):
         #Attack a random enemy.
-        return random.randint(0, len(enemyLocations) - 1)
+        return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
