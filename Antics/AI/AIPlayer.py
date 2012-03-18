@@ -84,7 +84,7 @@ class AIPlayer(Player):
         if myInv == None:
             return None
         #If you have the food for an ant tunnel, try to purchase something random.
-        if myInv.foodCount >= CONSTR_STATS[TUNNEL][COST]:
+        if myInv.foodCount >= CONSTR_STATS[TUNNEL][BUILD_COST]:
             #First detect whether you have an ant with nothing under it
             placeableAnts = []
             for ant in myInv.ants:
@@ -109,10 +109,10 @@ class AIPlayer(Player):
             elif len(placeableAnts) != 0:
                 #build a tunnel
                 location = random.randint(0, len(placeableAnts) - 1)
-                return Move(BUILD, location, TUNNEL)
+                return Move(BUILD, [placeableAnts[location]], TUNNEL)
             elif placeableHill:
                 #build an ant
-                return Move(BUILD, hill.coords, random.randint(QUEEN, I_SOLDIER))
+                return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
             else:
                 #I have resources to build, but no place to build things
                 pass

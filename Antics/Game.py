@@ -125,7 +125,7 @@ class Game(object):
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
-                        if not move == None:
+                        if not move == None and move.coordList != None:
                             for i in xrange(0,len(move.coordList)):
                                 move.coordList[i] = self.state.coordLookup(move.coordList[i], self.state.whoseTurn)
                         
