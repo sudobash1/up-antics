@@ -49,6 +49,7 @@ class Game(object):
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
                 print "Game Started!"
+                
                 #init game stuffs
                 #build a list of things to place
                 #things to place: 2 anthill/queen, 9 obstacles, 2 food sources (for opponent)
@@ -74,7 +75,7 @@ class Game(object):
                         validPlace = self.isValidPlacement(constrsToPlace[0], target)
                         if validPlace:
                             #translate coords to match player
-                            target = self.state.coordLookup(target, theState.whoseTurn)
+                            target = self.state.coordLookup(target, self.state.whoseTurn)
                             #get construction to place
                             constr = constrsToPlace.pop(0)
                             #give constr its coords
@@ -113,7 +114,7 @@ class Game(object):
                             #change to play phase
                             self.state.phase = PLAY_PHASE
                         
-                    elif self.state.phase == PLAY_PHASE: ####AT SOMEPOINT PASS VALID ATTACKS TO UI
+                    elif self.state.phase == PLAY_PHASE: ####AT SOME POINT PASS VALID ATTACKS TO UI
                         currentPlayer = self.players[self.state.whoseTurn]
                         
                         #if the player is player two, flip the board
@@ -123,6 +124,10 @@ class Game(object):
                         
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
+                        
+                        if not move == None:
+                            for i in xrange(0,len(move.coordList)):
+                                move.coordList[i] = self.state.coordLookup(move.coordList[i], self.state.whoseTurn)
                         
                         #make sure it's a valid move
                         validMove = self.isValidMove(move)
@@ -144,6 +149,9 @@ class Game(object):
                                 #put ant at last loc in locList
                                 self.state.board[endCoord[0]][endCoord[1]].ant = antToMove   
                                 self.ui.moveList = []
+                                
+                                #check if move type check if player wants to attack
+                                
                             elif move.moveType == BUILD:
                                 coord = move.coordList[0]
                                 currentPlayerInv = self.state.inventories[self.state.whoseTurn]
@@ -166,7 +174,7 @@ class Game(object):
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
                                     #reset hasMoved on all ants of player
                                     ant.hasMoved = False
-                                    #affect capture health of buildings
+                                    #affect capture health of buildings and have all ants on food sources gather
                                     constrUnderAnt = self.state.board[ant.coords[0]][ant.coords[1]].constr
                                     if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
                                         constrUnderAnt.captureHealth -= 1
@@ -177,14 +185,14 @@ class Game(object):
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
-                                #exit, invalid move type
-                                #human can give None move, AI can't
+                                #invalid move type, exit
                                 pass
                         else:
-                            #if move type check if player wants to attack
+                            #not a valid move, check if None
+                            #human can give None move, AI can't
                             pass
                     else:
-                        #something went wrong, exit gracefully
+                        #wrong phase, exit gracefully
                         pass             
                 
     def startGame(self):
@@ -423,29 +431,6 @@ class Game(object):
                     
                     
         return False
-    
-    ##
-    #checkBuildStart 
-    #Description: Checks if the location is valid to build from.
-    # (bounds and building ownership)
-    ##    
-    def checkBuildStart(self, coord):
-        #check location is on board
-        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
-                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
-            loc = self.state.board[coord[0]][coord[1]]
-            #check that an empty anthill exists at the loc
-            if not loc.constr == None and loc.constr.type == ANTHILL and loc.ant == None:
-                #check that it's the player's anthill
-                if loc.constr.player == self.state.whoseTurn:
-                    return True
-            #check that an ant exists at an empty location
-            elif not loc.ant == None and loc.ant.type == WORKER and loc.constr == None:
-                #check that it's the player's ant
-                if loc.ant.player == self.state.whoseTurn:
-                    return True
-                    
-        return False
 
     ##
     #checkMovePath
@@ -465,6 +450,29 @@ class Game(object):
                 antAtLoc = self.state.board[toCoord[0]][toCoord[1]].ant
                 #check that an ant exists at the loc
                 if antAtLoc ==  None:
+                    return True
+                    
+        return False
+
+    ##
+    #checkBuildStart 
+    #Description: Checks if the location is valid to build from.
+    # (bounds and building ownership)
+    ##    
+    def checkBuildStart(self, coord):
+        #check location is on board
+        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
+                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
+            loc = self.state.board[coord[0]][coord[1]]
+            #check that an empty anthill exists at the loc
+            if not loc.constr == None and loc.constr.type == ANTHILL and loc.ant == None:
+                #check that it's the player's anthill
+                if loc.constr.player == self.state.whoseTurn:
+                    return True
+            #check that an ant exists at an empty location
+            elif not loc.ant == None and loc.ant.type == WORKER and loc.constr == None:
+                #check that it's the player's ant
+                if loc.ant.player == self.state.whoseTurn:
                     return True
                     
         return False
