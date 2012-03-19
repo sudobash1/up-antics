@@ -148,38 +148,16 @@ class Game(object):
                                 #remove ant from location
                                 self.state.board[startCoord[0]][startCoord[1]].ant = None
                                 #put ant at last loc in locList
-                                self.state.board[endCoord[0]][endCoord[1]].ant = antToMove   
+                                self.state.board[endCoord[0]][endCoord[1]].ant = antToMove
+                                #clear all highlights after move happens
                                 self.ui.coordList = []
                                 
-                                #check if player wants to attack
-                                validAttacks = []
-                                opponentId = (self.state.whoseTurn + 1) % 2
-                                range = UNIT_STATS[antToMove.type][RANGE]
-                                for ant in self.state.inventories[opponentId].ants:
-                                    #get the distance between ants in x- and y- axes
-                                    diffX = abs(antToMove.coords[0] - ant.coords[0])
-                                    diffY = abs(antToMove.coords[1] - ant.coords[1])
-                                    
-                                    #pythagoras would be proud
-                                    if range ** 2 >= diffX ** 2 + diffY ** 2:
-                                        validAttacks.append(ant.coords)
-                                
-                                #give the valid attack coords to the ui to highlight                                
-                                self.ui.attackList = validAttacks
-                                
-                                if validAttacks != []:
-                                    #players must attack if possible and we know at least one is valid
-                                    attackCoord = None 
-                                    while attackCoord == None:
-                                        #Draw the board again (to recognize user input in check attack loop)
-                                        self.ui.drawBoard(self.state)
-                                        
-                                        #get the attack from the player
-                                        attackCoords = currentPlayer.getAttack(validAttacks)
-                                        
-                                        if isValidAttack(antToMove.coords, attackCoords, currentPlayer.playerId):
-                                            self.state.board[attackCoords[0]][attackCoords[1]].ant.                            
-                              
+                                #check and take actions for attack
+                                self.resolveAttack(antToMove, currentPlayer)
+                                #clear all highlights after attack happens
+                                self.ui.coordList = []
+                                self.ui.attackList = []
+                                                                                          
                             elif move.moveType == BUILD:
                                 coord = move.coordList[0]
                                 currentPlayerInv = self.state.inventories[self.state.whoseTurn]
@@ -453,9 +431,92 @@ class Game(object):
         #invalid move
         return False
     
-    def isValidAttack(self):
-        pass
+    ##
+    #isValidAttack
+    #Description: Determines whether the attack with the given parameters is valid
+    #Attacking ant is assured to exist and belong to the player whose turn it is
+    ##  
+    def isValidAttack(self, attackingAnt, attackCoords):
+        if attackCoords == None:
+            return None
+    
+        attackLoc = self.state.board[attackCoords[0]][attackCoords[1]]
+        
+        if attackLoc.ant == None or attackLoc.ant.player == attackingAnt.player:
+            return False
+        
+        #we know we have an enemy ant
+        range = UNIT_STATS[attackingAnt.type][RANGE]
+        diffX = abs(attackingAnt.coords[0] - attackCoords[0])
+        diffY = abs(attackingAnt.coords[1] - attackCoords[1])
+        
+        #pythagoras would be proud
+        if range ** 2 >= diffX ** 2 + diffY ** 2:
+            #return True if within range
+            return True
+        else:
+            return False
 
+    ##
+    #resolveAttack 
+    #Description: Checks a player wants to attack and takes appropriate action.
+    #
+    ##   
+    def resolveAttack(self, attackingAnt, currentPlayer):
+        #check if player wants to attack
+        validAttackCoords = []
+        opponentId = (self.state.whoseTurn + 1) % 2
+        range = UNIT_STATS[attackingAnt.type][RANGE]
+        for ant in self.state.inventories[opponentId].ants:
+            if self.isValidAttack(attackingAnt, ant.coords):
+                validAttackCoords.append(ant.coords)
+        
+        if validAttackCoords != []:
+            #players must attack if possible and we know at least one is valid
+            attackCoords = None
+            validAttack = False
+            
+            #if a human player, let it know an attack is expected (to affect location clicked context)
+            if type(currentPlayer) == HumanPlayer.HumanPlayer:
+                #give the valid attack coords to the ui to highlight                                
+                self.ui.attackList = validAttackCoords
+                #set expecting attack for location clicked context
+                currentPlayer.expectingAttack = True
+            
+            #keep requesting coords until valid attack is given
+            while attackCoords == None or not validAttack:               
+                #Draw the board again (to recognize user input inside loop)
+                self.ui.drawBoard(self.state)
+                
+                #get the attack from the player
+                attackCoords = currentPlayer.getAttack(validAttackCoords)
+                validAttack = self.isValidAttack(attackingAnt, attackCoords)
+                
+                if not validAttack:
+                    if type(currentPlayer) != HumanPlayer.HumanPlayer:
+                        #if an ai submitted an invalid attack, exit
+                        exit(0)
+                    else:
+                        #if a human submitted an invalid attack, reset coordList
+                        currentPlayer.coordList = []
+                    
+             
+            #if we reached this point though loop, we must have a valid attack
+            #if a human player, let it know an attack is expected (to affect location clicked context)
+            if type(currentPlayer) == HumanPlayer.HumanPlayer:
+                currentPlayer.expectingAttack = False
+            
+            #decrement ants health
+            attackedAnt = self.state.board[attackCoords[0]][attackCoords[1]].ant
+            attackedAnt.health -= UNIT_STATS[attackingAnt.type][ATTACK]
+            
+            #check for dead ant
+            if attackedAnt.health <= 0:
+                #remove dead ant from board
+                self.state.board[attackCoords[0]][attackCoords[1]].ant = None
+                #remove dead ant from inventory
+                self.state.inventories[opponentId].ants.remove(attackedAnt)
+    
     ##
     #checkMoveStart 
     #Description: Checks if the location is valid to move from.
@@ -536,7 +597,7 @@ class Game(object):
                 currentPlayer.coordList.pop()
             elif len(currentPlayer.coordList) == 0:
                 #Need to check this here or it may try to get the last element of the list when it is empty
-                if self.checkMoveStart(coord) or self.checkBuildStart(coord):
+                if self.checkMoveStart(coord) or self.checkBuildStart(coord) or currentPlayer.expectingAttack:
                     currentPlayer.coordList.append(coord)
             else:
                 onList = False
