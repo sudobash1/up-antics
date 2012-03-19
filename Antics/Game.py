@@ -215,7 +215,7 @@ class Game(object):
                         pass             
                 
     def startGame(self):
-        if self.mode != None:
+        if self.mode != None and self.state.phase == MENU PHASE:
             self.state.phase = SETUP_PHASE
                 
     def tournamentPath(self):
