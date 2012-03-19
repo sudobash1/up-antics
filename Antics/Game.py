@@ -114,7 +114,7 @@ class Game(object):
                             #change to play phase
                             self.state.phase = PLAY_PHASE
                         
-                    elif self.state.phase == PLAY_PHASE: ####AT SOME POINT PASS VALID ATTACKS TO UI
+                    elif self.state.phase == PLAY_PHASE: 
                         currentPlayer = self.players[self.state.whoseTurn]
                         
                         #if the player is player two, flip the board
@@ -149,26 +149,37 @@ class Game(object):
                                 self.state.board[startCoord[0]][startCoord[1]].ant = None
                                 #put ant at last loc in locList
                                 self.state.board[endCoord[0]][endCoord[1]].ant = antToMove   
-                                self.ui.moveList = []
+                                self.ui.coordList = []
                                 
-                                # #check if player wants to attack
-                                # adjacentLocs = []
-                                # adjacentLocs.append(self.state.board[endCoord[0]][endCoord[1] + 1])
-                                # adjacentLocs.append(self.state.board[endCoord[0]][endCoord[1] - 1])
-                                # adjacentLocs.append(self.state.board[endCoord[0] + 1][endCoord[1]])
-                                # adjacentLocs.append(self.state.board[endCoord[0] - 1][endCoord[1]])
+                                #check if player wants to attack
+                                validAttacks = []
+                                opponentId = (self.state.whoseTurn + 1) % 2
+                                range = UNIT_STATS[antToMove.type][RANGE]
+                                for ant in self.state.inventories[opponentId].ants:
+                                    #get the distance between ants in x- and y- axes
+                                    diffX = abs(antToMove.coords[0] - ant.coords[0])
+                                    diffY = abs(antToMove.coords[1] - ant.coords[1])
+                                    
+                                    #pythagoras would be proud
+                                    if range ** 2 >= diffX ** 2 + diffY ** 2:
+                                        validAttacks.append(ant.coords)
                                 
-                                # #need stuff for indirect soldiers
-                                # validAttacks = []
-                                # for loc in adjacentLocs:
-                                    # if loc.ant.type != None and loc.ant.player != self.state.whoseTurn:
-                                        # validAttacks.append(self.state.coordLookup(loc.coords, self.state.whoseTurn))
+                                #give the valid attack coords to the ui to highlight                                
+                                self.ui.attackList = validAttacks
+                                
+                                if validAttacks != []:
+                                    #players must attack if possible and we know at least one is valid
+                                    attackCoord = None 
+                                    while attackCoord == None:
+                                        #Draw the board again (to recognize user input in check attack loop)
+                                        self.ui.drawBoard(self.state)
                                         
-                                # attackCoord = self.players[self.state.whoseTurn].getAttack(validAttacks)
-
-                                # if attackCoord != None and self.state.board[attackCoord[0]][attackCoord[1]].ant != None
-                                
-                                
+                                        #get the attack from the player
+                                        attackCoords = currentPlayer.getAttack(validAttacks)
+                                        
+                                        if isValidAttack(antToMove.coords, attackCoords, currentPlayer.playerId):
+                                            self.state.board[attackCoords[0]][attackCoords[1]].ant.                            
+                              
                             elif move.moveType == BUILD:
                                 coord = move.coordList[0]
                                 currentPlayerInv = self.state.inventories[self.state.whoseTurn]
@@ -187,7 +198,7 @@ class Game(object):
                                     self.state.board[coord[0]][coord[1]].ant = ant
                                     self.state.inventories[self.state.whoseTurn].ants.append(ant)
                                 
-                                self.ui.moveList = []    
+                                self.ui.coordList = []    
                                 
                             elif move.moveType == END:
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
@@ -210,7 +221,7 @@ class Game(object):
                                             ant.carrying = False
                                             
                                 #clear any currently highlighted squares
-                                self.ui.moveList = []
+                                self.ui.coordList = []
                                             
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
@@ -547,7 +558,7 @@ class Game(object):
                         currentPlayer.coordList.pop()
             
             #give coordList to UI so it can hightlight the player's path
-            self.ui.moveList = currentPlayer.coordList
+            self.ui.coordList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
         if self.state.phase == SETUP_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:

@@ -40,19 +40,11 @@ class Ant(object):
     def __init__(self, inputCoords, inputType, inputPlayer):
         self.coords = inputCoords
         self.type = inputType
-        self.alive = True
         self.hasMoved = False
         self.carrying = False
         self.player = inputPlayer
+        self.health = UNIT_STATS[self.type][HEALTH]
 
-    ##
-    #die
-    #Description: Does all maintenance necessary for removing an Ant from the
-    #   game.
-    ##
-    def die(self):
-        self.alive = False
-    
     def clone(self):
         rtnAnt = Ant(self.coords, self.type, self.player)
         rtnAnt.alive = self.alive
