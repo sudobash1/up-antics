@@ -58,7 +58,10 @@ class Game(object):
                 constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
                 constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
                 
-                while not self.isGameOver(PLAYER_ONE) and not self.isGameOver(PLAYER_TWO):
+                gameOver = False
+                winner = None
+                
+                while not gameOver:
                     #Draw the board again (to recognize user input in game loop)
                     self.ui.drawBoard(self.state)
                 
@@ -140,20 +143,20 @@ class Game(object):
                                 startCoord = move.coordList[0]
                                 endCoord = move.coordList[-1]
                                 
-                                #take ant from fromLoc
+                                #take ant from start coord
                                 antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                                 #change ant's coords and hasMoved status
                                 antToMove.coords = (endCoord[0], endCoord[1])
                                 antToMove.hasMoved = True
                                 #remove ant from location
                                 self.state.board[startCoord[0]][startCoord[1]].ant = None
-                                #put ant at last loc in locList
+                                #put ant at last loc in coordList
                                 self.state.board[endCoord[0]][endCoord[1]].ant = antToMove
                                 #clear all highlights after move happens
                                 self.ui.coordList = []
                                 
-                                #check and take actions for attack
-                                self.resolveAttack(antToMove, currentPlayer)
+                                #check and take action for attack
+                                self.resolveAttack(antToMove, currentPlayer)                                
                                 #clear all highlights after attack happens
                                 self.ui.coordList = []
                                 self.ui.attackList = []
@@ -187,7 +190,7 @@ class Game(object):
                                         if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
                                             #affect capture health of buildings
                                             constrUnderAnt.captureHealth -= 1
-                                            if constrUnderAnt.captureHealth == 0:
+                                            if constrUnderAnt.captureHealth == 0 and constrUnderAnt.type != ANTHILL:
                                                 constrUnderAnt.player = self.state.whoseTurn
                                                 constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
                                         elif constrUnderAnt.type == FOOD and ant.type == WORKER:
@@ -211,11 +214,18 @@ class Game(object):
                             #human can give None move, AI can't
                             pass
                     else:
-                        #wrong phase, exit gracefully
-                        pass             
+                        #wrong phase, exit
+                        exit(0)
+
+                    if self.hasWon(PLAYER_ONE):
+                        gameOver = True
+                        winner = PLAYER_ONE
+                    elif self.hasWon(PLAYER_TWO):
+                        gameOver = True
+                        winner = PLAYER_TWO
                 
     def startGame(self):
-        if self.mode != None and self.state.phase == MENU PHASE:
+        if self.mode != None and self.state.phase == MENU_PHASE:
             self.state.phase = SETUP_PHASE
                 
     def tournamentPath(self):
@@ -283,23 +293,13 @@ class Game(object):
         #Revert working directory to parent.
         os.chdir('..')
     
-    def isGameOver(self, playerId):
-        opponentId = (playerId + 1) % 2
-        
-        #temp, remove later
-        return False
-        
-        #if ((self.state.phase == PLAY_PHASE) and 
-        #((self.state.inventories[playerId].queen.isAlive == False) or
-        #(self.state.inventories[opponentId].antHill.captureHealth <= 0) or
-        # (self.state.inventories[playerId].foodCount >= 11))):
-           # return True
-        # else:
-          # return False
-       
-    #checks to see if the move is valid for the current player
-    #maybe put in GameState to make available to students
-    #Returns None if no move is given
+    ##
+    #isValidMove(Move)
+    #Description: Checks to see if the move is valid for the current player.
+    #  (maybe put in GameState to make available to students)
+    #
+    #Returns: None if no move is given
+    ##
     def isValidMove(self, move):
         #check for no move
         if move == None:
@@ -456,6 +456,23 @@ class Game(object):
             return True
         else:
             return False
+            
+    ##
+    #hasWon(int)
+    #Description: Determines whether the game has ended in victory for the given player.
+    #   
+    # Returns: True if the player with playerId has won the game.
+    ##
+    def hasWon(self, playerId):
+        opponentId = (playerId + 1) % 2
+        
+        if ((self.state.phase == PLAY_PHASE) and 
+        ((self.state.inventories[opponentId].getQueen() == None) or
+        (self.state.inventories[opponentId].getAnthill().captureHealth <= 0) or
+        (self.state.inventories[playerId].foodCount >= 11))):
+            return True
+        else:
+            return False
 
     ##
     #resolveAttack 
@@ -520,7 +537,7 @@ class Game(object):
     ##
     #checkMoveStart 
     #Description: Checks if the location is valid to move from.
-    # (bounds and ant ownership)
+    #  (bounds and ant ownership)
     ##
     def checkMoveStart(self, coord):
         #check location is on board
@@ -539,10 +556,10 @@ class Game(object):
     ##
     #checkMovePath
     #Description: Checks if the location is valid to move to.
-    # (clear path, adjacent locations) 
+    #  (clear path, adjacent locations) 
     #
-    #fromCoord must always be checked by the time it's passed
-    #(either in checkMoveStart or previous checkMovePath call)
+    #fromCoord must always have been checked by the time it's passed
+    #  (either in checkMoveStart or previous checkMovePath call)
     ##
     def checkMovePath(self, fromCoord, toCoord):
         #check location is on board
@@ -561,7 +578,7 @@ class Game(object):
     ##
     #checkBuildStart 
     #Description: Checks if the location is valid to build from.
-    # (bounds and building ownership)
+    #  (bounds and building ownership)
     ##    
     def checkBuildStart(self, coord):
         #check location is on board
@@ -619,7 +636,8 @@ class Game(object):
                         currentPlayer.coordList.pop()
             
             #give coordList to UI so it can hightlight the player's path
-            self.ui.coordList = currentPlayer.coordList
+            if not currentPlayer.expectingAttack:
+                self.ui.coordList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
         if self.state.phase == SETUP_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
