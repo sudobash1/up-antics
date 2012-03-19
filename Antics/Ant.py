@@ -47,7 +47,7 @@ class Ant(object):
 
     def clone(self):
         rtnAnt = Ant(self.coords, self.type, self.player)
-        rtnAnt.alive = self.alive
         rtnAnt.hasMoved = self.hasMoved
         rtnAnt.carrying = self.carrying
+        rtnAnt.health = self.health
         return rtnAnt
