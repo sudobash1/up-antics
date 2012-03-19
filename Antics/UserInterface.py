@@ -252,14 +252,15 @@ class UserInterface(object):
         #Find the X and Y coordinates to draw the shade at.
         shadeXpixel = Xpixel - CELL_SPACING
         shadeYpixel = Ypixel - CELL_SPACING
-        #Draw the shade for the cell
-        if self.moveList != []:
-            #Draw the shadeRect if currentLoc is in moveList
-            if currentLoc.coords in self.moveList[:-1]:
-                pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        if currentLoc.coords in self.coordList[:-1]:
+            #Draw the shadeRect if currentLoc is in coordList
+            pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        elif currentLoc.coords == self.coordList[-1]:
             #Draw brighter if the currentLoc is the last move selected
-            if currentLoc.coords == self.moveList[-1]:
-                pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+            pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        elif currentLoc.coords in self.attackList:
+            #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
+            pygame.draw.rect(self.screen, RED, shadeRect.move(shadeXpixel, shadeYpixel))
         #Draw the cell itself
         pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
         #Draw what's in this cell
@@ -365,5 +366,7 @@ class UserInterface(object):
         self.buildAntMenu = False
         #Initial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
         self.lastNotification = None
-        #Initial moveList so I know what to shade
-        self.moveList = []
+        #Initial coordList so I know what to shade
+        self.coordList = []
+        #Cells that should be highlighted for attacks
+        self.attackList = []
