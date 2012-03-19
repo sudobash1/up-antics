@@ -6,6 +6,7 @@
 ##
 import pygame, os, sys
 from pygame.locals import *
+from Building import Building
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -148,7 +149,11 @@ class UserInterface(object):
     def drawConstruction(self, item, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
         Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
-        self.screen.blit(self.constructions[item.type], (Xpixel, Ypixel))
+        self.screen.blit(self.constructionTexs[item.type], (Xpixel, Ypixel))
+        if type(item) is Building:
+            #Draw player marker in lower left
+            playerNumber = self.notifyFont.render(str(item.player + 1), True, BLACK)
+            self.screen.blit(playerNumber, (Xpixel, Ypixel + CELL_SIZE.height - playerNumber.get_height()))
     
     ##
     #drawAnt
@@ -161,7 +166,17 @@ class UserInterface(object):
     def drawAnt(self, ant, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
         Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
-        self.screen.blit(self.ants[ant.type], (Xpixel, Ypixel))
+        self.screen.blit(self.antTexs[ant.type], (Xpixel, Ypixel))
+        #Draw player marker in upper left
+        playerNumber = self.notifyFont.render(str(ant.player + 1), True, BLACK)
+        self.screen.blit(playerNumber, (Xpixel, Ypixel))
+        #Draw current health in the upper right
+        #Draw isCarrying marker in lower right
+        if ant.carrying:
+            Xoffset = CELL_SIZE.width - self.isCarryingTex.get_width()
+            Yoffset = CELL_SIZE.height - self.isCarryingTex.get_height()
+            self.screen.blit(self.isCarryingTex, (Xpixel + Xoffset, Ypixel + Yoffset))
+        #Draw hasMoved marker as a shade across the image
     
     ##
     #drawButton
@@ -254,6 +269,7 @@ class UserInterface(object):
         shadeXpixel = Xpixel - CELL_SPACING
         shadeYpixel = Ypixel - CELL_SPACING
         if self.coordList != []:
+            print "Thing"
             if currentLoc.coords in self.coordList[:-1]:
                 #Draw the shadeRect if currentLoc is in coordList
                 pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
@@ -309,17 +325,20 @@ class UserInterface(object):
         #Declare the name of the folder that all textures are in.
         texFolder = "Textures"
         #Load textures as Surfaces. Should convert these surfaces later for optimal speed.
-        self.constructions = []
-        self.constructions.append(pygame.image.load(os.path.join(texFolder, "anthill.bmp")))
-        self.constructions.append(pygame.image.load(os.path.join(texFolder, "antTunnel.bmp")))
-        self.constructions.append(pygame.image.load(os.path.join(texFolder, "grass.bmp")))
-        self.constructions.append(pygame.image.load(os.path.join(texFolder, "food.bmp")))
-        self.ants = []
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "queen.bmp")))
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "worker.bmp")))
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "drone.bmp")))
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "direct.bmp")))
-        self.ants.append(pygame.image.load(os.path.join(texFolder, "indirect.bmp")))
+        self.constructionTexs = []
+        self.constructionTexs.append(pygame.image.load(os.path.join(texFolder, "anthill.bmp")))
+        self.constructionTexs.append(pygame.image.load(os.path.join(texFolder, "antTunnel.bmp")))
+        self.constructionTexs.append(pygame.image.load(os.path.join(texFolder, "grass.bmp")))
+        self.constructionTexs.append(pygame.image.load(os.path.join(texFolder, "food.bmp")))
+        self.antTexs = []
+        self.antTexs.append(pygame.image.load(os.path.join(texFolder, "queen.bmp")))
+        self.antTexs.append(pygame.image.load(os.path.join(texFolder, "worker.bmp")))
+        self.antTexs.append(pygame.image.load(os.path.join(texFolder, "drone.bmp")))
+        self.antTexs.append(pygame.image.load(os.path.join(texFolder, "direct.bmp")))
+        self.antTexs.append(pygame.image.load(os.path.join(texFolder, "indirect.bmp")))
+        #Load isCarrying and hasMoved textures, which will allow players to see the conditions of their ants.
+        self.isCarryingTex = pygame.image.load(os.path.join(texFolder, "isCarrying.bmp"))
+        self.hasMovedTex = pygame.image.load(os.path.join(texFolder, "hasMoved.bmp"))
         #Button textures
         self.buttonTextures = []
         self.buttonTextures.append(pygame.image.load(os.path.join(texFolder, "buttonDown.bmp")))
@@ -327,11 +346,11 @@ class UserInterface(object):
         #Button rectangle
         self.buttonRect = self.buttonTextures[0].get_rect()
         #Make CELL_SIZE equal to the size of an ant image.
-        CELL_SIZE = self.constructions[0].get_rect()
+        CELL_SIZE = self.constructionTexs[0].get_rect()
         #Make White transparent (alpha 0) for all textures (well, buttons don't actually need it).
-        for construction in self.constructions:
+        for construction in self.constructionTexs:
             construction.set_colorkey(WHITE)
-        for ant in self.ants:
+        for ant in self.antTexs:
             ant.set_colorkey(WHITE)
         #Set up fonts.
         pygame.font.init()
