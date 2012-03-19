@@ -9,8 +9,9 @@ from pygame.locals import *
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (150, 0, 0)
-DARK_GREEN = (0, 100, 0)
+DARK_RED = (150, 0, 0)
+LIGHT_RED = (255, 0, 0)
+DARK_GREEN = (0, 150, 0)
 LIGHT_GREEN = (0, 255, 0)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
@@ -133,7 +134,7 @@ class UserInterface(object):
         self.lastNotification = message
     
     def drawNotification(self):
-        messageSurface = self.notifyFont.render(self.lastNotification, True, RED)
+        messageSurface = self.notifyFont.render(self.lastNotification, True, DARK_RED)
         self.screen.blit(messageSurface, self.messageLocation)
     
     ##
@@ -252,15 +253,16 @@ class UserInterface(object):
         #Find the X and Y coordinates to draw the shade at.
         shadeXpixel = Xpixel - CELL_SPACING
         shadeYpixel = Ypixel - CELL_SPACING
-        if currentLoc.coords in self.coordList[:-1]:
-            #Draw the shadeRect if currentLoc is in coordList
-            pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
-        elif currentLoc.coords == self.coordList[-1]:
-            #Draw brighter if the currentLoc is the last move selected
-            pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
-        elif currentLoc.coords in self.attackList:
-            #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
-            pygame.draw.rect(self.screen, RED, shadeRect.move(shadeXpixel, shadeYpixel))
+        if self.coordList != []:
+            if currentLoc.coords in self.coordList[:-1]:
+                #Draw the shadeRect if currentLoc is in coordList
+                pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+            elif currentLoc.coords == self.coordList[-1]:
+                #Draw brighter if the currentLoc is the last move selected
+                pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
+        if currentLoc.coords in self.attackList:
+            pygame.draw.rect(self.screen, LIGHT_RED, shadeRect.move(shadeXpixel, shadeYpixel))
         #Draw the cell itself
         pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
         #Draw what's in this cell
