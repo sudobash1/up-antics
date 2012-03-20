@@ -7,6 +7,7 @@
 import pygame, os, sys
 from pygame.locals import *
 from Building import Building
+from Constants import *
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -235,12 +236,21 @@ class UserInterface(object):
     #   clicked, and either calls handleButton on the activated button, or uses a
     #   callback to tell the HumanPlayer what the human clicked.
     ##
-    def handleEvents(self):
+    def handleEvents(self, mode):
+        #Make sure we check the right buttons
+        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons
+        if self.buildAntMenu == True:
+            relButtons = self.antButtons
+        #Check what to do for each event
         for event in pygame.event.get():
-            relButtons = self.antButtons if self.buildAntMenu else self.buttons
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 0, self.buttons)
+                #Then check the buttons that congregate at the top of the screen, and change based on context
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 0, relButtons)
@@ -251,10 +261,22 @@ class UserInterface(object):
                     if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
                         self.locationClicked((x, y))
             elif event.type == pygame.MOUSEBUTTONUP:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 1, self.buttons)
+                #Then check the buttons that congregate at the top of the screen, and change based on context
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 1, relButtons)
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
+                        self.buttons[key][1] = 0
+                    else:
+                        self.buttons[key][1] = 1
+                #Then check the buttons that congregate at the top of the screen, and change based on context
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
                         relButtons[key][1] = 0
@@ -298,17 +320,23 @@ class UserInterface(object):
     #
     #Parameters:
     #   currentState - 
-    def drawBoard(self, currentState):
-        self.handleEvents()
+    def drawBoard(self, currentState, mode):
+        self.handleEvents(mode)
         self.screen.fill(BLACK)
         pygame.draw.rect(self.screen, WHITE, self.buttonArea)
         for col in xrange(0, len(currentState.board)):
             for row in xrange(0, len(currentState.board[col])):
                 self.drawCell(currentState.board[col][row])
         #Make sure we draw the right buttons
-        relButtons = self.antButtons if self.buildAntMenu else self.buttons
+        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons
+        if self.buildAntMenu == True:
+            relButtons = self.antButtons
+        #Draw the context buttons
         for key in relButtons:
             self.drawButton(key, relButtons)
+        #Draw the basic buttons
+        for key in self.buttons:
+            self.drawButton(key, self.buttons)
         #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
         self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
         #Draw notifications just above menu buttons.
