@@ -29,9 +29,9 @@ class Game(object):
         self.nextClicked = False
         self.continueClicked = False
         #UI Callback functions
-        self.ui.buttons['move'][-1] = self.moveClickedCallback
-        self.ui.buttons['build'][-1] = self.buildClickedCallback
-        self.ui.buttons['end'][-1] = self.endClickedCallback
+        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
+        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
+        self.ui.humanButtons['end'][-1] = self.endClickedCallback
         self.ui.buttons['start'][-1] = self.startGame
         self.ui.buttons['tournament'][-1] = self.tournamentPath
         self.ui.buttons['human'][-1] = self.humanPath

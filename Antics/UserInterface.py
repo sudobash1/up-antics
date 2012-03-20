@@ -252,7 +252,7 @@ class UserInterface(object):
     ##
     def handleEvents(self, mode):
         #Make sure we check the right buttons
-        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons
+        relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
         if self.buildAntMenu == True:
             relButtons = self.antButtons
         #Check what to do for each event
@@ -342,7 +342,7 @@ class UserInterface(object):
             for row in xrange(0, len(currentState.board[col])):
                 self.drawCell(currentState.board[col][row])
         #Make sure we draw the right buttons
-        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons
+        relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
         if self.buildAntMenu == True:
             relButtons = self.antButtons
         #Draw the context buttons
@@ -428,8 +428,8 @@ class UserInterface(object):
         }
         #Initial values for buttons in human vs AI mode
         self.aiButtons = {
-        'next':[self.findButtonCoords(0, True), 1, self.submitNext]
-        'continue'[self.findButtonCoords(1, True), 1, self.submitContinue]
+        'next':[self.findButtonCoords(0, True), 1, self.submitNext],
+        'continue':[self.findButtonCoords(1, True), 1, self.submitContinue]
         }
         #Initial values for build ant buttons
         self.antButtons = {
