@@ -62,8 +62,14 @@ class Game(object):
                 winner = None
                 
                 while not gameOver:
-                    #Draw the board again (to recognize user input in game loop)
-                    self.ui.drawBoard(self.state)
+                    if self.mode == AI_MODE:
+                        #If it's AI mode, draw until next or continue is clicked
+                        while not self.ui.nextClicked and not self.ui.continueClicked:
+                            self.ui.drawBoard(self.state)
+                    else:
+                        #Otherwise, just draw the board again (to recognize user input in game loop)
+                        self.ui.drawBoard(self.state)
+                    self.ui.nextClicked = False
                 
                     if self.state.phase == SETUP_PHASE:
                         currentPlayer = self.players[self.state.whoseTurn]
@@ -223,6 +229,7 @@ class Game(object):
                     elif self.hasWon(PLAYER_TWO):
                         gameOver = True
                         winner = PLAYER_TWO
+                #end while
                 
     def startGame(self):
         if self.mode != None and self.state.phase == MENU_PHASE:
@@ -493,10 +500,21 @@ class Game(object):
             attackCoords = None
             validAttack = False
             
+            #Allow human to view attack in AI vs AI mode
+            if self.mode == AI_MODE:
+                #If it's AI mode, draw until next or continue is clicked
+                while not self.ui.nextClicked and not self.ui.continueClicked:
+                    self.ui.drawBoard(self.state)
+            else:
+                #Otherwise, just draw the board again (to recognize user input in game loop)
+                self.ui.drawBoard(self.state)
+            self.ui.nextClicked = False
+            
+            #give the valid attack coords to the ui to highlight                                
+            self.ui.attackList = validAttackCoords
+            
             #if a human player, let it know an attack is expected (to affect location clicked context)
             if type(currentPlayer) == HumanPlayer.HumanPlayer:
-                #give the valid attack coords to the ui to highlight                                
-                self.ui.attackList = validAttackCoords
                 #set expecting attack for location clicked context
                 currentPlayer.expectingAttack = True
             
