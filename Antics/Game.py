@@ -25,6 +25,9 @@ class Game(object):
         self.mode = None
         self.ui = UserInterface((865,695))
         self.ui.initAssets()
+        #Used for stepping through moves in AI vs AI
+        self.nextClicked = False
+        self.continueClicked = False
         #UI Callback functions
         self.ui.buttons['move'][-1] = self.moveClickedCallback
         self.ui.buttons['build'][-1] = self.buildClickedCallback
@@ -43,7 +46,7 @@ class Game(object):
     def runGame(self):
         # initialize board be ready for player input for game parameter
         while True:
-            self.ui.drawBoard(self.state)
+            self.ui.drawBoard(self.state, self.mode)
             #Determine current chosen game mode. Enter different execution paths based on the mode, which must be chosen by clicking a button.
             
             #player has clicked start game so enter game loop
@@ -64,12 +67,13 @@ class Game(object):
                 while not gameOver:
                     if self.mode == AI_MODE:
                         #If it's AI mode, draw until next or continue is clicked
-                        while not self.ui.nextClicked and not self.ui.continueClicked:
-                            self.ui.drawBoard(self.state)
+                        while not self.nextClicked and not self.continueClicked:
+                            self.ui.drawBoard(self.state, self.mode)
                     else:
                         #Otherwise, just draw the board again (to recognize user input in game loop)
-                        self.ui.drawBoard(self.state)
-                    self.ui.nextClicked = False
+                        self.ui.drawBoard(self.state, self.mode)
+                    #reset nextClicked to catch the next move
+                    self.nextClicked = False
                 
                     if self.state.phase == SETUP_PHASE:
                         currentPlayer = self.players[self.state.whoseTurn]
@@ -239,6 +243,8 @@ class Game(object):
         self.players = []
         self.mode = None
         self.ui.initAssets()
+        self.nextClicked = False
+        self.continueClicked = False
     
     def startGame(self):
         if self.mode != None and self.state.phase == MENU_PHASE:
@@ -512,12 +518,12 @@ class Game(object):
             #Allow human to view attack in AI vs AI mode
             if self.mode == AI_MODE:
                 #If it's AI mode, draw until next or continue is clicked
-                while not self.ui.nextClicked and not self.ui.continueClicked:
-                    self.ui.drawBoard(self.state)
+                while not self.nextClicked and not self.continueClicked:
+                    self.ui.drawBoard(self.state, self.mode)
             else:
                 #Otherwise, just draw the board again (to recognize user input in game loop)
-                self.ui.drawBoard(self.state)
-            self.ui.nextClicked = False
+                self.ui.drawBoard(self.state, self.mode)
+            self.nextClicked = False
             
             #give the valid attack coords to the ui to highlight                                
             self.ui.attackList = validAttackCoords
@@ -530,7 +536,7 @@ class Game(object):
             #keep requesting coords until valid attack is given
             while attackCoords == None or not validAttack:               
                 #Draw the board again (to recognize user input inside loop)
-                self.ui.drawBoard(self.state)
+                self.ui.drawBoard(self.state, self.mode)
                 
                 #get the attack from the player
                 attackCoords = currentPlayer.getAttack(validAttackCoords)
@@ -748,8 +754,12 @@ class Game(object):
         
         self.ui.buildAntMenu = False
         currentPlayer.moveType = None
-        
     
+    def nextClickedCallback(self):
+        self.nextClicked = True
+    
+    def continueClickedCallback(self):
+        self.continueClicked = True
     
 a = Game()
 a.runGame()
