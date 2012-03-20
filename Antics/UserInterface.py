@@ -96,6 +96,20 @@ class UserInterface(object):
         print "Clicked START GAME"
     
     ##
+    #submitNext
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitNext(self):
+        print "Clicked NEXT"
+    
+    ##
+    #submitContinue
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitContinue(self):
+        print "Clicked CONTINUE"
+    
+    ##
     #submitWorker
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     ##
