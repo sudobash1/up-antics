@@ -230,7 +230,16 @@ class Game(object):
                         gameOver = True
                         winner = PLAYER_TWO
                 #end while
-                
+    
+    def reset(self):
+        board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
+        p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
+        p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
+        self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
+        self.players = []
+        self.mode = None
+        self.ui.initAssets()
+    
     def startGame(self):
         if self.mode != None and self.state.phase == MENU_PHASE:
             self.state.phase = SETUP_PHASE

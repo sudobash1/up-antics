@@ -10,6 +10,7 @@ from Building import Building
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+GREY = (195, 195, 195)
 DARK_RED = (150, 0, 0)
 LIGHT_RED = (255, 0, 0)
 DARK_GREEN = (0, 150, 0)
@@ -171,12 +172,17 @@ class UserInterface(object):
         playerNumber = self.notifyFont.render(str(ant.player + 1), True, BLACK)
         self.screen.blit(playerNumber, (Xpixel, Ypixel))
         #Draw current health in the upper right
+        antHealth = self.notifyFont.render("Health: " + str(ant.health), True, BLACK)
+        XoffsetHealth = CELL_SIZE.width - antHealth.get_width()
+        self.screen.blit(antHealth, (Xpixel + XoffsetHealth, Ypixel))
         #Draw isCarrying marker in lower right
         if ant.carrying:
-            Xoffset = CELL_SIZE.width - self.isCarryingTex.get_width()
-            Yoffset = CELL_SIZE.height - self.isCarryingTex.get_height()
-            self.screen.blit(self.isCarryingTex, (Xpixel + Xoffset, Ypixel + Yoffset))
+            XoffsetCarry = CELL_SIZE.width - self.isCarryingTex.get_width()
+            YoffsetCarry = CELL_SIZE.height - self.isCarryingTex.get_height()
+            self.screen.blit(self.isCarryingTex, (Xpixel + XoffsetCarry, Ypixel + YoffsetCarry))
         #Draw hasMoved marker as a shade across the image
+        if ant.hasMoved:
+            self.screen.blit(self.hasMovedTex, (Xpixel, Ypixel))
     
     ##
     #drawButton
@@ -269,7 +275,6 @@ class UserInterface(object):
         shadeXpixel = Xpixel - CELL_SPACING
         shadeYpixel = Ypixel - CELL_SPACING
         if self.coordList != []:
-            print "Thing"
             if currentLoc.coords in self.coordList[:-1]:
                 #Draw the shadeRect if currentLoc is in coordList
                 pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
@@ -352,6 +357,9 @@ class UserInterface(object):
             construction.set_colorkey(WHITE)
         for ant in self.antTexs:
             ant.set_colorkey(WHITE)
+        self.isCarryingTex.set_colorkey(WHITE)
+        self.hasMovedTex.set_colorkey(GREY)
+        self.hasMovedTex.set_alpha(50)
         #Set up fonts.
         pygame.font.init()
         self.gameFont = pygame.font.Font(None, 25)
@@ -363,19 +371,25 @@ class UserInterface(object):
         #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
         buttonAreaWidth = self.buttonRect.width + 4 * CELL_SPACING
         self.buttonArea = Rect(self.screen.get_width() - buttonAreaWidth, 0, buttonAreaWidth, self.screen.get_height())
-        #Button statistics in order: x, y, buttonState(pressed/released)
+        #Button statistics for basic buttons in order: x, y, buttonState(pressed/released)
         self.buttons = {
-        'move':[self.findButtonCoords(0, True), 1, self.submitMove],
-        'build':[self.findButtonCoords(1, True), 1, self.submitBuild],
-        'end':[self.findButtonCoords(2, True), 1, self.submitEndTurn],
         'tournament':[self.findButtonCoords(3, False), 1, self.gameModeTournament],
         'human':[self.findButtonCoords(2, False), 1, self.gameModeHumanAI],
         'ai':[self.findButtonCoords(1, False), 1, self.gameModeAIAI],
         'start':[self.findButtonCoords(0, False), 1, self.startGame]
         }
-        #Initial vaue for callback function that will be used to get cell clicks in game
-        self.locationCallback = self.locationClicked
-        #Initial value for build ant menu
+        #Initial values for buttons in human vs AI mode
+        self.humanButtons = {
+        'move':[self.findButtonCoords(0, True), 1, self.submitMove],
+        'build':[self.findButtonCoords(1, True), 1, self.submitBuild],
+        'end':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
+        }
+        #Initial values for buttons in human vs AI mode
+        self.aiButtons = {
+        'next':[self.findButtonCoords(0, True), 1, self.submitNext]
+        'continue'[self.findButtonCoords(1, True), 1, self.submitContinue]
+        }
+        #Initial values for build ant buttons
         self.antButtons = {
         'worker':[self.findButtonCoords(0, True), 1, self.submitWorker],
         'drone':[self.findButtonCoords(1, True), 1, self.submitDrone],
@@ -383,6 +397,8 @@ class UserInterface(object):
         'isoldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
         'none':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
         }
+        #Initial vaue for callback function that will be used to get cell clicks in game
+        self.locationCallback = self.locationClicked
         #Draw the ant build menu?
         self.buildAntMenu = False
         #Initial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
