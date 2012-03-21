@@ -534,16 +534,6 @@ class Game(object):
             attackCoords = None
             validAttack = False
             
-            #Allow human to view attack in AI vs AI mode
-            if self.mode == AI_MODE:
-                #If it's AI mode, draw until next or continue is clicked
-                while not self.nextClicked and not self.continueClicked:
-                    self.ui.drawBoard(self.state, self.mode)
-            else:
-                #Otherwise, just draw the board again (to recognize user input in game loop)
-                self.ui.drawBoard(self.state, self.mode)
-            self.nextClicked = False
-            
             #give the valid attack coords to the ui to highlight                                
             self.ui.attackList = validAttackCoords
             
@@ -569,7 +559,7 @@ class Game(object):
                     else:
                         #if a human submitted an invalid attack, reset coordList
                         currentPlayer.coordList = []
-             
+
             #if we reached this point though loop, we must have a valid attack
             #if a human player, let it know an attack is expected (to affect location clicked context)
             if type(currentPlayer) == HumanPlayer.HumanPlayer:
@@ -586,7 +576,7 @@ class Game(object):
                 #remove dead ant from inventory
                 self.state.inventories[opponentId].ants.remove(attackedAnt)
                 
-            #if AI mode, pause to observe move until next or continue is clicked
+            #if AI mode, pause to observe attack until next or continue is clicked
             self.pauseForAIMode()
               
     ##
