@@ -12,7 +12,6 @@ from Move import *
 #   moveType - the type of move that the player is currently wanting to make
 #   buildType - the type of building that the player is currently wanting to make
 #   coordList - the list of coordinates that correspond to a valid move
-#   expectingAttack - a boolean value of whether the player needs to submit an attack
 ##
 class HumanPlayer(Player):
 
@@ -27,7 +26,6 @@ class HumanPlayer(Player):
         self.moveType = None
         self.buildType = None
         self.coordList = []
-        self.expectingAttack = False
         
     ##
     #getPlacement

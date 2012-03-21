@@ -21,13 +21,21 @@ class Game(object):
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
+        #all the players loaded in the game
         self.players = []
+        #the current two players playing the game
+        self.currentPlayers = []
         self.mode = None
         self.ui = UserInterface((865,695))
         self.ui.initAssets()
-        #bools used for stepping through moves in AI vs AI
+        #Human vs AI mode
+        self.expectingAttack = False
+        #AI vs AI mode: used for stepping through moves
         self.nextClicked = False
         self.continueClicked = False
+        #Tournament mode
+        self.playerScores = []
+        self.gamesToPlay = []
         #UI Callback functions
         self.ui.buttons['start'][-1] = self.startGame
         self.ui.buttons['tournament'][-1] = self.tournamentPath
@@ -250,8 +258,10 @@ class Game(object):
                 
                 #check mode for appropriate response to game over
                 if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                    #reset the game
                     self.reset()
                     
+                    #notify the user of the winner
                     if winner == PLAYER_ONE:
                         self.ui.notify("Player 1 has won the game!")
                     else:
@@ -540,7 +550,7 @@ class Game(object):
             #if a human player, let it know an attack is expected (to affect location clicked context)
             if type(currentPlayer) == HumanPlayer.HumanPlayer:
                 #set expecting attack for location clicked context
-                currentPlayer.expectingAttack = True
+                self.expectingAttack = True
             
             #keep requesting coords until valid attack is given
             while attackCoords == None or not validAttack:               
@@ -563,7 +573,7 @@ class Game(object):
             #if we reached this point though loop, we must have a valid attack
             #if a human player, let it know an attack is expected (to affect location clicked context)
             if type(currentPlayer) == HumanPlayer.HumanPlayer:
-                currentPlayer.expectingAttack = False
+                self.expectingAttack = False
             
             #decrement ants health
             attackedAnt = self.state.board[attackCoords[0]][attackCoords[1]].ant
@@ -658,6 +668,9 @@ class Game(object):
     def startGame(self):
         if self.mode != None and self.state.phase == MENU_PHASE:
             self.state.phase = SETUP_PHASE
+            
+            #if hva or ava modes, currentplayers = players
+            #elif tourney, assign first two
                 
     def tournamentPath(self):
         #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
@@ -732,7 +745,7 @@ class Game(object):
                         currentPlayer.coordList.pop()
             
             #give coordList to UI so it can hightlight the player's path
-            if not currentPlayer.expectingAttack:
+            if not self.expectingAttack:
                 self.ui.coordList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
