@@ -25,17 +25,20 @@ class Game(object):
         self.mode = None
         self.ui = UserInterface((865,695))
         self.ui.initAssets()
-        #Used for stepping through moves in AI vs AI
+        #bools used for stepping through moves in AI vs AI
         self.nextClicked = False
         self.continueClicked = False
         #UI Callback functions
-        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
-        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
-        self.ui.humanButtons['end'][-1] = self.endClickedCallback
         self.ui.buttons['start'][-1] = self.startGame
         self.ui.buttons['tournament'][-1] = self.tournamentPath
         self.ui.buttons['human'][-1] = self.humanPath
-        self.ui.buttons['ai'][-1] = self.aiPath
+        self.ui.buttons['ai'][-1] = self.aiPath      
+        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
+        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
+        self.ui.humanButtons['end'][-1] = self.endClickedCallback
+        self.ui.aiButtons['next'][-1] = self.nextClickedCallback
+        self.ui.aiButtons['continue'][-1] = self.continueClickedCallback
+        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['drone'][-1] = self.buildDroneCallback
         self.ui.antButtons['dsoldier'][-1] = self.buildDSoldierCallback
@@ -65,16 +68,9 @@ class Game(object):
                 winner = None
                 
                 while not gameOver:
-                    if self.mode == AI_MODE:
-                        #If it's AI mode, draw until next or continue is clicked
-                        while not self.nextClicked and not self.continueClicked:
-                            self.ui.drawBoard(self.state, self.mode)
-                    else:
-                        #Otherwise, just draw the board again (to recognize user input in game loop)
-                        self.ui.drawBoard(self.state, self.mode)
-                    #reset nextClicked to catch the next move
-                    self.nextClicked = False
-                
+                    #draw the board (to recognize user input in game loop)
+                    self.ui.drawBoard(self.state, self.mode)
+                                  
                     if self.state.phase == SETUP_PHASE:
                         currentPlayer = self.players[self.state.whoseTurn]
                         
@@ -97,7 +93,11 @@ class Game(object):
                             self.state.board[target[0]][target[1]].constr = constr
                             #update the inventory
                             self.state.inventories[self.state.whoseTurn].constructions.append(constr)
-                            #change player turn in actual state
+                            
+                            #if AI mode, pause to observe move until next or continue is clicked
+                            self.pauseForAIMode()
+                            
+                            #change player turn in state
                             self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
@@ -162,11 +162,16 @@ class Game(object):
                                 self.state.board[startCoord[0]][startCoord[1]].ant = None
                                 #put ant at last loc in coordList
                                 self.state.board[endCoord[0]][endCoord[1]].ant = antToMove
+                                
                                 #clear all highlights after move happens
                                 self.ui.coordList = []
                                 
+                                #if AI mode, pause to observe move until next or continue is clicked                               
+                                self.pauseForAIMode()   
+                                
                                 #check and take action for attack
-                                self.resolveAttack(antToMove, currentPlayer)                                
+                                self.resolveAttack(antToMove, currentPlayer)   
+
                                 #clear all highlights after attack happens
                                 self.ui.coordList = []
                                 self.ui.attackList = []
@@ -189,6 +194,10 @@ class Game(object):
                                     self.state.board[coord[0]][coord[1]].ant = ant
                                     self.state.inventories[self.state.whoseTurn].ants.append(ant)
                                 
+                                #if AI mode, pause to observe move until next or continue is clicked
+                                self.pauseForAIMode()
+                                
+                                #clear all highlights after build
                                 self.ui.coordList = []    
                                 
                             elif move.moveType == END:
@@ -213,7 +222,10 @@ class Game(object):
                                             
                                 #clear any currently highlighted squares
                                 self.ui.coordList = []
-                                            
+                                
+                                #if AI mode, pause to observe move until next or continue is clicked
+                                self.pauseForAIMode()
+                                
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
@@ -227,14 +239,34 @@ class Game(object):
                         #wrong phase, exit
                         exit(0)
 
+                    #determine if if someone is a winner.
                     if self.hasWon(PLAYER_ONE):
                         gameOver = True
                         winner = PLAYER_ONE
                     elif self.hasWon(PLAYER_TWO):
                         gameOver = True
                         winner = PLAYER_TWO
-                #end while
+                #end game loop
+                
+                #check mode for appropriate response to game over
+                if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                    self.reset()
+                    
+                    if winner == PLAYER_ONE:
+                        self.ui.notify("Player 1 has won the game!")
+                    else:
+                        self.ui.notify("Player 2 has won the game!")
+                elif self.mode == TOURNAMENT_MODE:
+                    pass
+                else:
+                    #wrong or no mode, exit
+                    exit(0)
     
+    ##
+    #reset
+    #Description: resets the game's instance variables to their starting state
+    #
+    ##
     def reset(self):
         board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
@@ -245,45 +277,22 @@ class Game(object):
         self.ui.initAssets()
         self.nextClicked = False
         self.continueClicked = False
-    
-    def startGame(self):
-        if self.mode != None and self.state.phase == MENU_PHASE:
-            self.state.phase = SETUP_PHASE
-                
-    def tournamentPath(self):
-        #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
-        if self.mode == TOURNAMENT_MODE:
-            return
-        #Attempt to load the AI files
-        self.loadAIs(False)
-        #Check right number of players, if successful set the mode.
-        if len(self.players) >= 2:
-            self.mode = TOURNAMENT_MODE
-        self.mode = None # DELETE THIS LINE LATER!!
-        
-    def humanPath(self):
-        #If already in human mode, do nothing.
-        if self.mode == HUMAN_MODE:
-            return
-        #Attempt to load the AI files
-        self.loadAIs(True) 
-        #Add the human player to the player list
-        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
-        #Check right number of players, if successful set the mode.
-        if len(self.players) == 2:
-            self.mode = HUMAN_MODE
-            self.ui.notify("Mode changed to human")
-    
-    def aiPath(self):
-        #If already in ai mode, do nothing.
-        if self.mode == AI_MODE:
-            return
-        #Attempt to load the AI files
-        self.loadAIs(False)
-        #Check right number of players, if successful set the mode.
-        if len(self.players) == 2:
-            self.mode = AI_MODE
-        self.mode = None # DELETE THIS LINE LATER!!
+        #UI Callback functions
+        self.ui.buttons['start'][-1] = self.startGame
+        self.ui.buttons['tournament'][-1] = self.tournamentPath
+        self.ui.buttons['human'][-1] = self.humanPath
+        self.ui.buttons['ai'][-1] = self.aiPath
+        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
+        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
+        self.ui.humanButtons['end'][-1] = self.endClickedCallback
+        self.ui.aiButtons['next'][-1] = self.nextClickedCallback
+        self.ui.aiButtons['continue'][-1] = self.continueClickedCallback
+        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
+        self.ui.antButtons['drone'][-1] = self.buildDroneCallback
+        self.ui.antButtons['dsoldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['isoldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['none'][-1] = self.buildNothingCallback
+        self.ui.locationClicked = self.locationClickedCallback
     
     def loadAIs(self, humanMode):
         #If humanMode, then we're going to start AI ids at a higher number. Change modifier to reflect this
@@ -508,8 +517,8 @@ class Game(object):
         range = UNIT_STATS[attackingAnt.type][RANGE]
         for ant in self.state.inventories[opponentId].ants:
             if self.isValidAttack(attackingAnt, ant.coords):
-                validAttackCoords.append(ant.coords)
-        
+                #keep track of valid attack coords (flipped for player two)
+                validAttackCoords.append(self.state.coordLookup(ant.coords, currentPlayer.playerId))
         if validAttackCoords != []:
             #players must attack if possible and we know at least one is valid
             attackCoords = None
@@ -538,10 +547,11 @@ class Game(object):
                 #Draw the board again (to recognize user input inside loop)
                 self.ui.drawBoard(self.state, self.mode)
                 
-                #get the attack from the player
-                attackCoords = currentPlayer.getAttack(validAttackCoords)
-                validAttack = self.isValidAttack(attackingAnt, attackCoords)
+                #get the attack from the player (flipped for player two)
+                attackCoords = self.state.coordLookup(currentPlayer.getAttack(validAttackCoords), currentPlayer.playerId)
                 
+                #check for the move's validity
+                validAttack = self.isValidAttack(attackingAnt, attackCoords)
                 if not validAttack:
                     if type(currentPlayer) != HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
@@ -549,7 +559,6 @@ class Game(object):
                     else:
                         #if a human submitted an invalid attack, reset coordList
                         currentPlayer.coordList = []
-                    
              
             #if we reached this point though loop, we must have a valid attack
             #if a human player, let it know an attack is expected (to affect location clicked context)
@@ -566,6 +575,21 @@ class Game(object):
                 self.state.board[attackCoords[0]][attackCoords[1]].ant = None
                 #remove dead ant from inventory
                 self.state.inventories[opponentId].ants.remove(attackedAnt)
+                
+            #if AI mode, pause to observe move until next or continue is clicked
+            self.pauseForAIMode()
+              
+    ##
+    #pauseForAIMode
+    #Description: will pause the game if set to AI mode until user clicks next or continue
+    #
+    ##    
+    def pauseForAIMode(self):
+        if self.mode == AI_MODE:
+            while not self.nextClicked and not self.continueClicked:
+                self.ui.drawBoard(self.state, self.mode)
+            #reset nextClicked to catch next move
+            self.nextClicked = False
     
     ##
     #checkMoveStart 
@@ -631,6 +655,45 @@ class Game(object):
                     
         return False
 
+    def startGame(self):
+        if self.mode != None and self.state.phase == MENU_PHASE:
+            self.state.phase = SETUP_PHASE
+                
+    def tournamentPath(self):
+        #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
+        if self.mode == TOURNAMENT_MODE:
+            return
+        #Attempt to load the AI files
+        self.loadAIs(False)
+        #Check right number of players, if successful set the mode.
+        if len(self.players) >= 2:
+            self.mode = TOURNAMENT_MODE
+        self.mode = None # DELETE THIS LINE LATER!!
+        
+    def humanPath(self):
+        #If already in human mode, do nothing.
+        if self.mode == HUMAN_MODE:
+            return
+        #Attempt to load the AI files
+        self.loadAIs(True) 
+        #Add the human player to the player list
+        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
+        #Check right number of players, if successful set the mode.
+        if len(self.players) == 2:
+            self.mode = HUMAN_MODE
+            self.ui.notify("Mode changed to Human vs. AI")
+    
+    def aiPath(self):
+        #If already in ai mode, do nothing.
+        if self.mode == AI_MODE:
+            return
+        #Attempt to load the AI files
+        self.loadAIs(False)
+        #Check right number of players, if successful set the mode.
+        if len(self.players) == 2:
+            self.mode = AI_MODE
+            self.ui.notify("Mode changed to AI vs. AI")    
+        
     ##
     #locationClickedCallback
     #Description: Responds to a user clicking on a board location
@@ -756,10 +819,12 @@ class Game(object):
         currentPlayer.moveType = None
     
     def nextClickedCallback(self):
-        self.nextClicked = True
+        if self.state.phase != MENU_PHASE:
+            self.nextClicked = True
     
     def continueClickedCallback(self):
-        self.continueClicked = True
+        if self.state.phase != MENU_PHASE:
+            self.continueClicked = True
     
 a = Game()
 a.runGame()

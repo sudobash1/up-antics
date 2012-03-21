@@ -56,11 +56,11 @@ class GameState(object):
     #
     #Return: Correct coordinate location for player
     ##
-    def coordLookup(self, coords, player):
-        if coords == None or player == None:
+    def coordLookup(self, coords, playerId):
+        if coords == None or playerId == None:
             return None
     
-        if player == PLAYER_ONE:
+        if playerId == PLAYER_ONE:
             return coords
         else:
             return (BOARD_LENGTH - 1 - coords[0], BOARD_LENGTH - 1 - coords[1])

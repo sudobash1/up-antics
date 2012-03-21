@@ -221,8 +221,8 @@ class UserInterface(object):
     #   player2Score - the integer value of player 2's food stock.
     ##
     def drawScoreBoard(self, player1Score, player2Score):
-        label1 = self.gameFont.render("Player 1: " + str(player1Score) + " Food", True, BLACK)
-        label2 = self.gameFont.render("Player 2: " + str(player2Score) + " Food", True, BLACK)
+        label1 = self.gameFont.render("Player 1: " + str(player1Score) + " food", True, BLACK)
+        label2 = self.gameFont.render("Player 2: " + str(player2Score) + " food", True, BLACK)
         self.screen.blit(label1, self.scoreLocation)
         self.screen.blit(label2, addCoords(self.scoreLocation, (0, label2.get_rect().height)))
         
