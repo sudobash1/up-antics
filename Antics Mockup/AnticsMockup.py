@@ -38,6 +38,11 @@ buttonLocations = {
 'start':(700,650)
 }
 coloredSquares = []
+#text that's beeen entered into the text box
+textEntry = '9702'
+boxSelected = False
+boxRect = Rect(700, 240, 150, 30)
+cursorRect = Rect(0, 0, 2, 20)
 #Initialize board
 board = [[None for y in xrange(bHeight)] for x in xrange(bWidth)]
 #Choose where to place grass.
@@ -69,11 +74,23 @@ while len(anthills) < 2:
 
 #Event handler
 def handleEvents():
-    global typeToDraw
-    global coloredSquares
+    global typeToDraw, coloredSquares, boxSelected, textEntry
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
+        if event.type == MOUSEBUTTONDOWN or event.type == MOUSEBUTTONUP:
+            if boxRect.collidepoint(pygame.mouse.get_pos()):
+                boxSelected = True
+            else:
+                boxSelected = False
+        if boxSelected and event.type == KEYDOWN:
+            if str(event.unicode) in [str(i) for i in xrange(0, 10)]:
+                textEntry += str(event.unicode)
+            elif event.key == 8 and textEntry != '':
+                textEntry = textEntry[:-1]
+            print "DOWN unicode: " + str(event.unicode) + ", key: " + str(event.key) + " and mod: " + str(event.mod)
+        if boxSelected and event.type == KEYUP:
+            print "UP key: " + str(event.key) + " and mod: " + str(event.mod)
         if event.type == MOUSEBUTTONDOWN:
             if released.get_rect().move(buttonLocations['start']).collidepoint(pygame.mouse.get_pos()):
                 typeToDraw = 2
@@ -91,6 +108,14 @@ def clickedSquare():
     if pos[0] > 10 and pos[1] > 10 and pos[0] < (74 + 68*bWidth) and pos[1] < (74 + 68*bHeight):
         if (pos[0]-10)%68 < 64 and (pos[1]-10)%68 < 64:
             return ((pos[0]-10)/68, (pos[1]-10)/68)
+
+def drawTextBox():
+    textBoxPosition = (710, 250)
+    pygame.draw.rect(screen, WHITE, boxRect)
+    label = gameFont.render(textEntry + ('|' if boxSelected else ''), True, BLACK)
+    screen.blit(label, textBoxPosition)
+    # if boxSelected:
+        # pygame.draw.rect(screen, BLACK, cursorRect.move(textBoxPosition).move(label.get_width() + 10, 0))
 
 def drawCheckBox(screen, text, boxSurface, location):
     #Create the surface containing the text.
@@ -129,6 +154,7 @@ screen = pygame.display.set_mode(size)
 while 1:
     handleEvents()
     screen.fill(BLACK)
+    drawTextBox()
     if typeToDraw == 1:
         drawButton(screen, "Start Game", released, buttonLocations['start'])
     else:

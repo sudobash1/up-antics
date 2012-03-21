@@ -144,6 +144,20 @@ class UserInterface(object):
     def submitNoBuild(self):
         print "Clicked BUILD NOTHING"
     
+    ##
+    #submitStartTournament
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitStartTournament(self):
+        print "Clicked START TOURNAMENT"
+    
+    ##
+    #submitStopTournament
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
+    def submitStopTournament(self):
+        print "Clicked STOP TOURNAMENT"
+    
     def locationClicked(self, coords):
         print "Clicked LOCATION " + str(coords)
     
@@ -225,7 +239,38 @@ class UserInterface(object):
         label2 = self.gameFont.render("Player 2: " + str(player2Score) + " food", True, BLACK)
         self.screen.blit(label1, self.scoreLocation)
         self.screen.blit(label2, addCoords(self.scoreLocation, (0, label2.get_rect().height)))
+    
+    ##
+    #
+    ##
+    def drawTextBox(self):
         
+    
+    ##
+    #Description: Draws the tournament score table from a list of (author string, wins int, losses int, ties int) tuples.
+    ##
+    def drawTable(self):
+        XStartPixel = 50
+        YStartPixel = self.screen.get_height() / 2 - len(self.tournamentScores) * 20 / 2
+        if YStartPixel < 0:
+            YStartPixel = 0
+        #Prepend the column headers to the tournamentScores list, so that we can draw the entire table without special cases.
+        scores = [('Author', 'Wins', 'Losses', 'Ties')] + self.tournamentScores
+        #Find the longest string for each column
+        lengths = [0, 0, 0, 0, 0, 0]
+        for score in scores:
+            for index in range(0, len(score)):
+                if len(str(score[index])) > lengths[index]:
+                    lengths[index + 1] = len(str(score[index]))
+        #Draw the table itself
+        for index in range(0, len(scores)):
+            for innerDex in range(0, len(scores[index])):
+                tempX = XStartPixel + lengths[innerDex] * 10
+                tempY = YStartPixel + index * 20
+                label = self.notifyFont.render(str(scores[index][innerDex]), True, BLACK)
+                self.screen.blit(label, (tempX, tempY))
+                
+    
     ##
     #handleButton
     #Description: Handles the finer details of what happens when a user is clicking on buttons.
@@ -252,8 +297,8 @@ class UserInterface(object):
     ##
     def handleEvents(self, mode):
         #Make sure we check the right buttons
-        relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
-        if self.buildAntMenu == True:
+        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons if mode == AI_MODE else self.tournamentButtons if mode == TOURNAMENT_MODE else {}
+        if mode == HUMAN_MODE and self.buildAntMenu == True:
             relButtons = self.antButtons
         #Check what to do for each event
         for event in pygame.event.get():
@@ -268,12 +313,13 @@ class UserInterface(object):
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 0, relButtons)
-                #Additionally, check if a cell on the board has been clicked.
-                if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
-                    x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
-                    y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
-                    if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
-                        self.locationClicked((x, y))
+                if mode != TOURNAMENT_MODE:
+                    #Additionally, check if a cell on the board has been clicked.
+                    if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
+                        x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
+                        y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
+                        if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
+                            self.locationClicked((x, y))
             elif event.type == pygame.MOUSEBUTTONUP:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
@@ -335,26 +381,38 @@ class UserInterface(object):
     #Parameters:
     #   currentState - 
     def drawBoard(self, currentState, mode):
-        self.handleEvents(mode)
-        self.screen.fill(BLACK)
-        pygame.draw.rect(self.screen, WHITE, self.buttonArea)
-        for col in xrange(0, len(currentState.board)):
-            for row in xrange(0, len(currentState.board[col])):
-                self.drawCell(currentState.board[col][row])
-        #Make sure we draw the right buttons
-        relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
-        if self.buildAntMenu == True:
-            relButtons = self.antButtons
-        #Draw the context buttons
-        for key in relButtons:
-            self.drawButton(key, relButtons)
+        if mode == TOURNAMENT_MODE:
+            self.handleEvents()
+            self.screen.fill(WHITE)
+            relButtons = self.tournamentButtons
+            for key in relButtons:
+                self.drawButton(key, relButtons)
+            #Draw the box into which the user can enter the number of games they want to play.
+            self.drawTextBox()
+            #Draw the table with columns author/win/loss/tie
+            self.drawTable()
+        else:
+            self.handleEvents(mode)
+            self.screen.fill(BLACK)
+            pygame.draw.rect(self.screen, WHITE, self.buttonArea)
+            for col in xrange(0, len(currentState.board)):
+                for row in xrange(0, len(currentState.board[col])):
+                    self.drawCell(currentState.board[col][row])
+            #Make sure we draw the right buttons
+            relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
+            if self.buildAntMenu == True:
+                relButtons = self.antButtons
+            #Draw the context buttons
+            for key in relButtons:
+                self.drawButton(key, relButtons)
+            #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
+            self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
+            #Draw notifications just above menu buttons.
+            self.drawNotification()
         #Draw the basic buttons
         for key in self.buttons:
             self.drawButton(key, self.buttons)
-        #I can't put this draw method outside of drawBoard, but it shouldn't work this way.
-        self.drawScoreBoard(currentState.inventories[0].foodCount, currentState.inventories[1].foodCount)
-        #Draw notifications just above menu buttons.
-        self.drawNotification()
+        #Show everything I've drawn by posting self.screen to the monitor.
         pygame.display.flip()
     
     def findButtonCoords(self, index, isTop):
@@ -419,6 +477,11 @@ class UserInterface(object):
         'human':[self.findButtonCoords(2, False), 1, self.gameModeHumanAI],
         'ai':[self.findButtonCoords(1, False), 1, self.gameModeAIAI],
         'start':[self.findButtonCoords(0, False), 1, self.startGame]
+        }
+        #Initial values for buttons in tournament mode
+        self.tournamentButtons = {
+        'start':[self.findButtonCoords(0, True), 1, self.submitStartTournament],
+        'stop':[self.findButtonCoords(1, True), 1, self.submitStopTournament],
         }
         #Initial values for buttons in human vs AI mode
         self.humanButtons = {
