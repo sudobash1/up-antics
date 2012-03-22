@@ -258,9 +258,9 @@ class UserInterface(object):
         if YStartPixel < 0:
             YStartPixel = 0
         #Prepend the column headers to the tournamentScores list, so that we can draw the entire table without special cases.
-        scores = [('Author', 'Wins', 'Losses', 'Ties')] + self.tournamentScores
+        scores = [('Author', 'Wins', 'Losses')] + self.tournamentScores
         #Find the longest string for each column
-        lengths = [0, 0, 0, 0, 0, 0]
+        lengths = [0 for i in range(0, len(scores[0]) + 1)]
         for score in scores:
             for index in range(0, len(score)):
                 if len(str(score[index])) > lengths[index]:
