@@ -149,7 +149,7 @@ class AIPlayer(Player):
                     nextCoord = addCoords(coordList[-1], validDirections[randDir])
                     coordList.append(nextCoord)
                     #Add its cost to the total move cost
-                    totalCost += currentState.board[nextLoc[0]][nextLoc[1]].getMoveCost()
+                    totalCost += currentState.board[nextCoord[0]][nextCoord[1]].getMoveCost()
             #Return the chosen move
             return Move(MOVE, coordList, None)
         #If I can't to anything, end turn

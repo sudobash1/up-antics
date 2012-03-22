@@ -244,13 +244,10 @@ class Game(object):
                             #not a valid move, check if None
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:                
-                                #import pdb
-                                #pdb.set_trace()
-                                #exit(0)
-                                pass
+                                exit(0)
                             
                     else:
-                        #wrong phase, 
+                        #wrong phase, exit
                         exit(0)
 
                     #determine if if someone is a winner.
@@ -279,9 +276,7 @@ class Game(object):
                     #adjust the count of games to play for the current pair
                     currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                     for i in range(0, len(gamesToPlay)):
-                        #if pairing matches
                         if gamesToPlay[i][0] == currentPairing:
-                            
                             gamesToPlay[i][1] -= 1
                             
                             if gamesToPlay[i][1] == 0:
@@ -346,7 +341,7 @@ class Game(object):
         #Make player instances from all AIs in folder.
         for file in filesInAIFolder:
             if re.match(".*\.py$", file):
-                moduleName = file[:-3]
+                moduleName = file.rstrip('.py')
                 #Check to see if the file is already loaded.
                 temp = __import__(moduleName, globals(), locals(), [], -1)
                 #If the module has already been imported into this python instance, reload it.
@@ -406,7 +401,6 @@ class Game(object):
                     #if any to-coords are invalid, return invalid move
                     if not self.checkMovePath(previousCoord, coord, antToMove):
                         return False
-                        
                     #subtract cost of loc from movement points
                     constrAtLoc = self.state.board[coord[0]][coord[1]].constr
                     if constrAtLoc == None or antToMove.type == DRONE:
@@ -647,9 +641,6 @@ class Game(object):
     #  (either in checkMoveStart or previous checkMovePath call)
     ##
     def checkMovePath(self, fromCoord, toCoord, antToMove):
-        #check that we're actaully moving an ant
-        if antToMove == None:
-            return False
         #check location is on board
         if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
                 toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
@@ -777,14 +768,14 @@ class Game(object):
                 for checkCoord in currentPlayer.coordList:
                     if checkCoord == coord:
                         onList = True
-                
-                startCoord = currentPlayer.coordList[0]
-                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
-                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord, antToMove): 
+                        
+                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord): 
                     #add the coord to the move list so we can check if it makes a valid move
                     currentPlayer.coordList.append(coord)
                     
                     #enact the theoretical move
+                    startCoord = currentPlayer.coordList[0]
+                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                     move = Move(MOVE, currentPlayer.coordList, antToMove.type)
                     
                     #if the move wasn't valid, remove added coord from move list              
@@ -840,8 +831,7 @@ class Game(object):
     ##
     def endClickedCallback(self):     
         #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
-                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
+        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             self.players[self.state.whoseTurn].moveType = END
     
     def buildWorkerCallback(self):
