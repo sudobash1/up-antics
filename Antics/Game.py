@@ -401,7 +401,7 @@ class Game(object):
                         previousCoord = coord
                         continue  
                     #if any to-coords are invalid, return invalid move
-                    if not self.checkMovePath(previousCoord, coord):
+                    if not self.checkMovePath(previousCoord, coord, antToMove):
                         return False
                     #subtract cost of loc from movement points
                     constrAtLoc = self.state.board[coord[0]][coord[1]].constr
@@ -642,7 +642,7 @@ class Game(object):
     #fromCoord must always have been checked by the time it's passed
     #  (either in checkMoveStart or previous checkMovePath call)
     ##
-    def checkMovePath(self, fromCoord, toCoord):
+    def checkMovePath(self, fromCoord, toCoord, antToMove):
         #check location is on board
         if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
                 toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
@@ -651,7 +651,7 @@ class Game(object):
                     (abs(fromCoord[0] - toCoord[0]) == 0 and abs(fromCoord[1] - toCoord[1]) == 1)):
                 antAtLoc = self.state.board[toCoord[0]][toCoord[1]].ant
                 #check that an ant exists at the loc
-                if antAtLoc ==  None:
+                if antAtLoc ==  None or antAtLoc == antToMove:
                     return True
                     
         return False

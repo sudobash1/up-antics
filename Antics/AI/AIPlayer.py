@@ -82,7 +82,7 @@ class AIPlayer(Player):
                 break
         #If my inventory is still none, then I don't have one.
         if myInv == None:
-            return None
+            return Move(END, None, None)
         #If you have the food for an ant tunnel, try to purchase something random.
         if myInv.foodCount >= CONSTR_STATS[TUNNEL][BUILD_COST]:
             #First detect whether you have an ant with nothing under it
