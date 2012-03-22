@@ -243,8 +243,11 @@ class Game(object):
                         else:
                             #not a valid move, check if None
                             #human can give None move, AI can't
-                            if not type(currentPlayer) is HumanPlayer.HumanPlayer:
+                            if not type(currentPlayer) is HumanPlayer.HumanPlayer:                
+                                import pdb
+                                pdb.set_trace()
                                 exit(0)
+                            
                     else:
                         #wrong phase, exit
                         exit(0)
