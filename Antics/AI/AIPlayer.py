@@ -105,7 +105,7 @@ class AIPlayer(Player):
                     return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
                 else:
                     #build an ant
-                    return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
+                    return Move(BUILD, [hill.coords], random.randint(WORKER, I_SOLDIER))
             elif len(placeableAnts) != 0:
                 #build a tunnel
                 location = random.randint(0, len(placeableAnts) - 1)
