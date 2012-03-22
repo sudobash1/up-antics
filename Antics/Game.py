@@ -271,7 +271,10 @@ class Game(object):
                         self.ui.notify("Player 1 has won the game!")
                     else:
                         self.ui.notify("Player 2 has won the game!")
-                elif self.mode == TOURNAMENT_MODE:
+                elif self.mode == TOURNAMENT_MODE: 
+                    #adjust the count of games to play for the current pair
+                    currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
+                
                     #reset the game
                     self.reset()
                 
@@ -281,21 +284,19 @@ class Game(object):
                     #adjust the wins and losses of players
                     self.playerScores[winner][1] += 1
                     self.playerScores[loser][2] += 1
-                    
-                    #adjust the count of games to play for the current pair
-                    currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
-                    for i in range(0, len(gamesToPlay)):
+                   
+                    for i in range(0, len(self.gamesToPlay)):
                         #if we found the current pairing
-                        if gamesToPlay[i][0] == currentPairing:
+                        if self.gamesToPlay[i][0] == currentPairing:
                             #mark off another game for the pairing
-                            gamesToPlay[i][1] -= 1
+                            self.gamesToPlay[i][1] -= 1
                             
                             #if the pairing has no more games, then remove it
-                            if gamesToPlay[i][1] == 0:
-                                gamesToPlay.remove(gamesToPlay[i])
+                            if self.gamesToPlay[i][1] == 0:
+                                self.gamesToPlay.remove(self.gamesToPlay[i])
                             break
                             
-                    if len(gamesToPlay) == 0:
+                    if len(self.gamesToPlay) == 0:
                         #if no more games to play, reset tournament stuff
                         self.numGames = 0                               
                         self.playerScores = []
@@ -305,12 +306,12 @@ class Game(object):
                         self.state.phase = SETUP_PHASE
                     
                         #get players from next pairing
-                        playerOneId = gamesToPlay[0][0][0]
-                        playerTwoId = gamesToPlay[0][0][1]
+                        playerOneId = self.gamesToPlay[0][0][0]
+                        playerTwoId = self.gamesToPlay[0][0][1]
                     
                         #set up new current players
-                        self.currentPlayers[PLAYER_ONE] = self.players[playerOneId]
-                        self.currentPlayers[PLAYER_TWO] = self.players[playerTwoid]
+                        self.currentPlayers.append(self.players[playerOneId])
+                        self.currentPlayers.append(self.players[playerTwoId])
                     
                     
                 else:
@@ -725,7 +726,11 @@ class Game(object):
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
             if self.mode == TOURNAMENT_MODE:
-                self.numGames = int(self.ui.textBoxContent)
+                if self.ui.textBoxContent != '':
+                    self.numGames = int(self.ui.textBoxContent)
+                else:
+                    self.ui.textBoxContent = '0'
+                    self.numGames = 0
             
                 #if numGames is non-positive, dont set up game
                 if self.numGames <= 0:
