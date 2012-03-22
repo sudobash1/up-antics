@@ -264,7 +264,8 @@ class Game(object):
                 #check mode for appropriate response to game over
                 if self.mode == HUMAN_MODE or self.mode == AI_MODE:
                     #reset the game
-                    self.reset()
+                    self.resetGame()
+                    self.resetUI()
                     
                     #notify the user of the winner
                     if winner == PLAYER_ONE:
@@ -276,7 +277,7 @@ class Game(object):
                     currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                 
                     #reset the game
-                    self.reset()
+                    self.resetGame()
                 
                     #give the new scores to the UI
                     self.ui.tournamentScores = self.playerScores
@@ -300,6 +301,7 @@ class Game(object):
                         #if no more games to play, reset tournament stuff
                         self.numGames = 0                               
                         self.playerScores = []
+                        self.mode = TOURNAMENT_MODE
                     else:
                         #setup game to run again
                         self.mode = TOURNAMENT_MODE
@@ -319,24 +321,31 @@ class Game(object):
                     exit(0)
     
     ##
-    #reset
+    #resetGame
     #Description: resets the game's instance variables to their starting state
     #
     ##
-    def reset(self):
+    def resetGame(self):
         board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
         self.currentPlayers = []
         self.mode = None
-        self.ui.initAssets()
         #Human vs AI mode
         self.expectingAttack = False
         #AI vs AI mode: used for stepping through moves
         self.nextClicked = False
         self.continueClicked = False
         #Don't reset Tournament Mode's variables, might need to run more games
+        
+    ##
+    #resetUI
+    #Description: resets the game's instance variables to their starting state
+    #
+    ##
+    def resetUI(self):
+        self.ui.initAssets()
         #UI Callback functions
         self.ui.buttons['Start'][-1] = self.startGame
         self.ui.buttons['Tournament'][-1] = self.tournamentPath
@@ -735,10 +744,12 @@ class Game(object):
                 #if numGames is non-positive, dont set up game
                 if self.numGames <= 0:
                     return
-                    
+                
+                self.ui.tournamentScores = []
+                
                 for i in range(0, len(self.players)):
                     #initialize the player's win/loss scores
-                    self.playerScores.append([self.players[i],0,0])
+                    self.playerScores.append([self.players[i].author, 0, 0])
                     self.ui.tournamentScores.append([self.players[i].author, 0, 0])
                     
                     for j in range(i, len(self.players)):
