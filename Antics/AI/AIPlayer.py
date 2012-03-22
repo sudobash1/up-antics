@@ -112,7 +112,7 @@ class AIPlayer(Player):
                 return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
             elif placeableHill:
                 #build an ant
-                return Move(BUILD, [hill.coords], random.randint(QUEEN, I_SOLDIER))
+                return Move(BUILD, [hill.coords], random.randint(WORKER, I_SOLDIER))
             else:
                 #I have resources to build, but no place to build things
                 pass
