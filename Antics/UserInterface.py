@@ -244,7 +244,7 @@ class UserInterface(object):
     #
     ##
     def drawTextBox(self):
-        pygame.draw.rect(self.screen, DARK_RED, self.buttonRect.move(self.textPosition))
+        pygame.draw.rect(self.screen, DARK_RED if self.textBoxContent == '' else LIGHT_GREEN, self.buttonRect.move(self.textPosition))
         label = self.gameFont.render(self.textBoxContent + ('|' if self.boxSelected else ''), True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
         self.screen.blit(label, addCoords(self.textPosition, offset))
