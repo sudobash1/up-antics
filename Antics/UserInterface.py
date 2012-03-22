@@ -247,7 +247,7 @@ class UserInterface(object):
         pygame.draw.rect(self.screen, DARK_RED, self.buttonRect.move(self.textPosition))
         label = self.gameFont.render(self.textBoxContent + ('|' if self.boxSelected else ''), True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
-        self.screen.blit(label, self.textPosition + offset)
+        self.screen.blit(label, addCoords(self.textPosition, offset))
     
     ##
     #Description: Draws the tournament score table from a list of (author string, wins int, losses int, ties int) tuples.
