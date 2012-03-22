@@ -34,9 +34,8 @@ class Game(object):
         self.nextClicked = False
         self.continueClicked = False
         #Tournament mode
-        self.playerScores = []
-        #list of 2-tuples: ((p1.id, p2.id), numGames / num pairings)
-        self.gamesToPlay = [] 
+        self.playerScores = [] # [[wins/losses], ...]
+        self.gamesToPlay = [] #((p1.id, p2.id), numGames / num pairings)
         self.numGames = None
         #UI Callback functions
         self.ui.buttons['Start'][-1] = self.startGame
@@ -75,6 +74,7 @@ class Game(object):
                 
                 gameOver = False
                 winner = None
+                loser = None
                 
                 while not gameOver:
                     #draw the board (to recognize user input in game loop)
@@ -244,6 +244,8 @@ class Game(object):
                             #not a valid move, check if None
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer: 
+                                import pdb
+                                pdb.set_trace()
                                 exit(0)
                             
                     else:
@@ -258,22 +260,21 @@ class Game(object):
                         gameOver = True
                         winner = self.currentPlayers[PLAYER_TWO].playerId
                 #end game loop
-                
-                #reset the game
-                self.reset()
-                
+   
                 #check mode for appropriate response to game over
-                if self.mode == HUMAN_MODE or self.mode == AI_MODE:
-                    
+                if self.mode == HUMAN_MODE or self.mode == AI_MODE:  
+                    #reset the game
+                    self.reset()
+                
                     #notify the user of the winner
                     if winner == PLAYER_ONE:
                         self.ui.notify("Player 1 has won the game!")
                     else:
                         self.ui.notify("Player 2 has won the game!")
                 elif self.mode == TOURNAMENT_MODE:
-                
-                    #adjust the winner's score
-                    self.playerScores[winner] += 1
+                    #adjust the winner's and loser's score
+                    self.playerScores[winner][0] += 1
+                    self.playerScores[loser][1] += 1
                     
                     #adjust the count of games to play for the current pair
                     currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
@@ -290,8 +291,8 @@ class Game(object):
                             
                             #if no more pairings, reset tournament stuff
                             if len(gamesToPlay) == 0:
-                                
-                            
+                                self.numGames = 0                               
+                                self.playerScores = []
                     
                 else:
                     #wrong or no mode, exit
@@ -704,8 +705,8 @@ class Game(object):
                     return
                     
                 for i in range(0, len(self.players)):
-                    #initialize the player's score
-                    self.playerScores.append(0)
+                    #initialize the player's win/loss scores
+                    self.playerScores.append([0,0])
                 
                     for j in range(i, len(self.players)):
                         if self.players[i] != self.players[j]:
