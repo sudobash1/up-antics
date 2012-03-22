@@ -839,7 +839,8 @@ class Game(object):
     ##
     def endClickedCallback(self):     
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+        if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
+                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
             self.players[self.state.whoseTurn].moveType = END
     
     def buildWorkerCallback(self):
