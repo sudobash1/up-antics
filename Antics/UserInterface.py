@@ -491,10 +491,10 @@ class UserInterface(object):
         self.buttonArea = Rect(self.screen.get_width() - buttonAreaWidth, 0, buttonAreaWidth, self.screen.get_height())
         #Button statistics for basic buttons in order: x, y, buttonState(pressed/released)
         self.buttons = {
-        'tournament':[self.findButtonCoords(3, False), 1, self.gameModeTournament],
-        'human':[self.findButtonCoords(2, False), 1, self.gameModeHumanAI],
-        'ai':[self.findButtonCoords(1, False), 1, self.gameModeAIAI],
-        'start':[self.findButtonCoords(0, False), 1, self.startGame]
+        'Start':[self.findButtonCoords(3.5, False), 1, self.startGame],
+        'Tournament':[self.findButtonCoords(2, False), 1, self.gameModeTournament],
+        'Human vs AI':[self.findButtonCoords(1, False), 1, self.gameModeHumanAI],
+        'AI vs AI':[self.findButtonCoords(0, False), 1, self.gameModeAIAI]
         }
         #Initial values for buttons in tournament mode
         self.tournamentButtons = {
@@ -503,22 +503,22 @@ class UserInterface(object):
         }
         #Initial values for buttons in human vs AI mode
         self.humanButtons = {
-        'move':[self.findButtonCoords(0, True), 1, self.submitMove],
-        'build':[self.findButtonCoords(1, True), 1, self.submitBuild],
-        'end':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
+        'Move':[self.findButtonCoords(0, True), 1, self.submitMove],
+        'Build':[self.findButtonCoords(1, True), 1, self.submitBuild],
+        'End':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
         }
         #Initial values for buttons in human vs AI mode
         self.aiButtons = {
-        'next':[self.findButtonCoords(0, True), 1, self.submitNext],
-        'continue':[self.findButtonCoords(1, True), 1, self.submitContinue]
+        'Next':[self.findButtonCoords(0, True), 1, self.submitNext],
+        'Continue':[self.findButtonCoords(1, True), 1, self.submitContinue]
         }
         #Initial values for build ant buttons
         self.antButtons = {
-        'worker':[self.findButtonCoords(0, True), 1, self.submitWorker],
-        'drone':[self.findButtonCoords(1, True), 1, self.submitDrone],
-        'dsoldier':[self.findButtonCoords(2, True), 1, self.submitDSoldier],
-        'isoldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
-        'none':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
+        'Worker':[self.findButtonCoords(0, True), 1, self.submitWorker],
+        'Drone':[self.findButtonCoords(1, True), 1, self.submitDrone],
+        'D_Soldier':[self.findButtonCoords(2, True), 1, self.submitDSoldier],
+        'I_Soldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
+        'None':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
         }
         #Properties of our single text box
         self.textPosition = self.findButtonCoords(2, True)

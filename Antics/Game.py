@@ -35,23 +35,24 @@ class Game(object):
         self.continueClicked = False
         #Tournament mode
         self.playerScores = []
-        self.gamesToPlay = []
+        #list of 2-tuples: ((p1.id, p2.id), numGames / num pairings)
+        self.gamesToPlay = [] 
+        self.numGames = None
         #UI Callback functions
-        self.ui.buttons['start'][-1] = self.startGame
-        self.ui.buttons['tournament'][-1] = self.tournamentPath
-        self.ui.buttons['human'][-1] = self.humanPath
-        self.ui.buttons['ai'][-1] = self.aiPath      
-        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
-        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
-        self.ui.humanButtons['end'][-1] = self.endClickedCallback
-        self.ui.aiButtons['next'][-1] = self.nextClickedCallback
-        self.ui.aiButtons['continue'][-1] = self.continueClickedCallback
-        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
-        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
-        self.ui.antButtons['drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['dsoldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['isoldier'][-1] = self.buildISoldierCallback
-        self.ui.antButtons['none'][-1] = self.buildNothingCallback
+        self.ui.buttons['Start'][-1] = self.startGame
+        self.ui.buttons['Tournament'][-1] = self.tournamentPath
+        self.ui.buttons['Human vs AI'][-1] = self.humanPath
+        self.ui.buttons['AI vs AI'][-1] = self.aiPath      
+        self.ui.humanButtons['Move'][-1] = self.moveClickedCallback
+        self.ui.humanButtons['Build'][-1] = self.buildClickedCallback
+        self.ui.humanButtons['End'][-1] = self.endClickedCallback
+        self.ui.aiButtons['Next'][-1] = self.nextClickedCallback
+        self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
+        self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
+        self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
+        self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['None'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
           
     def runGame(self):
@@ -62,7 +63,7 @@ class Game(object):
             
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
-                self.ui.notify("Game Started!")
+                self.ui.notify("Game started!")
                 
                 #init game stuffs
                 #build a list of things to place
@@ -80,7 +81,7 @@ class Game(object):
                     self.ui.drawBoard(self.state, self.mode)
                                   
                     if self.state.phase == SETUP_PHASE:
-                        currentPlayer = self.players[self.state.whoseTurn]
+                        currentPlayer = self.currentPlayers[self.state.whoseTurn]
                         
                         #if the player is player two, flip the board
                         theState = self.state.clone()
@@ -136,7 +137,7 @@ class Game(object):
                             self.state.phase = PLAY_PHASE
                         
                     elif self.state.phase == PLAY_PHASE: 
-                        currentPlayer = self.players[self.state.whoseTurn]
+                        currentPlayer = self.currentPlayers[self.state.whoseTurn]
                         
                         #if the player is player two, flip the board
                         theState = self.state.clone()
@@ -238,11 +239,12 @@ class Game(object):
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #invalid move type, exit
-                                pass
+                                exit(0)
                         else:
                             #not a valid move, check if None
                             #human can give None move, AI can't
-                            pass
+                            if not type(currentPlayer) is HumanPlayer.HumanPlayer:
+                                exit(0)
                     else:
                         #wrong phase, exit
                         exit(0)
@@ -250,10 +252,10 @@ class Game(object):
                     #determine if if someone is a winner.
                     if self.hasWon(PLAYER_ONE):
                         gameOver = True
-                        winner = PLAYER_ONE
+                        winner = self.currentPlayers[PLAYER_ONE].playerId
                     elif self.hasWon(PLAYER_TWO):
                         gameOver = True
-                        winner = PLAYER_TWO
+                        winner = self.currentPlayers[PLAYER_TWO].playerId
                 #end game loop
                 
                 #check mode for appropriate response to game over
@@ -267,7 +269,20 @@ class Game(object):
                     else:
                         self.ui.notify("Player 2 has won the game!")
                 elif self.mode == TOURNAMENT_MODE:
-                    pass
+                    #adjust the winner's score
+                    self.playerScores[winner] += 1
+                    
+                    #adjust the count of games to play for the current pair
+                    currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
+                    for i in range(0, len(gamesToPlay)):
+                        if gamesToPlay[i][0] == currentPairing:
+                            gamesToPlay[i][1] -= 1
+                            
+                            if gamesToPlay[i][1] == 0:
+                                gamesToPlay.remove(gamesToPlay[i])
+                            break
+                            
+                    
                 else:
                     #wrong or no mode, exit
                     exit(0)
@@ -282,28 +297,32 @@ class Game(object):
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
         self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
-        self.players = []
+        self.currentPlayers = []
         self.mode = None
         self.ui.initAssets()
+        #Human vs AI mode
+        self.expectingAttack = False
+        #AI vs AI mode: used for stepping through moves
         self.nextClicked = False
         self.continueClicked = False
+        #Don't reset Tournament Mode's variables, might need to run more games
         #UI Callback functions
-        self.ui.buttons['start'][-1] = self.startGame
-        self.ui.buttons['tournament'][-1] = self.tournamentPath
-        self.ui.buttons['human'][-1] = self.humanPath
-        self.ui.buttons['ai'][-1] = self.aiPath
-        self.ui.humanButtons['move'][-1] = self.moveClickedCallback
-        self.ui.humanButtons['build'][-1] = self.buildClickedCallback
-        self.ui.humanButtons['end'][-1] = self.endClickedCallback
-        self.ui.aiButtons['next'][-1] = self.nextClickedCallback
-        self.ui.aiButtons['continue'][-1] = self.continueClickedCallback
-        self.ui.antButtons['worker'][-1] = self.buildWorkerCallback
-        self.ui.antButtons['drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['dsoldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['isoldier'][-1] = self.buildISoldierCallback
-        self.ui.antButtons['none'][-1] = self.buildNothingCallback
+        self.ui.buttons['Start'][-1] = self.startGame
+        self.ui.buttons['Tournament'][-1] = self.tournamentPath
+        self.ui.buttons['Human vs AI'][-1] = self.humanPath
+        self.ui.buttons['AI vs AI'][-1] = self.aiPath      
+        self.ui.humanButtons['Move'][-1] = self.moveClickedCallback
+        self.ui.humanButtons['Build'][-1] = self.buildClickedCallback
+        self.ui.humanButtons['End'][-1] = self.endClickedCallback
+        self.ui.aiButtons['Next'][-1] = self.nextClickedCallback
+        self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
+        self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
+        self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
+        self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['None'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
-    
+        
     def loadAIs(self, humanMode):
         #If humanMode, then we're going to start AI ids at a higher number. Change modifier to reflect this
         modifier = 1 if humanMode else 0
@@ -329,6 +348,9 @@ class Game(object):
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
                 self.players.append(temp.AIPlayer(len(self.players) + modifier))
+            else:
+                #No proper AIs were found in the subdirectory, notify
+                self.ui.notify("AIs could not be loaded.")
         #Remove current directory from python's import search order.
         sys.path.pop(0)
         #Revert working directory to parent.
@@ -534,11 +556,10 @@ class Game(object):
             attackCoords = None
             validAttack = False
             
-            #give the valid attack coords to the ui to highlight                                
-            self.ui.attackList = validAttackCoords
-            
             #if a human player, let it know an attack is expected (to affect location clicked context)
-            if type(currentPlayer) == HumanPlayer.HumanPlayer:
+            if type(currentPlayer) is HumanPlayer.HumanPlayer:
+                #give the valid attack coords to the ui to highlight                                
+                self.ui.attackList = validAttackCoords
                 #set expecting attack for location clicked context
                 self.expectingAttack = True
             
@@ -553,7 +574,7 @@ class Game(object):
                 #check for the move's validity
                 validAttack = self.isValidAttack(attackingAnt, attackCoords)
                 if not validAttack:
-                    if type(currentPlayer) != HumanPlayer.HumanPlayer:
+                    if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
                         exit(0)
                     else:
@@ -562,7 +583,7 @@ class Game(object):
 
             #if we reached this point though loop, we must have a valid attack
             #if a human player, let it know an attack is expected (to affect location clicked context)
-            if type(currentPlayer) == HumanPlayer.HumanPlayer:
+            if type(currentPlayer) is HumanPlayer.HumanPlayer:
                 self.expectingAttack = False
             
             #decrement ants health
@@ -656,15 +677,41 @@ class Game(object):
         return False
 
     def startGame(self):
-        if self.mode != None and self.state.phase == MENU_PHASE:
+        if self.mode == None:
+            self.ui.notify("Please select a mode.")
+            return
+    
+        if self.state.phase == MENU_PHASE:     
+            #set up stuff for tournament mode
+            if self.mode == TOURNAMENT_MODE:
+            
+                #if numGames is non-positive, dont set up game
+                if self.numGames <= 0:
+                    return
+                    
+                for i in range(0, len(self.players)):
+                    #initialize the player's score
+                    self.playerScores.append(0)
+                
+                    for j in range(i, len(self.players)):
+                        if self.players[i] != self.players[j]:
+                            self.gamesToPlay.append(((i, j), None))
+                            
+                numPairings = len(self.gamesToPlay)
+                for i in range(0, numPairings):
+                    #assign equal number of games to each pairing (rounds down)
+                    self.gamesToPlay[i][1] = math.floor(numGames / numPairings)              
+            
+            #grab first two players (in human mode, idx 0 is HumanPlayer)
+            self.currentPlayers.append(self.players[0])
+            self.currentPlayers.append(self.players[1])
+            
+            #change the phase to setup
             self.state.phase = SETUP_PHASE
             
-            #if hva or ava modes, currentplayers = players
-            #elif tourney, assign first two
-                
     def tournamentPath(self):
         #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
-        if self.mode == TOURNAMENT_MODE:
+        if self.mode == TOURNAMENT_MODE or self.state.phase != MENU_PHASE:
             return
         #Attempt to load the AI files
         self.loadAIs(False)
@@ -675,27 +722,27 @@ class Game(object):
         
     def humanPath(self):
         #If already in human mode, do nothing.
-        if self.mode == HUMAN_MODE:
+        if self.mode == HUMAN_MODE or self.state.phase != MENU_PHASE:
             return
         #Attempt to load the AI files
         self.loadAIs(True) 
         #Add the human player to the player list
         self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
         #Check right number of players, if successful set the mode.
-        if len(self.players) == 2:
+        if len(self.players) >= 2:
             self.mode = HUMAN_MODE
-            self.ui.notify("Mode changed to Human vs. AI")
+            self.ui.notify("Mode set to Human vs. AI.")
     
     def aiPath(self):
         #If already in ai mode, do nothing.
-        if self.mode == AI_MODE:
+        if self.mode == AI_MODE or self.state.phase != MENU_PHASE:
             return
         #Attempt to load the AI files
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
-        if len(self.players) == 2:
+        if len(self.players) >= 2:
             self.mode = AI_MODE
-            self.ui.notify("Mode changed to AI vs. AI")    
+            self.ui.notify("Mode set to AI vs. AI.")    
         
     ##
     #locationClickedCallback
@@ -713,7 +760,7 @@ class Game(object):
                 currentPlayer.coordList.pop()
             elif len(currentPlayer.coordList) == 0:
                 #Need to check this here or it may try to get the last element of the list when it is empty
-                if self.checkMoveStart(coord) or self.checkBuildStart(coord) or currentPlayer.expectingAttack:
+                if self.checkMoveStart(coord) or self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
             else:
                 onList = False
