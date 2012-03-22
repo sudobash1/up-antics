@@ -300,7 +300,7 @@ class UserInterface(object):
     ##
     def handleEvents(self, mode):
         #Make sure we check the right buttons
-        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons if mode == AI_MODE else self.tournamentButtons if mode == TOURNAMENT_MODE else {}
+        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons if mode == AI_MODE else {}
         if mode == HUMAN_MODE and self.buildAntMenu == True:
             relButtons = self.antButtons
         #Check what to do for each event
@@ -402,9 +402,6 @@ class UserInterface(object):
         if mode == TOURNAMENT_MODE:
             self.handleEvents()
             self.screen.fill(WHITE)
-            relButtons = self.tournamentButtons
-            for key in relButtons:
-                self.drawButton(key, relButtons)
             #Draw the box into which the user can enter the number of games they want to play.
             self.drawTextBox()
             #Draw the table with columns author/win/loss/tie
@@ -495,11 +492,6 @@ class UserInterface(object):
         'Tournament':[self.findButtonCoords(2, False), 1, self.gameModeTournament],
         'Human vs AI':[self.findButtonCoords(1, False), 1, self.gameModeHumanAI],
         'AI vs AI':[self.findButtonCoords(0, False), 1, self.gameModeAIAI]
-        }
-        #Initial values for buttons in tournament mode
-        self.tournamentButtons = {
-        'start':[self.findButtonCoords(0, True), 1, self.submitStartTournament],
-        'stop':[self.findButtonCoords(1, True), 1, self.submitStopTournament],
         }
         #Initial values for buttons in human vs AI mode
         self.humanButtons = {
