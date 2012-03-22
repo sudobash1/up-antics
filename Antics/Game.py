@@ -244,12 +244,13 @@ class Game(object):
                             #not a valid move, check if None
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:                
-                                import pdb
-                                pdb.set_trace()
-                                exit(0)
+                                #import pdb
+                                #pdb.set_trace()
+                                #exit(0)
+                                pass
                             
                     else:
-                        #wrong phase, exit
+                        #wrong phase, 
                         exit(0)
 
                     #determine if if someone is a winner.
@@ -345,7 +346,7 @@ class Game(object):
         #Make player instances from all AIs in folder.
         for file in filesInAIFolder:
             if re.match(".*\.py$", file):
-                moduleName = file.rstrip('.py')
+                moduleName = file[:-3]
                 #Check to see if the file is already loaded.
                 temp = __import__(moduleName, globals(), locals(), [], -1)
                 #If the module has already been imported into this python instance, reload it.
