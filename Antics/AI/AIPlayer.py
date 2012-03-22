@@ -138,7 +138,7 @@ class AIPlayer(Player):
                         continue
                     #Check that the move cost would not exceed what this ant is capable of
                     costOfStep = currentState.board[nextLoc[0]][nextLoc[1]].getMoveCost()
-                    if UNIT_STATS[chosen.type][MOVEMENT] >= totalCost + costOfStep:
+                    if currentState.board[nextLoc[0]][nextLoc[1]].ant == None and UNIT_STATS[chosen.type][MOVEMENT] >= totalCost + costOfStep:
                         validDirections.append(direction)
                 #If no directions are valid, break out of the loop.
                 if validDirections == []:
