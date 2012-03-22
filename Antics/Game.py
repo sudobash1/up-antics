@@ -278,7 +278,9 @@ class Game(object):
                     #adjust the count of games to play for the current pair
                     currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                     for i in range(0, len(gamesToPlay)):
+                        #if pairing matches
                         if gamesToPlay[i][0] == currentPairing:
+                            
                             gamesToPlay[i][1] -= 1
                             
                             if gamesToPlay[i][1] == 0:
@@ -403,6 +405,7 @@ class Game(object):
                     #if any to-coords are invalid, return invalid move
                     if not self.checkMovePath(previousCoord, coord, antToMove):
                         return False
+                        
                     #subtract cost of loc from movement points
                     constrAtLoc = self.state.board[coord[0]][coord[1]].constr
                     if constrAtLoc == None or antToMove.type == DRONE:
@@ -643,6 +646,9 @@ class Game(object):
     #  (either in checkMoveStart or previous checkMovePath call)
     ##
     def checkMovePath(self, fromCoord, toCoord, antToMove):
+        #check that we're actaully moving an ant
+        if antToMove == None:
+            return False
         #check location is on board
         if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
                 toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
@@ -770,14 +776,14 @@ class Game(object):
                 for checkCoord in currentPlayer.coordList:
                     if checkCoord == coord:
                         onList = True
-                        
-                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord): 
+                
+                startCoord = currentPlayer.coordList[0]
+                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
+                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord, antToMove): 
                     #add the coord to the move list so we can check if it makes a valid move
                     currentPlayer.coordList.append(coord)
                     
                     #enact the theoretical move
-                    startCoord = currentPlayer.coordList[0]
-                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                     move = Move(MOVE, currentPlayer.coordList, antToMove.type)
                     
                     #if the move wasn't valid, remove added coord from move list              

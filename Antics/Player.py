@@ -16,8 +16,9 @@ class Player(object):
     #Parameters:
     #   inputPlayerId - The id to give the new player (int)
     ##
-    def __init__(self, inputPlayerId):
+    def __init__(self, inputPlayerId, inputAuthor):
         self.playerId = inputPlayerId
+        self.author = inputAuthor
     
     ##
     #getPlacement
