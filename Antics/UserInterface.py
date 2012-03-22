@@ -244,10 +244,10 @@ class UserInterface(object):
     #
     ##
     def drawTextBox(self):
-        pygame.draw.rect(screen, WHITE, self.buttonRect.move(self.textPosition))
+        pygame.draw.rect(self.screen, DARK_RED, self.buttonRect.move(self.textPosition))
         label = self.gameFont.render(self.textBoxContent + ('|' if self.boxSelected else ''), True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
-        screen.blit(label, self.textPosition + offset)
+        self.screen.blit(label, self.textPosition + offset)
     
     ##
     #Description: Draws the tournament score table from a list of (author string, wins int, losses int, ties int) tuples.
@@ -265,10 +265,12 @@ class UserInterface(object):
             for index in range(0, len(score)):
                 if len(str(score[index])) > lengths[index]:
                     lengths[index + 1] = len(str(score[index]))
+        lengths = [0, 20, 20, 20]
         #Draw the table itself
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
-                tempX = XStartPixel + lengths[innerDex] * 10
+                Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
+                tempX = XStartPixel + Xoffset * 10
                 tempY = YStartPixel + index * 20
                 label = self.notifyFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
@@ -318,9 +320,9 @@ class UserInterface(object):
                         self.handleButton(key, 0, relButtons)
                 #Check to see if text box should be selected or deselected
                 if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
-                    boxSelected = True
+                    self.boxSelected = True
                 else:
-                    boxSelected = False
+                    self.boxSelected = False
                 #Additionally, check if a cell on the board has been clicked.
                 if mode != TOURNAMENT_MODE:
                     if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
@@ -399,15 +401,14 @@ class UserInterface(object):
     #Parameters:
     #   currentState - 
     def drawBoard(self, currentState, mode):
+        self.handleEvents(mode)
         if mode == TOURNAMENT_MODE:
-            self.handleEvents()
             self.screen.fill(WHITE)
             #Draw the box into which the user can enter the number of games they want to play.
             self.drawTextBox()
             #Draw the table with columns author/win/loss/tie
             self.drawTable()
         else:
-            self.handleEvents(mode)
             self.screen.fill(BLACK)
             pygame.draw.rect(self.screen, WHITE, self.buttonArea)
             for col in xrange(0, len(currentState.board)):
@@ -526,3 +527,5 @@ class UserInterface(object):
         self.coordList = []
         #Cells that should be highlighted for attacks
         self.attackList = []
+        #Initializing tournament scores
+        self.tournamentScores = []
