@@ -244,7 +244,10 @@ class UserInterface(object):
     #
     ##
     def drawTextBox(self):
-        
+        pygame.draw.rect(screen, WHITE, self.buttonRect.move(self.textPosition))
+        label = self.gameFont.render(self.textBoxContent + ('|' if self.boxSelected else ''), True, BLACK)
+        offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
+        screen.blit(label, self.textPosition + offset)
     
     ##
     #Description: Draws the tournament score table from a list of (author string, wins int, losses int, ties int) tuples.
@@ -313,8 +316,13 @@ class UserInterface(object):
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 0, relButtons)
+                #Check to see if text box should be selected or deselected
+                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
+                    boxSelected = True
+                else:
+                    boxSelected = False
+                #Additionally, check if a cell on the board has been clicked.
                 if mode != TOURNAMENT_MODE:
-                    #Additionally, check if a cell on the board has been clicked.
                     if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
                         x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
                         y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
@@ -329,6 +337,11 @@ class UserInterface(object):
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 1, relButtons)
+                #Check to see if text box should be selected or deselected
+                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
+                    boxSelected = True
+                else:
+                    boxSelected = False
             elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
@@ -342,6 +355,11 @@ class UserInterface(object):
                         relButtons[key][1] = 0
                     else:
                         relButtons[key][1] = 1
+            elif self.boxSelected and event.type == KEYDOWN:
+                if str(event.unicode) in [str(i) for i in range(0, 10)]:
+                    self.textBoxContent += str(event.unicode)
+                elif event.key == 8 and self.textBoxContent != '':
+                    self.textBoxContent = self.textBoxContent[:-1]
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -502,6 +520,10 @@ class UserInterface(object):
         'isoldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
         'none':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
         }
+        #Properties of our single text box
+        self.textPosition = self.findButtonCoords(2, True)
+        self.textBoxContent = ''
+        self.boxSelected = False
         #Initial vaue for callback function that will be used to get cell clicks in game
         self.locationCallback = self.locationClicked
         #Draw the ant build menu?
