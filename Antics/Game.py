@@ -454,13 +454,20 @@ class Game(object):
                     
                     #check the player has enough food
                     if self.state.inventories[self.state.whoseTurn].foodCount >= buildCost:
+                        self.ui.notify("")
                         return True
-                    else:   
+                    else:
+                        self.ui.notify("Requires " + str(buildCost) + " Food")
                         return False
                 else:
                 #we know we're building a construction
                     buildCost = CONSTR_STATS[TUNNEL][BUILD_COST]
-                    return self.state.inventories[self.state.whoseTurn].foodCount >= buildCost
+                    if self.state.inventories[self.state.whoseTurn].foodCount >= buildCost:
+                        self.ui.notify("")
+                        return True
+                    else:
+                        self.ui.notify("Requires "+str(buildCost) + " Food")
+                        return False
                 
             
         else:
