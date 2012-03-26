@@ -759,7 +759,7 @@ class Game(object):
                 numPairings = len(self.gamesToPlay)
                 for i in range(0, numPairings):
                     #assign equal number of games to each pairing (rounds down)
-                    self.gamesToPlay[i][1] = math.floor(self.numGames / numPairings)              
+                    self.gamesToPlay[i][1] = self.numGames#math.floor(self.numGames / numPairings)
               
             #grab first two players (in human mode, idx 0 is HumanPlayer)
             self.currentPlayers.append(self.players[0])

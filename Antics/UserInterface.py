@@ -263,105 +263,28 @@ class UserInterface(object):
         lengths = [0 for i in range(0, len(scores[0]) + 1)]
         for score in scores:
             for index in range(0, len(score)):
-                if len(str(score[index])) > lengths[index]:
+                if len(str(score[index])) > lengths[index+1]:
                     lengths[index + 1] = len(str(score[index]))
-        lengths = [0, 20, 20, 20]
         #Draw the table itself
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
                 Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
-                tempX = XStartPixel + Xoffset * 10
+                tempX = XStartPixel + Xoffset * 8 + 10
                 tempY = YStartPixel + index * 20
                 label = self.notifyFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
-                
     
-    ##
-    #handleButton
-    #Description: Handles the finer details of what happens when a user is clicking on buttons.
-    #   The button will only be counted as clicked if the user both presses and releases a mouse
-    #   button while hovering over the game button. If clicked, a callback function will be used
-    #   to notify Game.py.
-    #
-    #Parameters:
-    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
-    #   released - an integer/boolean that represents the state of the button: 1 if the button
-    #   is released, or 0 if the button is depressed.
-    ##
-    def handleButton(self, key, released, buttons):
-        if buttons[key][1] != released and released == 1:
-            buttons[key][2]()
-        
-        buttons[key][1] = released
-    
-    ##
-    #handleEvents
-    #Description: Handles the more generic mouse movements. Finds out what has been
-    #   clicked, and either calls handleButton on the activated button, or uses a
-    #   callback to tell the HumanPlayer what the human clicked.
-    ##
-    def handleEvents(self, mode):
-        #Make sure we check the right buttons
-        relButtons = self.humanButtons if mode == HUMAN_MODE else self.aiButtons if mode == AI_MODE else {}
-        if mode == HUMAN_MODE and self.buildAntMenu == True:
-            relButtons = self.antButtons
-        #Check what to do for each event
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                #Start by checking the basic buttons that always get drawn
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 0, self.buttons)
-                #Then check the buttons that congregate at the top of the screen, and change based on context
-                for key in relButtons:
-                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 0, relButtons)
-                #Check to see if text box should be selected or deselected
-                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
-                    self.boxSelected = True
-                else:
-                    self.boxSelected = False
-                #Additionally, check if a cell on the board has been clicked.
-                if mode != TOURNAMENT_MODE:
-                    if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
-                        x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
-                        y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
-                        if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
-                            self.locationClicked((x, y))
-            elif event.type == pygame.MOUSEBUTTONUP:
-                #Start by checking the basic buttons that always get drawn
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 1, self.buttons)
-                #Then check the buttons that congregate at the top of the screen, and change based on context
-                for key in relButtons:
-                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
-                        self.handleButton(key, 1, relButtons)
-                #Check to see if text box should be selected or deselected
-                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
-                    boxSelected = True
-                else:
-                    boxSelected = False
-            elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
-                #Start by checking the basic buttons that always get drawn
-                for key in self.buttons:
-                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
-                        self.buttons[key][1] = 0
-                    else:
-                        self.buttons[key][1] = 1
-                #Then check the buttons that congregate at the top of the screen, and change based on context
-                for key in relButtons:
-                    if self.buttonRect.move(relButtons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
-                        relButtons[key][1] = 0
-                    else:
-                        relButtons[key][1] = 1
-            elif self.boxSelected and event.type == KEYDOWN:
-                if str(event.unicode) in [str(i) for i in range(0, 10)]:
-                    self.textBoxContent += str(event.unicode)
-                elif event.key == 8 and self.textBoxContent != '':
-                    self.textBoxContent = self.textBoxContent[:-1]
+    def drawAIChecklist(self):
+        XStartPixel = 50
+        YStartPixel = self.screen.get_height() / 2 - len(self.allAIs) * self.checkboxes[0].get_height() / 2
+        if YStartPixel < 0:
+            YStartPixel = 0
+        #Draw it.
+        for index in range(0, len(self.allAIs)):
+            tempY = YStartPixel + index * self.checkBoxRect.height + 10
+            self.screen.blit(self.checkBoxeTextures[self.chosenAIs[index]], (XStartPixel, tempY))
+            label = self.notifyFont.render(str(self.allAIs[index].author), True, BLACK)
+            self.screen.blit(label, (XStartPixel + self.checkBoxRect.width + 10, tempY))
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -431,6 +354,96 @@ class UserInterface(object):
         #Show everything I've drawn by posting self.screen to the monitor.
         pygame.display.flip()
     
+    ##
+    #handleButton
+    #Description: Handles the finer details of what happens when a user is clicking on buttons.
+    #   The button will only be counted as clicked if the user both presses and releases a mouse
+    #   button while hovering over the game button. If clicked, a callback function will be used
+    #   to notify Game.py.
+    #
+    #Parameters:
+    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
+    #   released - an integer/boolean that represents the state of the button: 1 if the button
+    #   is released, or 0 if the button is depressed.
+    ##
+    def handleButton(self, key, released, buttons):
+        if buttons[key][1] != released and released == 1:
+            buttons[key][2]()
+        
+        buttons[key][1] = released
+    
+    ##
+    #handleEvents
+    #Description: Handles the more generic mouse movements. Finds out what has been
+    #   clicked, and either calls handleButton on the activated button, or uses a
+    #   callback to tell the HumanPlayer what the human clicked.
+    ##
+    def handleEvents(self, mode):
+        #Make sure we check the right buttons
+        relButtons = {} if self.choosingAIs else self.humanButtons if mode == HUMAN_MODE else self.aiButtons if mode == AI_MODE else {}
+        #It should be impossible for self.buildAntMenu to be True unless mode is HUMAN_MODE and AIs have already been chosen.
+        if mode == HUMAN_MODE and self.buildAntMenu:
+            relButtons = self.antButtons
+        #Check what to do for each event
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 0, self.buttons)
+                #Then check the buttons that congregate at the top of the screen, and change based on context
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 0, relButtons)
+                #Check to see if text box should be selected or deselected
+                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
+                    self.boxSelected = True
+                else:
+                    self.boxSelected = False
+                #Additionally, check if a cell on the board has been clicked.
+                if mode != TOURNAMENT_MODE and not self.choosingAIs:
+                    if event.pos[0] % (CELL_SPACING + CELL_SIZE.width) > CELL_SPACING and event.pos[1] % (CELL_SPACING + CELL_SIZE.height) > CELL_SPACING:
+                        x = event.pos[0] / (CELL_SPACING + CELL_SIZE.width)
+                        y = event.pos[1] / (CELL_SPACING + CELL_SIZE.height)
+                        if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
+                            self.locationClicked((x, y))
+                elif self.choosingAIs:
+                    if event.pos[0] % 10
+            elif event.type == pygame.MOUSEBUTTONUP:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 1, self.buttons)
+                #Then check the buttons that congregate at the top of the screen, and change based on context
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
+                        self.handleButton(key, 1, relButtons)
+                #Check to see if text box should be selected or deselected
+                if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
+                    boxSelected = True
+                else:
+                    boxSelected = False
+            elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
+                #Start by checking the basic buttons that always get drawn
+                for key in self.buttons:
+                    if self.buttonRect.move(self.buttons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
+                        self.buttons[key][1] = 0
+                    else:
+                        self.buttons[key][1] = 1
+                #Then check the buttons that congregate at the top of the screen, and change based on context
+                for key in relButtons:
+                    if self.buttonRect.move(relButtons[key][0]).collidepoint(addCoords(event.pos, event.rel)):
+                        relButtons[key][1] = 0
+                    else:
+                        relButtons[key][1] = 1
+            elif self.boxSelected and event.type == KEYDOWN:
+                if str(event.unicode) in [str(i) for i in range(0, 10)]:
+                    self.textBoxContent += str(event.unicode)
+                elif event.key == 8 and self.textBoxContent != '':
+                    self.textBoxContent = self.textBoxContent[:-1]
+    
     def findButtonCoords(self, index, isTop):
         buttonSpacing = 2 * CELL_SPACING
         buttonX = self.screen.get_width() - self.buttonRect.width - buttonSpacing
@@ -460,6 +473,12 @@ class UserInterface(object):
         #Load isCarrying and hasMoved textures, which will allow players to see the conditions of their ants.
         self.isCarryingTex = pygame.image.load(os.path.join(texFolder, "isCarrying.bmp"))
         self.hasMovedTex = pygame.image.load(os.path.join(texFolder, "hasMoved.bmp"))
+        #CheckBox textures
+        self.checkBoxTextures = []
+        self.checkBoxTextures.append(pygame.image.load(os.path.join(texFolder, "unchecked.bmp")))
+        self.checkBoxTextures.append(pygame.image.load(os.path.join(texFolder, "checked.bmp")))
+        #CheckBox rectangle
+        self.checkBoxRect = self.checkBoxTextures[0].get_rect()
         #Button textures
         self.buttonTextures = []
         self.buttonTextures.append(pygame.image.load(os.path.join(texFolder, "buttonDown.bmp")))
@@ -529,3 +548,5 @@ class UserInterface(object):
         self.attackList = []
         #Initializing tournament scores
         self.tournamentScores = []
+        #Find out if user is choosing AIs
+        self.choosingAIs = False
