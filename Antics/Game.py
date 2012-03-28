@@ -65,12 +65,11 @@ class Game(object):
                 self.ui.notify("Game started!")
                 
                 #init game stuffs
-                #build a list of things to place
-                #things to place: 2 anthill/queen, 9 obstacles, 2 food sources (for opponent)
+                #build a list of things to place for player 1 in setup phase 1
+                #1 anthill/queen, 9 obstacles
                 constrsToPlace = []
-                constrsToPlace += [Building(None, ANTHILL, i) for i in xrange(0,2)]
-                constrsToPlace += [Construction(None, GRASS) for i in xrange(0,18)]
-                constrsToPlace += [Construction(None, FOOD) for i in xrange(0,4)]
+                constrsToPlace += [Building(None, ANTHILL, PLAYER_ONE)]
+                constrsToPlace += [Construction(None, GRASS) for i in xrange(0,9)]
                 
                 gameOver = False
                 winner = None
@@ -79,70 +78,89 @@ class Game(object):
                 while not gameOver:
                     #draw the board (to recognize user input in game loop)
                     self.ui.drawBoard(self.state, self.mode)
-                                  
-                    if self.state.phase == SETUP_PHASE:
-                        currentPlayer = self.currentPlayers[self.state.whoseTurn]
-                        
+                    
+                    if self.state.phase != MENU_PHASE:
                         #if the player is player two, flip the board
                         theState = self.state.clone()
                         if theState.whoseTurn == PLAYER_TWO:
                             theState.flipBoard()
+                    
+                    if self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2:
+                        currentPlayer = self.currentPlayers[self.state.whoseTurn]
                             
+                        #clear targets list as anything on list been processed on last loop
+                        targets = []
                         #get the placement from the player
-                        target = currentPlayer.getPlacement(constrsToPlace[0].clone(), theState)
-                        validPlace = self.isValidPlacement(constrsToPlace[0], target)
+                        targets += currentPlayer.getPlacement(theState)
+                        #only want to place as many targets as constructions to place
+                        if len(targets) > len(constrsToPlace):
+                            targets = targets[:len(constrsToPlace)]
+     
+                        validPlace = self.isValidPlacement(constrsToPlace, targets)
                         if validPlace:
-                            #translate coords to match player
-                            target = self.state.coordLookup(target, self.state.whoseTurn)
-                            #get construction to place
-                            constr = constrsToPlace.pop(0)
-                            #give constr its coords
-                            constr.coords = target
-                            #put constr on board
-                            self.state.board[target[0]][target[1]].constr = constr
-                            #update the inventory
-                            self.state.inventories[self.state.whoseTurn].constructions.append(constr)
+                            for target in targets:
+                                #translate coords to match player
+                                target = self.state.coordLookup(target, self.state.whoseTurn)
+                                #get construction to place
+                                constr = constrsToPlace.pop(0)
+                                #give constr its coords
+                                constr.coords = target
+                                #put constr on board
+                                self.state.board[target[0]][target[1]].constr = constr
+                                if (constr.type == ANTHILL):
+                                    import pdb
+                                    pdb.set_trace()
+                                    #update the inventory
+                                    self.state.inventories[self.state.whoseTurn].constructions.append(constr)
                             
                             #if AI mode, pause to observe move until next or continue is clicked
                             self.pauseForAIMode()
                             
-                            #change player turn in state
-                            self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
+                            if not constrsToPlace:
+                                constrsToPlace = []
+                                if self.state.phase == SETUP_PHASE_1:
+                                    if self.state.whoseTurn == PLAYER_ONE:
+                                        constrsToPlace += [Building(None, ANTHILL, PLAYER_TWO)]
+                                        constrsToPlace += [Construction(None, GRASS) for i in xrange(0,9)]
+                                    elif self.state.whoseTurn == PLAYER_TWO:
+                                        constrsToPlace += [Construction(None, FOOD) for i in xrange(0,2)]
+                                        self.state.phase = SETUP_PHASE_2
+                                elif self.state.phase == SETUP_PHASE_2:
+                                    if self.state.whoseTurn == PLAYER_ONE:
+                                        constrsToPlace += [Construction(None, FOOD) for i in xrange(0,2)]
+                                    elif self.state.whoseTurn == PLAYER_TWO:
+                                        #if we're finished placing, add in queens and move to play phase
+                            
+                                        #get anthill coords
+                                        p1AnthillCoords = self.state.inventories[PLAYER_ONE].getAnthill().coords
+                                        p2AnthillCoords = self.state.inventories[PLAYER_TWO].getAnthill().coords
+                                        #create queen ants
+                                        p1Queen = Ant(p1AnthillCoords, QUEEN, PLAYER_ONE)
+                                        p2Queen = Ant(p2AnthillCoords, QUEEN, PLAYER_TWO)
+                                        #put queens on board
+                                        self.state.board[p1Queen.coords[0]][p1Queen.coords[1]].ant = p1Queen
+                                        self.state.board[p2Queen.coords[0]][p2Queen.coords[1]].ant = p2Queen
+                                        #add the queens to the inventories
+                                        self.state.inventories[PLAYER_ONE].ants.append(p1Queen)
+                                        self.state.inventories[PLAYER_TWO].ants.append(p2Queen)
+                                        #give the players the initial food
+                                        self.state.inventories[PLAYER_ONE].foodCount = 3
+                                        self.state.inventories[PLAYER_TWO].foodCount = 3
+                                        #change to play phase
+                                        self.state.phase = PLAY_PHASE
+                                        
+                                #change player turn in state
+                                self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
+                                    
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
                                 exit(0)
                             elif validPlace != None:
-                                self.ui.notify("Invalid placement: " + str(target[0]) + ", " + str(target[1]))
-                        
-                        if not constrsToPlace:
-                            #if we're finished placing, add in queens and move to play phase
-                            
-                            #get anthill coords
-                            p1AnthillCoords = self.state.inventories[PLAYER_ONE].getAnthill().coords
-                            p2AnthillCoords = self.state.inventories[PLAYER_TWO].getAnthill().coords
-                            #create queen ants
-                            p1Queen = Ant(p1AnthillCoords, QUEEN, PLAYER_ONE)
-                            p2Queen = Ant(p2AnthillCoords, QUEEN, PLAYER_TWO)
-                            #put queens on board
-                            self.state.board[p1Queen.coords[0]][p1Queen.coords[1]].ant = p1Queen
-                            self.state.board[p2Queen.coords[0]][p2Queen.coords[1]].ant = p2Queen
-                            #add the queens to the inventories
-                            self.state.inventories[PLAYER_ONE].ants.append(p1Queen)
-                            self.state.inventories[PLAYER_TWO].ants.append(p2Queen)
-                            #give the players the initial food
-                            self.state.inventories[PLAYER_ONE].foodCount = 3
-                            self.state.inventories[PLAYER_TWO].foodCount = 3
-                            #change to play phase
-                            self.state.phase = PLAY_PHASE
+                                self.ui.notify("Invalid placement")
                         
                     elif self.state.phase == PLAY_PHASE: 
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
-                        
-                        #if the player is player two, flip the board
-                        theState = self.state.clone()
-                        if theState.whoseTurn == PLAYER_TWO:
-                            theState.flipBoard()
                         
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
@@ -305,7 +323,7 @@ class Game(object):
                     else:
                         #setup game to run again
                         self.mode = TOURNAMENT_MODE
-                        self.state.phase = SETUP_PHASE
+                        self.state.phase = SETUP_PHASE_1
                     
                         #get players from next pairing
                         playerOneId = self.gamesToPlay[0][0][0]
@@ -505,42 +523,42 @@ class Game(object):
         
     ##
     #isValidPlacement
+    #Description: Length of targets cannot be longer than length of items
     #
     #Returns None if no target is given
     ##
-    def isValidPlacement(self, item, target):
+    def isValidPlacement(self, items, targets):
         #If no target, return None (human vs ai caught by caller)
-        if target == None:
+        if len(targets) == 0:
             return None
-                
-        #check item type
-        if item.type == ANTHILL or item.type == GRASS:
-            #check target is on the board
-            if target[0] >= 0 and target[0] < BOARD_LENGTH:
+
+        for i in range(0, len(targets)):
+            #check targets[i] is within proper boundaries x-wise
+            if not (targets[i][0] >= 0 and targets[i][0] < BOARD_LENGTH):
                 #Nobody can place in the center two rows of the board or on their opponents side
-                if target[1] >= 0 and target[1] < BOARD_LENGTH / 2 - 1:
-                    #change target to access appropriate players locations
-                    target = self.state.coordLookup(target, self.state.whoseTurn)
-                    #make sure nothing is there yet
-                    if self.state.board[target[0]][target[1]].constr == None:
-                        #valid placement
-                        return True
+                return False
+            
+            #check item type
+            if items[i].type == ANTHILL or items[i].type == GRASS:
+                #check targets[i] is within proper boundaries y-wise
+                if not (targets[i][1] >= 0 and targets[i][1] < BOARD_LENGTH / 2 - 1):
+                    return False
+            #check item type
+            elif items[i].type == FOOD:
+                #check targets[i] is within proper boundaries y-wise
+                if not (targets[i][1] < BOARD_LENGTH and targets[i][1] >= BOARD_LENGTH / 2 + 1):
+                    return False
+            else:
+                #I don't know what this type is.
+                return False
+            
+            #change target to access appropriate players locations
+            aTarget = self.state.coordLookup(targets[i], self.state.whoseTurn)
+            #make sure nothing is there yet
+            if not self.state.board[aTarget[0]][aTarget[1]].constr == None:
+                return False
                     
-        #check item type
-        if item.type == FOOD:
-            #check target is on the board
-            if target[0] >= 0 and target[0] < BOARD_LENGTH:
-                #Must place food on your opponents side
-                if target[1] < BOARD_LENGTH and target[1] >= BOARD_LENGTH / 2 + 1:
-                #change target to access appropriate players locations
-                #
-                    target = self.state.coordLookup(target, self.state.whoseTurn)
-                    #make sure nothing is there yet
-                    if self.state.board[target[0]][target[1]].constr == None:
-                        #valid placement
-                        return True
-        #invalid move
-        return False
+        return True
     
     ##
     #isValidAttack
@@ -671,9 +689,9 @@ class Game(object):
                 coord[1] >= 0 and coord[1] < BOARD_LENGTH):
             antToMove = self.state.board[coord[0]][coord[1]].ant
             #check that an ant exists at the loc
-            if not antToMove ==  None:
-                #check that it's the player's ant
-                if antToMove.player == self.state.whoseTurn:
+            if not antToMove == None:
+                #check that it's the player's ant and that it hasn't moved
+                if antToMove.player == self.state.whoseTurn and antToMove.hasMoved == False:
                     return True
                     
                     
@@ -766,7 +784,7 @@ class Game(object):
             self.currentPlayers.append(self.players[1])
             
             #change the phase to setup
-            self.state.phase = SETUP_PHASE
+            self.state.phase = SETUP_PHASE_1
             
     def tournamentPath(self):
         #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
@@ -845,7 +863,8 @@ class Game(object):
                 self.ui.coordList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
-        if self.state.phase == SETUP_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+        if ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
+                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
             self.players[self.state.whoseTurn].coordList.append(coord)
 
     ##

@@ -36,32 +36,45 @@ class AIPlayer(Player):
     #
     #Return: The coordinates of where the construction is to be placed
     ##
-    def getPlacement(self, construction, currentState):
+    def getPlacement(self, currentState):
+        numToPlace = 0
         #implemented by students to return their next move
-        if construction.type == ANTHILL or construction.type == GRASS:
-            move = None
-            while move == None:
-                #Choose any x location
-                x = random.randint(0, 9)
-                #Choose any y location on your side of the board
-                y = random.randint(0, 3)
-                #Set the move if this space is empty
-                if currentState.board[x][y].constr == None:
-                    move = (x, y)
-            return move
-        elif construction.type == FOOD:
-            move = None
-            while move == None:
-                #Choose any x location
-                x = random.randint(0, 9)
-                #Choose any y location on enemy side of the board
-                y = random.randint(6, 9)
-                #Set the move if this space is empty
-                if currentState.board[x][y].constr == None:
-                    move = (x, y)
-            return move
+        if currentState.phase == SETUP_PHASE_1:
+            numToPlace = 10
+            moves = []
+            for i in range(0, numToPlace):
+                move = None
+                while move == None:
+                    #Choose any x location
+                    x = random.randint(0, 9)
+                    #Choose any y location on your side of the board
+                    y = random.randint(0, 3)
+                    #Set the move if this space is empty
+                    if currentState.board[x][y].constr == None and (x, y) not in moves:
+                        move = (x, y)
+                        #Just need to make the space non-empty. So I threw whatever I felt like in there.
+                        currentState.board[x][y].constr == True
+                moves.append(move)
+            return moves
+        elif currentState.phase == SETUP_PHASE_2:
+            numToPlace = 2
+            moves = []
+            for i in range(0, numToPlace):
+                move = None
+                while move == None:
+                    #Choose any x location
+                    x = random.randint(0, 9)
+                    #Choose any y location on enemy side of the board
+                    y = random.randint(6, 9)
+                    #Set the move if this space is empty
+                    if currentState.board[x][y].constr == None and (x, y) not in moves:
+                        move = (x, y)
+                        #Just need to make the space non-empty. So I threw whatever I felt like in there.
+                        currentState.board[x][y].constr == True
+                moves.append(move)
+            return moves
         else:
-            return (0, 0)
+            return [(0, 0)]
     
     ##
     #getMove

@@ -26,12 +26,11 @@ class Player(object):
     #   These items are: 1 Anthill on the player's side; 9 grass on the player's side; and 2 food on the enemy's side.
     #
     #Parameters:
-    #   construction - the Construction to be placed.
     #   currentState - the state of the game at this point in time.
     #
     #Return: The coordinates of where the construction is to be placed
     ##
-    def getPlacement(self, construction, currentState):
+    def getPlacement(self, currentState):
         #method template, not implemented
         pass
     

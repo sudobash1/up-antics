@@ -32,7 +32,6 @@ class Inventory(object):
     def getQueen(self):
         if self.ants == None:
             return None
-        
         for checkAnt in self.ants:
             if checkAnt.type == QUEEN: return checkAnt
             
@@ -44,7 +43,7 @@ class Inventory(object):
         
         for checkConstruction in self.constructions:
             if checkConstruction.type == ANTHILL: return checkConstruction
-            
+        
         return None
         
     def clone(self):

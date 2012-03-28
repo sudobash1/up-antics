@@ -38,12 +38,12 @@ class HumanPlayer(Player):
     #
     #Return: The coordinates of where the construction is to be placed
     ##
-    def getPlacement(self, construction, currentState):
+    def getPlacement(self, currentState):
         if len(self.coordList) == 0:
-            return None
+            return []
         target = self.coordList[0]
         self.coordList = []
-        return target
+        return [target]
         
     ##
     #getMove

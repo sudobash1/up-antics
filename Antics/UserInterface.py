@@ -410,7 +410,8 @@ class UserInterface(object):
                         if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
                             self.locationClicked((x, y))
                 elif self.choosingAIs:
-                    if event.pos[0] % 10
+                    if event.pos[0] % 10:
+                        pass
             elif event.type == pygame.MOUSEBUTTONUP:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
