@@ -108,8 +108,6 @@ class Game(object):
                                 #put constr on board
                                 self.state.board[target[0]][target[1]].constr = constr
                                 if (constr.type == ANTHILL):
-                                    import pdb
-                                    pdb.set_trace()
                                     #update the inventory
                                     self.state.inventories[self.state.whoseTurn].constructions.append(constr)
                             
