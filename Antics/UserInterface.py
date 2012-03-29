@@ -269,9 +269,9 @@ class UserInterface(object):
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
                 Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
-                tempX = XStartPixel + Xoffset * 8 + 10
-                tempY = YStartPixel + index * 20
-                label = self.notifyFont.render(str(scores[index][innerDex]), True, BLACK)
+                tempX = XStartPixel + Xoffset * 20 + 10
+                tempY = YStartPixel + index * 25
+                label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
     
     def drawAIChecklist(self):
@@ -500,6 +500,7 @@ class UserInterface(object):
         pygame.font.init()
         self.gameFont = pygame.font.Font(None, 25)
         self.notifyFont = pygame.font.Font(None, 15)
+        self.tournFont = pygame.font.Font(None, 35)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(5, True)
         #Where should notifications be drawn?
