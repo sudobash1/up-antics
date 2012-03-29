@@ -28,6 +28,7 @@ class Game(object):
         self.mode = None
         self.ui = UserInterface((865,695))
         self.ui.initAssets()
+        self.errorNotify = False
         #Human vs AI mode
         self.expectingAttack = False
         #AI vs AI mode: used for stepping through moves
@@ -87,7 +88,13 @@ class Game(object):
                     
                     if self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2:
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
-                            
+                        if type(currentPlayer) is HumanPlayer.HumanPlayer:
+                            if constrsToPlace[0].type == ANTHILL:
+                                self.ui.notify("Place anthill on your side") 
+                            elif constrsToPlace[0].type == GRASS:
+                                self.ui.notify("Place grass on your side")
+                            elif constrsToPlace[0].type == FOOD:
+                                self.ui.notify("Place food on enemy's side")
                         #clear targets list as anything on list been processed on last loop
                         targets = []
                         #get the placement from the player
@@ -145,6 +152,7 @@ class Game(object):
                                         self.state.inventories[PLAYER_ONE].foodCount = 3
                                         self.state.inventories[PLAYER_TWO].foodCount = 3
                                         #change to play phase
+                                        self.ui.notify("")
                                         self.state.phase = PLAY_PHASE
                                         
                                 #change player turn in state
@@ -160,6 +168,21 @@ class Game(object):
                     elif self.state.phase == PLAY_PHASE: 
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
                         
+                        #display instructions for human player
+                        if type(currentPlayer) is HumanPlayer.HumanPlayer:
+                            #An error message is showing
+                            if not self.errorNotify:
+                                #nothing selected yet
+                                if not currentPlayer.coordList:
+                                    self.ui.notify("Select an ant or building")
+                                #ant selected
+                                elif not self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]].ant == None:
+                                    self.ui.notify("Select move for ant")
+                                #Anthill selected
+                                elif not self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]].constr == None:
+                                    self.ui.notify("Select an ant type to build")
+                                else:
+                                    self.ui.notify("")
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
@@ -502,7 +525,8 @@ class Game(object):
                         self.ui.notify("")
                         return True
                     else:
-                        self.ui.notify("Requires " + str(buildCost) + " Food")
+                        self.ui.notify("Requires " + str(buildCost) + " food")
+                        self.errorNotify = True;
                         return False
                 else:
                 #we know we're building a construction
@@ -511,7 +535,8 @@ class Game(object):
                         self.ui.notify("")
                         return True
                     else:
-                        self.ui.notify("Requires "+str(buildCost) + " Food")
+                        self.ui.notify("Requires "+str(buildCost) + " food")
+                        self.errorNotify = True;
                         return False
                 
             
@@ -616,6 +641,10 @@ class Game(object):
                 #keep track of valid attack coords (flipped for player two)
                 validAttackCoords.append(self.state.coordLookup(ant.coords, currentPlayer.playerId))
         if validAttackCoords != []:
+            #give instruction to human player
+            if type(currentPlayer) is HumanPlayer.HumanPlayer:
+                self.ui.notify("Select ant to attack")
+            
             #players must attack if possible and we know at least one is valid
             attackCoords = None
             validAttack = False
@@ -831,12 +860,14 @@ class Game(object):
             currentPlayer = self.players[whoseTurn]
             
             #add location to human player's movelist if appropriatocity is valid
-            if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
+            if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1] and not self.ui.buildAntMenu:
                 currentPlayer.coordList.pop()
+                self.errorNotify = False;
             elif len(currentPlayer.coordList) == 0:
                 #Need to check this here or it may try to get the last element of the list when it is empty
                 if self.checkMoveStart(coord) or self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
+                    self.errorNotify = False;
             else:
                 onList = False
                 for checkCoord in currentPlayer.coordList:
@@ -855,7 +886,8 @@ class Game(object):
                     #if the move wasn't valid, remove added coord from move list              
                     if not self.isValidMove(move):
                         currentPlayer.coordList.pop()
-            
+                    else:
+                        self.errorNotify = False;
             #give coordList to UI so it can hightlight the player's path
             if not self.expectingAttack:
                 self.ui.coordList = currentPlayer.coordList
