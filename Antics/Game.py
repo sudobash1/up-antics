@@ -36,7 +36,7 @@ class Game(object):
         self.continueClicked = False
         #Tournament mode
         self.playerScores = [] # [[author,wins,losses], ...]
-        self.gamesToPlay = [] #((p1.id, p2.id), numGames / num pairings)
+        self.gamesToPlay = [] #((p1.id, p2.id), numGames)
         self.numGames = None
         #UI Callback functions
         self.ui.buttons['Start'][-1] = self.startGame
@@ -411,9 +411,7 @@ class Game(object):
         filesInAIFolder = os.listdir("AI")
         #Change directory to AI subfolder so modules can be loaded (they won't load as filenames).
         os.chdir('AI')
-        #IF WE FOUND A BUG IN PYTHON!!!!
-        #Details: changing directory, then importing in python terminal will first check subdirectories for modules.
-        #   However, modules will not be foud if this function is used. Does it have to do with it being in a function?
+      
         #Add current directory in python's import search order.
         sys.path.insert(0, os.getcwd())
         #Make player instances from all AIs in folder.
@@ -772,6 +770,11 @@ class Game(object):
                     
         return False
 
+    ##
+    #startGame
+    #Description: Starts a new game
+    #
+    ##
     def startGame(self):
         if self.mode == None:
             self.ui.notify("Please select a mode.")
@@ -812,7 +815,12 @@ class Game(object):
             
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
-            
+       
+    ##
+    #tournamentPath
+    #Description: Responds to a user clicking on the Tournament button
+    #
+    ##
     def tournamentPath(self):
         #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
         if self.mode == TOURNAMENT_MODE or self.state.phase != MENU_PHASE:
@@ -823,7 +831,12 @@ class Game(object):
         if len(self.players) >= 2:
             self.mode = TOURNAMENT_MODE
             self.ui.notify("Mode set to Tournament Mode.")
-        
+    
+    ##
+    #humanPath
+    #Description: Responds to a user clicking on the Human vs. AI button
+    #
+    ##
     def humanPath(self):
         #If already in human mode, do nothing.
         if self.mode == HUMAN_MODE or self.state.phase != MENU_PHASE:
@@ -837,6 +850,11 @@ class Game(object):
             self.mode = HUMAN_MODE
             self.ui.notify("Mode set to Human vs. AI.")
     
+    ##
+    #aiPath
+    #Description: Responds to a user clicking on the AI vs. AI button
+    #
+    ##
     def aiPath(self):
         #If already in ai mode, do nothing.
         if self.mode == AI_MODE or self.state.phase != MENU_PHASE:
@@ -942,20 +960,35 @@ class Game(object):
                 and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
             self.players[self.state.whoseTurn].moveType = END
     
+    ##
+    #buildWorkerClickedCallback
+    #Description: Responds to a user clicking on the Build Worker button
+    #
+    ##
     def buildWorkerCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = WORKER
-        
+    
+    ##
+    #buildDrondClickedCallback
+    #Description: Responds to a user clicking on the Build Drone button
+    #
+    ##    
     def buildDroneCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = DRONE
-        
+    
+    ##
+    #buildSoldierClickedCallback
+    #Description: Responds to a user clicking on the Build D_Soldier button
+    #
+    ##
     def buildDSoldierCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
@@ -963,6 +996,11 @@ class Game(object):
         self.ui.buildAntMenu = False
         currentPlayer.buildType = D_SOLDIER
     
+    ##
+    #buildISoldierClickedCallback
+    #Description: Responds to a user clicking on the Build I_Soldier button
+    #
+    ##
     def buildISoldierCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
@@ -970,6 +1008,11 @@ class Game(object):
         self.ui.buildAntMenu = False
         currentPlayer.buildType = I_SOLDIER  
     
+    ##
+    #buildNothinClickedCallback
+    #Description: Responds to a user clicking on the Build None button
+    #
+    ##
     def buildNothingCallback(self):
         whoseTurn = self.state.whoseTurn
         currentPlayer = self.players[whoseTurn]
@@ -977,10 +1020,20 @@ class Game(object):
         self.ui.buildAntMenu = False
         currentPlayer.moveType = None
     
+    ##
+    #nextClickedCallback
+    #Description: Responds to a user clicking on the next button in AI vs AI mode
+    #
+    ##
     def nextClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.nextClicked = True
     
+    ##
+    #continueClickedCallback
+    #Description: Responds to a user clicking on the continue button in AI vs AI mode
+    #
+    ##
     def continueClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
