@@ -424,7 +424,7 @@ class Game(object):
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append(temp.AIPlayer(len(self.players) + modifier))
+                self.players.append((temp.AIPlayer(len(self.players) + modifier), INACTIVE))
             else:
                 #No proper AIs were found in the subdirectory, notify
                 self.ui.notify("AIs could not be loaded.")
@@ -779,7 +779,23 @@ class Game(object):
         if self.mode == None:
             self.ui.notify("Please select a mode.")
             return
-    
+        
+        #Load the first two active players (idx 0 is human player)
+        for index in range(0, len(self.players)):
+            if self.players[index][1] == ACTIVE:
+                self.currentPlayers.append(self.players[index][0])
+                for playerEntry in self.players[index + 1:]:
+                    if playerEntry[1] == ACTIVE:
+                        self.currentPlayers.append(playerEntry[0])
+                        break
+                break 
+        
+        if len(self.currentPlayers) != 2:
+            self.ui.notify("Please select AIs to play game.")
+            return
+        else:
+            self.ui.choosingAIs = False
+        
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
             if self.mode == TOURNAMENT_MODE:
@@ -797,22 +813,18 @@ class Game(object):
                 
                 for i in range(0, len(self.players)):
                     #initialize the player's win/loss scores
-                    self.playerScores.append([self.players[i].author, 0, 0])
-                    self.ui.tournamentScores.append([self.players[i].author, 0, 0])
+                    self.playerScores.append([self.players[i][0].author, 0, 0])
+                    self.ui.tournamentScores.append([self.players[i][0].author, 0, 0])
                     
                     for j in range(i, len(self.players)):
-                        if self.players[i] != self.players[j]:
+                        if self.players[i][0] != self.players[j][0]:
                             self.gamesToPlay.append([(i, j), None])
                             
                 numPairings = len(self.gamesToPlay)
                 for i in range(0, numPairings):
                     #assign equal number of games to each pairing (rounds down)
                     self.gamesToPlay[i][1] = self.numGames#math.floor(self.numGames / numPairings)
-              
-            #grab first two players (in human mode, idx 0 is HumanPlayer)
-            self.currentPlayers.append(self.players[0])
-            self.currentPlayers.append(self.players[1])
-            
+                    
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
        
@@ -829,6 +841,7 @@ class Game(object):
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
+            self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
             self.ui.notify("Mode set to Tournament Mode.")
     
@@ -844,9 +857,10 @@ class Game(object):
         #Attempt to load the AI files
         self.loadAIs(True) 
         #Add the human player to the player list
-        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
+        self.players.insert(PLAYER_ONE, (HumanPlayer.HumanPlayer(PLAYER_ONE), ACTIVE))
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
+            self.ui.choosingAIs = True
             self.mode = HUMAN_MODE
             self.ui.notify("Mode set to Human vs. AI.")
     
@@ -863,6 +877,7 @@ class Game(object):
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
+            self.ui.choosingAIs = True
             self.mode = AI_MODE
             self.ui.notify("Mode set to AI vs. AI.")    
         
@@ -873,9 +888,9 @@ class Game(object):
     ##
     def locationClickedCallback(self, coord):
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+        if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             whoseTurn = self.state.whoseTurn
-            currentPlayer = self.players[whoseTurn]
+            currentPlayer = self.currentPlayers[whoseTurn]
             
             #add location to human player's movelist if appropriatocity is valid
             if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1] and not self.ui.buildAntMenu:
@@ -912,8 +927,8 @@ class Game(object):
             
         #Check if its human player's turn during set up phase
         if ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
-                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
-            self.players[self.state.whoseTurn].coordList.append(coord)
+                and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
+            self.currentPlayers[self.state.whoseTurn].coordList.append(coord)
 
     ##
     #moveClickedCallback
@@ -922,9 +937,9 @@ class Game(object):
     ##
     def moveClickedCallback(self):
         #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
-                HumanPlayer.HumanPlayer and not len(self.players[self.state.whoseTurn].coordList) == 0):
-            self.players[self.state.whoseTurn].moveType = MOVE
+        if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
+                HumanPlayer.HumanPlayer and not len(self.currentPlayers[self.state.whoseTurn].coordList) == 0):
+            self.currentPlayers[self.state.whoseTurn].moveType = MOVE
     
     ##
     #buildClickedCallback
@@ -933,7 +948,7 @@ class Game(object):
     ##
     def buildClickedCallback(self):
         #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
+        if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
                 HumanPlayer.HumanPlayer and len(self.players[self.state.whoseTurn].coordList) == 1):
             whoseTurn = self.state.whoseTurn
             currentPlayer = self.players[whoseTurn]
@@ -957,8 +972,8 @@ class Game(object):
     def endClickedCallback(self):     
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
-                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
-            self.players[self.state.whoseTurn].moveType = END
+                and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
+            self.currentPlayers[self.state.whoseTurn].moveType = END
     
     ##
     #buildWorkerClickedCallback
@@ -967,7 +982,7 @@ class Game(object):
     ##
     def buildWorkerCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
+        currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = WORKER
@@ -979,7 +994,7 @@ class Game(object):
     ##    
     def buildDroneCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
+        currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = DRONE
@@ -991,7 +1006,7 @@ class Game(object):
     ##
     def buildDSoldierCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
+        currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = D_SOLDIER
@@ -1003,7 +1018,7 @@ class Game(object):
     ##
     def buildISoldierCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
+        currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = I_SOLDIER  
@@ -1015,7 +1030,7 @@ class Game(object):
     ##
     def buildNothingCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.players[whoseTurn]
+        currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.moveType = None
@@ -1037,6 +1052,8 @@ class Game(object):
     def continueClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
+    
+    
     
 a = Game()
 a.runGame()

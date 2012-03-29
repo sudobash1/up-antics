@@ -41,6 +41,10 @@ MOVE = 0
 BUILD = 1
 END = 2
 
+#Activity of AI players
+INACTIVE = 0
+ACTIVE = 1
+
 #Indices into unit stats
 MOVEMENT = 0
 HEALTH = 1

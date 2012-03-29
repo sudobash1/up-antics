@@ -19,6 +19,7 @@ LIGHT_GREEN = (0, 255, 0)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
+FIELD_SPACING = 10
 
 def addCoords(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
@@ -161,6 +162,9 @@ class UserInterface(object):
     def locationClicked(self, coords):
         print "Clicked LOCATION " + str(coords)
     
+    def checkBoxClicked(self, index):
+        print "CLICKED CHECKBOX NUMBER " + str(index)
+    
     def notify(self, message):
         self.lastNotification = message
     
@@ -269,22 +273,22 @@ class UserInterface(object):
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
                 Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
-                tempX = XStartPixel + Xoffset * 20 + 10
-                tempY = YStartPixel + index * 25
+                tempX = XStartPixel + Xoffset * self.tournFont.size + FIELD_SPACING * innerDex
+                tempY = YStartPixel + index * (self.tournFont.size + FIELD_SPACING)
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
     
     def drawAIChecklist(self):
         XStartPixel = 50
-        YStartPixel = self.screen.get_height() / 2 - len(self.allAIs) * self.checkboxes[0].get_height() / 2
+        YStartPixel = self.screen.get_height() / 2 - len(self.allAIs) * self.checkBoxRect.height / 2
         if YStartPixel < 0:
             YStartPixel = 0
         #Draw it.
         for index in range(0, len(self.allAIs)):
-            tempY = YStartPixel + index * self.checkBoxRect.height + 10
-            self.screen.blit(self.checkBoxeTextures[self.chosenAIs[index]], (XStartPixel, tempY))
-            label = self.notifyFont.render(str(self.allAIs[index].author), True, BLACK)
-            self.screen.blit(label, (XStartPixel + self.checkBoxRect.width + 10, tempY))
+            tempY = YStartPixel + index * (self.checkBoxRect.height + FIELD_SPACING)
+            self.screen.blit(self.checkBoxeTextures[self.allAIs[1][index]], (XStartPixel, tempY))
+            label = self.notifyFont.render(str(self.allAIs[0][index].author), True, BLACK)
+            self.screen.blit(label, (XStartPixel + self.checkBoxRect.width + FIELD_SPACING, tempY))
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -410,8 +414,12 @@ class UserInterface(object):
                         if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
                             self.locationClicked((x, y))
                 elif self.choosingAIs:
-                    if event.pos[0] % 10:
-                        pass
+                    if event.pos[0] - 50 > 0 and event.pos[0] - 50 < self.checkBoxRect.width:
+                        yStart = self.screen.get_height() / 2 - len(self.allAIs) * self.checkBoxRect.height / 2
+                        if (event.pos[1] - yStart) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
+                            checkIndex = (event.pos[1] - yStart) % (self.checkBoxRect.height + FIELD_SPACING)
+                            if checkIndex < len(self.allAIs):
+                                self.checkBoxClicked(checkIndex)
             elif event.type == pygame.MOUSEBUTTONUP:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
