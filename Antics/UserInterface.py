@@ -273,8 +273,8 @@ class UserInterface(object):
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
                 Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
-                tempX = XStartPixel + Xoffset * self.tournFont.size + FIELD_SPACING * innerDex
-                tempY = YStartPixel + index * (self.tournFont.size + FIELD_SPACING)
+                tempX = XStartPixel + Xoffset * self.tournFont.get_height() + FIELD_SPACING * innerDex
+                tempY = YStartPixel + index * (self.tournFont.get_height() + FIELD_SPACING)
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
     
@@ -286,8 +286,8 @@ class UserInterface(object):
         #Draw it.
         for index in range(0, len(self.allAIs)):
             tempY = YStartPixel + index * (self.checkBoxRect.height + FIELD_SPACING)
-            self.screen.blit(self.checkBoxeTextures[self.allAIs[1][index]], (XStartPixel, tempY))
-            label = self.notifyFont.render(str(self.allAIs[0][index].author), True, BLACK)
+            self.screen.blit(self.checkBoxTextures[self.allAIs[index][1]], (XStartPixel, tempY))
+            label = self.notifyFont.render(str(self.allAIs[index][0].author), True, BLACK)
             self.screen.blit(label, (XStartPixel + self.checkBoxRect.width + FIELD_SPACING, tempY))
     
     def drawCell(self, currentLoc):
@@ -329,7 +329,10 @@ class UserInterface(object):
     #   currentState - 
     def drawBoard(self, currentState, mode):
         self.handleEvents(mode)
-        if mode == TOURNAMENT_MODE:
+        if self.choosingAIs:
+            self.screen.fill(WHITE)
+            self.drawAIChecklist()
+        elif mode == TOURNAMENT_MODE:
             self.screen.fill(WHITE)
             #Draw the box into which the user can enter the number of games they want to play.
             self.drawTextBox()
@@ -560,3 +563,5 @@ class UserInterface(object):
         self.tournamentScores = []
         #Find out if user is choosing AIs
         self.choosingAIs = False
+        #Set an initial value for the list of AIs that the game uses.
+        self.allAIs = []

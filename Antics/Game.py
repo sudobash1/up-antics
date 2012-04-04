@@ -54,6 +54,8 @@ class Game(object):
         self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
+        #Finally, let the ui look at players
+        self.ui.allAIs = self.players
           
     def runGame(self):
         # initialize board be ready for player input for game parameter
@@ -407,6 +409,7 @@ class Game(object):
         modifier = 1 if humanMode else 0
         #Reset the player list in case some have been loaded already
         self.players = []
+        self.ui.allAIs = self.players
         #Attempt to load AIs. Exit gracefully if user trying to load weird stuff.
         filesInAIFolder = os.listdir("AI")
         #Change directory to AI subfolder so modules can be loaded (they won't load as filenames).
