@@ -54,6 +54,7 @@ class Game(object):
         self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
+        self.ui.checkBoxClicked = self.checkBoxClickedCallback
         #Finally, let the ui look at players
         self.ui.allAIs = self.players
           
@@ -427,7 +428,7 @@ class Game(object):
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append((temp.AIPlayer(len(self.players) + modifier), INACTIVE))
+                self.players.append([temp.AIPlayer(len(self.players) + modifier), INACTIVE])
             else:
                 #No proper AIs were found in the subdirectory, notify
                 self.ui.notify("AIs could not be loaded.")
@@ -1056,7 +1057,13 @@ class Game(object):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
     
-    
+    ##
+    #checkBoxClickedCallback
+    #Description: Responds to a user clicking on a checkbox to select AIs
+    #
+    ##
+    def checkBoxClickedCallback(self, index):
+        self.players[index][1] = ACTIVE if self.players[index][1] == INACTIVE else INACTIVE
     
 a = Game()
 a.runGame()

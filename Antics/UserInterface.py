@@ -419,8 +419,8 @@ class UserInterface(object):
                 elif self.choosingAIs:
                     if event.pos[0] - 50 > 0 and event.pos[0] - 50 < self.checkBoxRect.width:
                         yStart = self.screen.get_height() / 2 - len(self.allAIs) * self.checkBoxRect.height / 2
-                        if (event.pos[1] - yStart) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
-                            checkIndex = (event.pos[1] - yStart) % (self.checkBoxRect.height + FIELD_SPACING)
+                        if (event.pos[1] - yStart + FIELD_SPACING) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
+                            checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
                             if checkIndex < len(self.allAIs):
                                 self.checkBoxClicked(checkIndex)
             elif event.type == pygame.MOUSEBUTTONUP:
