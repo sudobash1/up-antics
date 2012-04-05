@@ -548,7 +548,7 @@ class UserInterface(object):
         self.notifyFont = pygame.font.Font(None, 20)
         self.tournFont = pygame.font.Font(None, 35)
         #Where should scores be drawn?
-        self.scoreLocation = self.findButtonCoords(5, True)
+        self.scoreLocation = self.findButtonCoords(0, True)
         #Where should notifications be drawn?
         self.messageLocation = self.findButtonCoords(5, False)
         #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
@@ -563,22 +563,22 @@ class UserInterface(object):
         }
         #Initial values for buttons in human vs AI mode
         self.humanButtons = {
-        'Move':[self.findButtonCoords(0, True), 1, self.submitMove],
-        'Build':[self.findButtonCoords(1, True), 1, self.submitBuild],
-        'End':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
+        'Move':[self.findButtonCoords(1, True), 1, self.submitMove],
+        'Build':[self.findButtonCoords(2, True), 1, self.submitBuild],
+        'End':[self.findButtonCoords(3, True), 1, self.submitEndTurn]
         }
         #Initial values for buttons in human vs AI mode
         self.aiButtons = {
-        'Next':[self.findButtonCoords(0, True), 1, self.submitNext],
-        'Continue':[self.findButtonCoords(1, True), 1, self.submitContinue]
+        'Next':[self.findButtonCoords(1, True), 1, self.submitNext],
+        'Continue':[self.findButtonCoords(2, True), 1, self.submitContinue]
         }
         #Initial values for build ant buttons
         self.antButtons = {
-        'Worker':[self.findButtonCoords(0, True), 1, self.submitWorker],
-        'Drone':[self.findButtonCoords(1, True), 1, self.submitDrone],
-        'D_Soldier':[self.findButtonCoords(2, True), 1, self.submitDSoldier],
-        'I_Soldier':[self.findButtonCoords(3, True), 1, self.submitISoldier],
-        'None':[self.findButtonCoords(4, True), 1, self.submitNoBuild]
+        'Worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
+        'Drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
+        'D_Soldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
+        'I_Soldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
+        'None':[self.findButtonCoords(5, True), 1, self.submitNoBuild]
         }
         #Properties of our single text box
         self.textPosition = self.findButtonCoords(2, True)
