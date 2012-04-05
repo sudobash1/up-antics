@@ -205,7 +205,7 @@ class UserInterface(object):
         self.screen.blit(self.constructionTexs[item.type], (Xpixel, Ypixel))
         if type(item) is Building:
             #Draw player marker in lower left
-            playerNumber = self.notifyFont.render(str(item.player + 1), True, BLACK)
+            playerNumber = self.statFont.render(str(item.player + 1), True, BLACK)
             self.screen.blit(playerNumber, (Xpixel, Ypixel + CELL_SIZE.height - playerNumber.get_height()))
     
     ##
@@ -221,10 +221,10 @@ class UserInterface(object):
         Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
         self.screen.blit(self.antTexs[ant.type], (Xpixel, Ypixel))
         #Draw player marker in upper left
-        playerNumber = self.notifyFont.render(str(ant.player + 1), True, BLACK)
+        playerNumber = self.statFont.render(str(ant.player + 1), True, BLACK)
         self.screen.blit(playerNumber, (Xpixel, Ypixel))
         #Draw current health in the upper right
-        antHealth = self.notifyFont.render("Health: " + str(ant.health), True, BLACK)
+        antHealth = self.statFont.render("Health: " + str(ant.health), True, BLACK)
         XoffsetHealth = CELL_SIZE.width - antHealth.get_width()
         self.screen.blit(antHealth, (Xpixel + XoffsetHealth, Ypixel))
         #Draw isCarrying marker in lower right
@@ -544,8 +544,9 @@ class UserInterface(object):
         self.hasMovedTex.set_alpha(50)
         #Set up fonts.
         pygame.font.init()
-        self.gameFont = pygame.font.Font(None, 25)
+        self.statFont = pygame.font.Font(None, 15)
         self.notifyFont = pygame.font.Font(None, 20)
+        self.gameFont = pygame.font.Font(None, 25)
         self.tournFont = pygame.font.Font(None, 35)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(0, True)
