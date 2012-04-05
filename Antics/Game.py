@@ -493,7 +493,6 @@ class Game(object):
         self.ui.buttons['Tournament'][-1] = self.tourneyPathCallback
         self.ui.buttons['Human vs AI'][-1] = self.humanPathCallback
         self.ui.buttons['AI vs AI'][-1] = self.aiPathCallback      
-        self.ui.humanButtons['Move'][-1] = self.moveClickedCallback
         self.ui.humanButtons['Build'][-1] = self.buildClickedCallback
         self.ui.humanButtons['End'][-1] = self.endClickedCallback
         self.ui.aiButtons['Next'][-1] = self.nextClickedCallback
