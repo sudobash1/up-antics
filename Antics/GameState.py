@@ -82,6 +82,16 @@ class GameState(object):
                     loc.ant.coords = self.coordLookup(loc.ant.coords, PLAYER_TWO)
                 if loc.constr != None:
                     loc.constr.coords = self.coordLookup(loc.constr.coords, PLAYER_TWO)
+      
+    ##
+    #clearConstrs
+    #Description: Clears the board of all constructions (so Player Two doesn't see Player One's setup)
+    #
+    ##
+    def clearConstrs(self):
+        for col in self.board:
+            for loc in col:
+                loc.constr = None
     ##
     #clone
     #Description: Returns a deep copy of itself

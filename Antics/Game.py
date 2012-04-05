@@ -100,6 +100,11 @@ class Game(object):
                                 self.ui.notify("Place food on enemy's side")
                         #clear targets list as anything on list been processed on last loop
                         targets = []
+                        
+                        #hide the 1st player's set anthill and grass placement from the 2nd player
+                        if theState.whoseTurn == PLAYER_TWO and self.state.phase == SETUP_PHASE_1:
+                            theState.clearConstrs()
+                            
                         #get the placement from the player
                         targets += currentPlayer.getPlacement(theState)
                         #only want to place as many targets as constructions to place
