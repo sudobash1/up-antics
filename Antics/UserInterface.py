@@ -18,6 +18,7 @@ DARK_GREEN = (0, 150, 0)
 LIGHT_GREEN = (0, 255, 0)
 DARK_BLUE = (0, 0, 150)
 LIGHT_BLUE = (0, 0, 255)
+ROBIN_EGG_BLUE = (0, 204, 204)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
@@ -322,6 +323,9 @@ class UserInterface(object):
             elif currentLoc.coords == self.coordList[-1]:
                 #Draw brighter if the currentLoc is the last move selected
                 pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+        #Also shade potential moves.
+        if currentLoc.coords in self.validCoordList:
+            pygame.draw.rect(self.screen, ROBIN_EGG_BLUE, shadeRect.move(shadeXpixel, shadeYpixel))
         #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
         if currentLoc.coords in self.attackList:
             pygame.draw.rect(self.screen, LIGHT_RED, shadeRect.move(shadeXpixel, shadeYpixel))
@@ -585,6 +589,8 @@ class UserInterface(object):
         self.lastNotification = ''
         #Initial coordList so I know what to shade
         self.coordList = []
+        #Initial "Where can the ant go" list, for the same reason as above.
+        self.validCoordList = []
         #Cells that should be highlighted for attacks
         self.attackList = []
         #Initializing tournament scores
