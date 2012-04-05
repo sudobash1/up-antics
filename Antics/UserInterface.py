@@ -171,8 +171,25 @@ class UserInterface(object):
         self.lastNotification = message
     
     def drawNotification(self):
-        messageSurface = self.notifyFont.render(self.lastNotification, True, DARK_RED)
-        self.screen.blit(messageSurface, self.messageLocation)
+        #Draw a black box to encapsulate the notification
+        outerNoteBox = Rect(0, 0, self.buttonRect.width + 2 * CELL_SPACING, self.buttonRect.height + 2 * CELL_SPACING)
+        pygame.draw.rect(self.screen, BLACK, outerNoteBox.move(self.messageLocation).move(-CELL_SPACING, -CELL_SPACING))
+        #Draw a white box to make the black box appear empty
+        noteBox = Rect(0, 0, self.buttonRect.width + CELL_SPACING + 1, self.buttonRect.height + CELL_SPACING + 1)
+        pygame.draw.rect(self.screen, WHITE, noteBox.move(self.messageLocation).move(-CELL_SPACING / 2, -CELL_SPACING / 2))
+        #Find where to insert newlines
+        breakupIndex = 0
+        lineNum = 0
+        while self.notifyFont.size(self.lastNotification[breakupIndex:])[0] > self.buttonRect.width:
+            pctToNewline = float(self.buttonRect.width) / float(self.notifyFont.size(self.lastNotification)[0])
+            indexOfNewline = int(float(len(self.lastNotification)) * pctToNewline) - 1
+            messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:breakupIndex+indexOfNewline], True, DARK_RED)
+            self.screen.blit(messageSurface, (self.messageLocation[0], self.messageLocation[1] + lineNum * self.notifyFont.get_height()))
+            breakupIndex += indexOfNewline
+            lineNum += 1
+        
+        messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:], True, DARK_RED)
+        self.screen.blit(messageSurface, (self.messageLocation[0], self.messageLocation[1] + lineNum * self.notifyFont.get_height()))
     
     ##
     #drawConstruction
@@ -533,7 +550,7 @@ class UserInterface(object):
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(5, True)
         #Where should notifications be drawn?
-        self.messageLocation = self.findButtonCoords(4, False)
+        self.messageLocation = self.findButtonCoords(5, False)
         #Where should non-board stuff be placed (an area for buttons, notifications, and scores)?
         buttonAreaWidth = self.buttonRect.width + 4 * CELL_SPACING
         self.buttonArea = Rect(self.screen.get_width() - buttonAreaWidth, 0, buttonAreaWidth, self.screen.get_height())
@@ -572,7 +589,7 @@ class UserInterface(object):
         #Draw the ant build menu?
         self.buildAntMenu = False
         #Initial user notification is empty, since we assume the user hasn't made a mistake in opening the program. Not that the program could detect that anyway.
-        self.lastNotification = None
+        self.lastNotification = ''
         #Initial coordList so I know what to shade
         self.coordList = []
         #Cells that should be highlighted for attacks
