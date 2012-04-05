@@ -57,3 +57,14 @@ class Player(object):
     def getAttack(self, enemyLocations):
         #method template, not implemented
         pass
+        
+    ##
+    #registerWin
+    #Description: Tells the player if they won or not
+    #
+    #Parameters:
+    #   hasWon - True if the player won the game. False if they lost (Boolean)
+    #
+    def registerWin(self, hasWon):
+        #method templaste, not implemented
+        pass

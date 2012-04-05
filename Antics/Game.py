@@ -305,10 +305,16 @@ class Game(object):
                         gameOver = True
                         winner = self.currentPlayers[PLAYER_ONE].playerId
                         loser = self.currentPlayers[PLAYER_TWO].playerId
+                        #tell the players if they won or lost
+                        self.currentPlayers[PLAYER_ONE].registerWin(True)
+                        self.currentPlayers[PLAYER_TWO].registerWin(False)
                     elif self.hasWon(PLAYER_TWO):
                         gameOver = True
                         loser = self.currentPlayers[PLAYER_ONE].playerId
                         winner = self.currentPlayers[PLAYER_TWO].playerId
+                        #tell the players if they won or lost
+                        self.currentPlayers[PLAYER_ONE].registerWin(False)
+                        self.currentPlayers[PLAYER_TWO].registerWin(True)
                 #end game loop
     
                 #check mode for appropriate response to game over
