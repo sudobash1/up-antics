@@ -37,7 +37,7 @@ GRASS = -2
 FOOD = -1
 
 #Types of moves
-MOVE = 0
+MOVE_ANT = 0
 BUILD = 1
 END = 2
 
