@@ -89,7 +89,7 @@ class AIPlayer(Player):
         #Get my inventory
         myInv = None
         for inv in currentState.inventories:
-            if inv.player == self.playerId:
+            if inv.player == currentState.whoseTurn:
                 myInv = inv
                 break
         #If my inventory is still none, then I don't have one.

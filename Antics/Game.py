@@ -164,6 +164,8 @@ class Game(object):
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
+                                import pdb
+                                pdb.set_trace()
                                 exit(0)
                             elif validPlace != None:
                                 self.ui.notify("Invalid placement")
@@ -281,15 +283,21 @@ class Game(object):
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #invalid move type, exit
+                                import pdb
+                                pdb.set_trace()
                                 exit(0)
                         else:
                             #not a valid move, check if None
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
+                                import pdb
+                                pdb.set_trace()
                                 exit(0)
                             
                     else:
                         #wrong phase, 
+                        import pdb
+                        pdb.set_trace()
                         exit(0)
 
                     #determine if if someone is a winner.
@@ -354,12 +362,14 @@ class Game(object):
                         playerTwoId = self.gamesToPlay[0][0][1]
                     
                         #set up new current players
-                        self.currentPlayers.append(self.players[playerOneId])
-                        self.currentPlayers.append(self.players[playerTwoId])
+                        self.currentPlayers.append(self.players[playerOneId][0])
+                        self.currentPlayers.append(self.players[playerTwoId][0])
                     
                     
                 else:
                     #wrong or no mode, exit
+                    import pdb
+                    pdb.set_trace()
                     exit(0)
     
     ##
@@ -784,21 +794,26 @@ class Game(object):
             self.ui.notify("Please select a mode.")
             return
         
+        #Make a temporary list to append to so that we may check how many AIs we have available.
+        tempCurrent = [player for player in self.currentPlayers]
         #Load the first two active players (idx 0 is human player)
         for index in range(0, len(self.players)):
             if self.players[index][1] == ACTIVE:
-                self.currentPlayers.append(self.players[index][0])
+                tempCurrent.append(self.players[index][0])
                 for playerEntry in self.players[index + 1:]:
                     if playerEntry[1] == ACTIVE:
-                        self.currentPlayers.append(playerEntry[0])
+                        tempCurrent.append(playerEntry[0])
                         break
                 break 
         
-        if len(self.currentPlayers) != 2:
+        if len(tempCurrent) != 2:
             self.ui.notify("Please select AIs to play game.")
             return
-        else:
+        elif self.ui.choosingAIs:
             self.ui.choosingAIs = False
+            return
+        
+        self.currentPlayers = tempCurrent
         
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
@@ -816,18 +831,19 @@ class Game(object):
                 self.ui.tournamentScores = []
                 
                 for i in range(0, len(self.players)):
-                    #initialize the player's win/loss scores
-                    self.playerScores.append([self.players[i][0].author, 0, 0])
-                    self.ui.tournamentScores.append([self.players[i][0].author, 0, 0])
-                    
-                    for j in range(i, len(self.players)):
-                        if self.players[i][0] != self.players[j][0]:
-                            self.gamesToPlay.append([(i, j), None])
-                            
+                    if self.players[i][1] == ACTIVE:
+                        #initialize the player's win/loss scores
+                        self.playerScores.append([self.players[i][0].author, 0, 0])
+                        self.ui.tournamentScores.append([self.players[i][0].author, 0, 0])
+                        
+                        for j in range(i, len(self.players)):
+                            if self.players[i][0] != self.players[j][0] and self.players[j][1] == ACTIVE:
+                                self.gamesToPlay.append([(i, j), None])
+                
                 numPairings = len(self.gamesToPlay)
                 for i in range(0, numPairings):
                     #assign equal number of games to each pairing (rounds down)
-                    self.gamesToPlay[i][1] = self.numGames#math.floor(self.numGames / numPairings)
+                    self.gamesToPlay[i][1] = self.numGames
                     
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
