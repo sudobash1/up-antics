@@ -854,8 +854,13 @@ class Game(object):
                 for i in range(0, len(self.players)):
                     if self.players[i][1] == ACTIVE:
                         #initialize the player's win/loss scores
-                        self.playerScores.append([self.players[i][0].author, 0, 0])
-                        self.ui.tournamentScores.append([self.players[i][0].author, 0, 0])
+                        tempAuth = self.players[i][0].author
+                        #If the length of the author's name is longer than 24 characters, truncate it to 24 characters
+                        if len(tempAuth) > 20:
+                            tempAuth = tempAuth[0:21] + "..."
+                        
+                        self.playerScores.append([tempAuth, 0, 0])
+                        self.ui.tournamentScores.append([tempAuth, 0, 0])
                         
                         for j in range(i, len(self.players)):
                             if self.players[i][0] != self.players[j][0] and self.players[j][1] == ACTIVE:
