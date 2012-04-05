@@ -177,6 +177,10 @@ class UserInterface(object):
         while self.notifyFont.size(self.lastNotification[breakupIndex:])[0] > self.buttonRect.width:
             pctToNewline = float(self.buttonRect.width) / float(self.notifyFont.size(self.lastNotification)[0])
             indexOfNewline = int(float(len(self.lastNotification)) * pctToNewline) - 1
+            while self.lastNotification[indexOfNewline - 1] != " " or indexOfNewline == breakupIndex:
+                indexOfNewline -= 1
+            if indexOfNewline == breakupIndex:
+                indexOfNewline = int(float(len(self.lastNotification)) * pctToNewline) - 1
             messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:breakupIndex+indexOfNewline], True, DARK_RED)
             self.screen.blit(messageSurface, (self.messageLocation[0], self.messageLocation[1] + lineNum * self.notifyFont.get_height()))
             breakupIndex += indexOfNewline
@@ -542,7 +546,7 @@ class UserInterface(object):
         #Set up fonts.
         pygame.font.init()
         self.statFont = pygame.font.Font(None, 15)
-        self.notifyFont = pygame.font.Font(None, 20)
+        self.notifyFont = pygame.font.Font(None, 16)
         self.gameFont = pygame.font.Font(None, 25)
         self.tournFont = pygame.font.Font(None, 25)
         #Where should scores be drawn?

@@ -164,7 +164,7 @@ class AIPlayer(Player):
                     #Add its cost to the total move cost
                     totalCost += currentState.board[nextCoord[0]][nextCoord[1]].getMoveCost()
             #Return the chosen move
-            return Move(MOVE, coordList, None)
+            return Move(MOVE_ANT, coordList, None)
         #If I can't to anything, end turn
         return Move(END, None, None)
     

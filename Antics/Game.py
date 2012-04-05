@@ -77,8 +77,6 @@ class Game(object):
             
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
-                self.ui.notify("Game started!")
-                
                 #init game stuffs
                 #build a list of things to place for player 1 in setup phase 1
                 #1 anthill/queen, 9 obstacles
@@ -104,11 +102,11 @@ class Game(object):
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
                         if type(currentPlayer) is HumanPlayer.HumanPlayer:
                             if constrsToPlace[0].type == ANTHILL:
-                                self.ui.notify("Place anthill on your side") 
+                                self.ui.notify("Place anthill on your side.") 
                             elif constrsToPlace[0].type == GRASS:
-                                self.ui.notify("Place grass on your side")
+                                self.ui.notify("Place grass on your side.")
                             elif constrsToPlace[0].type == FOOD:
-                                self.ui.notify("Place food on enemy's side")
+                                self.ui.notify("Place food on enemy's side.")
                         #clear targets list as anything on list been processed on last loop
                         targets = []
                         
@@ -182,7 +180,7 @@ class Game(object):
                                 #exit gracefully
                                 exit(0)
                             elif validPlace != None:
-                                self.ui.notify("Invalid placement")
+                                self.ui.notify("Invalid placement.")
                                 self.errorNotify = True
                         
                     elif self.state.phase == PLAY_PHASE: 
@@ -194,13 +192,13 @@ class Game(object):
                             if not self.errorNotify:
                                 #nothing selected yet
                                 if not currentPlayer.coordList:
-                                    self.ui.notify("Select an ant or building")
+                                    self.ui.notify("Select an ant or building.")
                                 #ant selected
                                 elif not self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]].ant == None:
-                                    self.ui.notify("Select move for ant")
+                                    self.ui.notify("Select move for ant.")
                                 #Anthill selected
                                 elif not self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]].constr == None:
-                                    self.ui.notify("Select an ant type to build")
+                                    self.ui.notify("Select an ant type to build.")
                                 else:
                                     self.ui.notify("")
                         #get the move from the current player
@@ -646,7 +644,7 @@ class Game(object):
                         self.ui.notify("")
                         return True
                     else:
-                        self.ui.notify("Requires " + str(buildCost) + " food")
+                        self.ui.notify("Requires " + str(buildCost) + " food.")
                         self.errorNotify = True
                         return False
                 else:
@@ -662,7 +660,7 @@ class Game(object):
                         if aCoord[0] >= 0 and aCoord[0] < 10 and aCoord[1] >= 0 and aCoord[1] < 10:
                             if (self.state.board[aCoord[0]][aCoord[1]].constr != None and
                                     self.state.board[aCoord[0]][aCoord[1]].constr.type == FOOD):
-                                self.ui.notify("Cannot build next to food")
+                                self.ui.notify("Cannot tunnel build next to food.")
                                 self.errorNotify = True
                                 return False
                  
@@ -671,7 +669,7 @@ class Game(object):
                         self.ui.notify("")
                         return True
                     else:
-                        self.ui.notify("Requires "+str(buildCost) + " food")
+                        self.ui.notify("Requires "+str(buildCost) + " food.")
                         self.errorNotify = True
                         return False
                 
@@ -976,7 +974,7 @@ class Game(object):
     ##
     def locationClickedCallback(self, coord):
         if self.state.phase == MENU_PHASE:
-            self.ui.notify("Please start a game")
+            self.ui.notify("Please start a game.")
             self.errorNotify = True
             return
     
