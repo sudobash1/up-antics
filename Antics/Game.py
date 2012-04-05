@@ -1011,7 +1011,7 @@ class Game(object):
         if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
                 HumanPlayer.HumanPlayer and len(self.currentPlayers[self.state.whoseTurn].coordList) == 1):
             whoseTurn = self.state.whoseTurn
-            currentPlayer = self.players[whoseTurn]
+            currentPlayer = self.currentPlayers[whoseTurn]
             
             loc = self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]]
             #we know loc has to have an ant or constr at this point, so make sure it doesnt have both
