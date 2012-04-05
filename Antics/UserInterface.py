@@ -280,12 +280,12 @@ class UserInterface(object):
         for score in scores:
             for index in range(0, len(score)):
                 if len(str(score[index])) > lengths[index+1]:
-                    lengths[index + 1] = len(str(score[index]))
+                    lengths[index + 1] = self.tournFont.size(str(score[index]))[0]
         #Draw the table itself
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
                 Xoffset = 0 if innerDex == 0 else reduce(lambda x,y: x+y, lengths[:innerDex+1])
-                tempX = XStartPixel + Xoffset * self.tournFont.get_height() + FIELD_SPACING * innerDex
+                tempX = XStartPixel + Xoffset + FIELD_SPACING * innerDex
                 tempY = YStartPixel + index * (self.tournFont.get_height() + FIELD_SPACING)
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
@@ -540,7 +540,7 @@ class UserInterface(object):
         self.statFont = pygame.font.Font(None, 15)
         self.notifyFont = pygame.font.Font(None, 20)
         self.gameFont = pygame.font.Font(None, 25)
-        self.tournFont = pygame.font.Font(None, 35)
+        self.tournFont = pygame.font.Font(None, 25)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(0, True)
         #Where should notifications be drawn?
