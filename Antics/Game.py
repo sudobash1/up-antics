@@ -54,9 +54,6 @@ class Game(object):
         self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback
         self.ui.locationClicked = self.locationClickedCallback
-        self.ui.checkBoxClicked = self.checkBoxClickedCallback
-        #Finally, let the ui look at players
-        self.ui.allAIs = self.players
           
     def runGame(self):
         # initialize board be ready for player input for game parameter
@@ -164,11 +161,10 @@ class Game(object):
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
-                                import pdb
-                                pdb.set_trace()
                                 exit(0)
                             elif validPlace != None:
                                 self.ui.notify("Invalid placement")
+                                self.errorNotify = True
                         
                     elif self.state.phase == PLAY_PHASE: 
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
@@ -228,7 +224,7 @@ class Game(object):
                                 #clear all highlights after attack happens
                                 self.ui.coordList = []
                                 self.ui.attackList = []
-                                                                                          
+                                
                             elif move.moveType == BUILD:
                                 coord = move.coordList[0]
                                 currentPlayerInv = self.state.inventories[self.state.whoseTurn]
@@ -283,21 +279,18 @@ class Game(object):
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #invalid move type, exit
-                                import pdb
-                                pdb.set_trace()
                                 exit(0)
-                        else:
-                            #not a valid move, check if None
+                        else:     
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
-                                import pdb
-                                pdb.set_trace()
                                 exit(0)
+                            elif validMove != None:
+                                #if validMove is False and not None, clear move
+                                currentPlayer.coordList = []
+                                self.ui.coordList = []
                             
                     else:
                         #wrong phase, 
-                        import pdb
-                        pdb.set_trace()
                         exit(0)
 
                     #determine if if someone is a winner.
@@ -305,16 +298,10 @@ class Game(object):
                         gameOver = True
                         winner = self.currentPlayers[PLAYER_ONE].playerId
                         loser = self.currentPlayers[PLAYER_TWO].playerId
-                        #tell the players if they won or lost
-                        self.currentPlayers[PLAYER_ONE].registerWin(True)
-                        self.currentPlayers[PLAYER_TWO].registerWin(False)
                     elif self.hasWon(PLAYER_TWO):
                         gameOver = True
                         loser = self.currentPlayers[PLAYER_ONE].playerId
                         winner = self.currentPlayers[PLAYER_TWO].playerId
-                        #tell the players if they won or lost
-                        self.currentPlayers[PLAYER_ONE].registerWin(False)
-                        self.currentPlayers[PLAYER_TWO].registerWin(True)
                 #end game loop
     
                 #check mode for appropriate response to game over
@@ -368,14 +355,12 @@ class Game(object):
                         playerTwoId = self.gamesToPlay[0][0][1]
                     
                         #set up new current players
-                        self.currentPlayers.append(self.players[playerOneId][0])
-                        self.currentPlayers.append(self.players[playerTwoId][0])
+                        self.currentPlayers.append(self.players[playerOneId])
+                        self.currentPlayers.append(self.players[playerTwoId])
                     
                     
                 else:
                     #wrong or no mode, exit
-                    import pdb
-                    pdb.set_trace()
                     exit(0)
     
     ##
@@ -426,7 +411,6 @@ class Game(object):
         modifier = 1 if humanMode else 0
         #Reset the player list in case some have been loaded already
         self.players = []
-        self.ui.allAIs = self.players
         #Attempt to load AIs. Exit gracefully if user trying to load weird stuff.
         filesInAIFolder = os.listdir("AI")
         #Change directory to AI subfolder so modules can be loaded (they won't load as filenames).
@@ -444,7 +428,7 @@ class Game(object):
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append([temp.AIPlayer(len(self.players) + modifier), INACTIVE])
+                self.players.append(temp.AIPlayer(len(self.players) + modifier))
             else:
                 #No proper AIs were found in the subdirectory, notify
                 self.ui.notify("AIs could not be loaded.")
@@ -515,7 +499,7 @@ class Game(object):
                         
         elif move.moveType == BUILD:
             #coord list must contain one point for build
-            if not len(move.coordList) == 1:
+            if len(move.coordList) != 1:
                 return False
         
             buildCoord = move.coordList[0]
@@ -544,17 +528,32 @@ class Game(object):
                         return True
                     else:
                         self.ui.notify("Requires " + str(buildCost) + " food")
-                        self.errorNotify = True;
+                        self.errorNotify = True
                         return False
                 else:
                 #we know we're building a construction
+                    adjacentCoords = []
+                    adjacentCoords.append(addCoords(buildCoord, (0, -1)))
+                    adjacentCoords.append(addCoords(buildCoord, (0, 1)))
+                    adjacentCoords.append(addCoords(buildCoord, (-1, 0)))
+                    adjacentCoords.append(addCoords(buildCoord, (1, 0)))
+                
+                    #check that there's no food in adjacent locations
+                    for aCoord in adjacentCoords:
+                        if aCoord[0] >= 0 and aCoord[0] < 10 and aCoord[1] >= 0 and aCoord[1] < 10:
+                            if (self.state.board[aCoord[0]][aCoord[1]].constr != None and
+                                    self.state.board[aCoord[0]][aCoord[1]].constr.type == FOOD):
+                                self.ui.notify("Cannot build next to food")
+                                self.errorNotify = True
+                                return False
+                 
                     buildCost = CONSTR_STATS[TUNNEL][BUILD_COST]
                     if self.state.inventories[self.state.whoseTurn].foodCount >= buildCost:
                         self.ui.notify("")
                         return True
                     else:
                         self.ui.notify("Requires "+str(buildCost) + " food")
-                        self.errorNotify = True;
+                        self.errorNotify = True
                         return False
                 
             
@@ -734,12 +733,11 @@ class Game(object):
                 coord[1] >= 0 and coord[1] < BOARD_LENGTH):
             antToMove = self.state.board[coord[0]][coord[1]].ant
             #check that an ant exists at the loc
-            if not antToMove == None:
+            if antToMove != None:
                 #check that it's the player's ant and that it hasn't moved
-                if antToMove.player == self.state.whoseTurn and antToMove.hasMoved == False:
+                if antToMove.player == self.state.whoseTurn and not antToMove.hasMoved:
                     return True
-                    
-                    
+                                      
         return False
 
     ##
@@ -778,14 +776,14 @@ class Game(object):
                 coord[1] >= 0 and coord[1] < BOARD_LENGTH):
             loc = self.state.board[coord[0]][coord[1]]
             #check that an empty anthill exists at the loc
-            if not loc.constr == None and loc.constr.type == ANTHILL and loc.ant == None:
+            if loc.constr != None and loc.constr.type == ANTHILL and loc.ant == None:
                 #check that it's the player's anthill
                 if loc.constr.player == self.state.whoseTurn:
                     return True
             #check that an ant exists at an empty location
-            elif not loc.ant == None and loc.ant.type == WORKER and loc.constr == None:
-                #check that it's the player's ant
-                if loc.ant.player == self.state.whoseTurn:
+            elif loc.ant != None and loc.ant.type == WORKER and loc.constr == None:       
+                #check that it's the player's ant and it hasn't moved
+                if loc.ant.player == self.state.whoseTurn and not loc.ant.hasMoved:
                     return True
                     
         return False
@@ -799,28 +797,7 @@ class Game(object):
         if self.mode == None:
             self.ui.notify("Please select a mode.")
             return
-        
-        #Make a temporary list to append to so that we may check how many AIs we have available.
-        tempCurrent = [player for player in self.currentPlayers]
-        #Load the first two active players (idx 0 is human player)
-        for index in range(0, len(self.players)):
-            if self.players[index][1] == ACTIVE:
-                tempCurrent.append(self.players[index][0])
-                for playerEntry in self.players[index + 1:]:
-                    if playerEntry[1] == ACTIVE:
-                        tempCurrent.append(playerEntry[0])
-                        break
-                break 
-        
-        if len(tempCurrent) != 2:
-            self.ui.notify("Please select AIs to play game.")
-            return
-        elif self.ui.choosingAIs:
-            self.ui.choosingAIs = False
-            return
-        
-        self.currentPlayers = tempCurrent
-        
+    
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
             if self.mode == TOURNAMENT_MODE:
@@ -837,20 +814,23 @@ class Game(object):
                 self.ui.tournamentScores = []
                 
                 for i in range(0, len(self.players)):
-                    if self.players[i][1] == ACTIVE:
-                        #initialize the player's win/loss scores
-                        self.playerScores.append([self.players[i][0].author, 0, 0])
-                        self.ui.tournamentScores.append([self.players[i][0].author, 0, 0])
-                        
-                        for j in range(i, len(self.players)):
-                            if self.players[i][0] != self.players[j][0] and self.players[j][1] == ACTIVE:
-                                self.gamesToPlay.append([(i, j), None])
-                
+                    #initialize the player's win/loss scores
+                    self.playerScores.append([self.players[i].author, 0, 0])
+                    self.ui.tournamentScores.append([self.players[i].author, 0, 0])
+                    
+                    for j in range(i, len(self.players)):
+                        if self.players[i] != self.players[j]:
+                            self.gamesToPlay.append([(i, j), None])
+                            
                 numPairings = len(self.gamesToPlay)
                 for i in range(0, numPairings):
                     #assign equal number of games to each pairing (rounds down)
-                    self.gamesToPlay[i][1] = self.numGames
-                    
+                    self.gamesToPlay[i][1] = self.numGames#math.floor(self.numGames / numPairings)
+              
+            #grab first two players (in human mode, idx 0 is HumanPlayer)
+            self.currentPlayers.append(self.players[0])
+            self.currentPlayers.append(self.players[1])
+            
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
        
@@ -867,7 +847,6 @@ class Game(object):
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
-            self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
             self.ui.notify("Mode set to Tournament Mode.")
     
@@ -883,10 +862,9 @@ class Game(object):
         #Attempt to load the AI files
         self.loadAIs(True) 
         #Add the human player to the player list
-        self.players.insert(PLAYER_ONE, (HumanPlayer.HumanPlayer(PLAYER_ONE), ACTIVE))
+        self.players.insert(PLAYER_ONE, HumanPlayer.HumanPlayer(PLAYER_ONE))
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
-            self.ui.choosingAIs = True
             self.mode = HUMAN_MODE
             self.ui.notify("Mode set to Human vs. AI.")
     
@@ -903,7 +881,6 @@ class Game(object):
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
         if len(self.players) >= 2:
-            self.ui.choosingAIs = True
             self.mode = AI_MODE
             self.ui.notify("Mode set to AI vs. AI.")    
         
@@ -914,47 +891,68 @@ class Game(object):
     ##
     def locationClickedCallback(self, coord):
         #Check if its human player's turn during play phase
-        if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
+        if self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             whoseTurn = self.state.whoseTurn
-            currentPlayer = self.currentPlayers[whoseTurn]
+            currentPlayer = self.players[whoseTurn]
             
             #add location to human player's movelist if appropriatocity is valid
-            if len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1] and not self.ui.buildAntMenu:
-                currentPlayer.coordList.pop()
-                self.errorNotify = False;
-            elif len(currentPlayer.coordList) == 0:
-                #Need to check this here or it may try to get the last element of the list when it is empty
+            
+            if len(currentPlayer.coordList) == 0:
+                #Clicked when nothing selected yet (select ant or building)
                 if self.checkMoveStart(coord) or self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
-                    self.errorNotify = False;
+                self.errorNotify = False
+                    
+            elif len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
+                #Clicked most recently added location (unselect building or submit ant move)
+                if not self.ui.buildAntMenu:
+                    moveStartLoc = self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]]
+                    if moveStartLoc.ant == None:
+                        currentPlayer.coordList.pop()
+                    else:
+                        currentPlayer.moveType = MOVE
+                    self.errorNotify = False
+                
             else:
                 onList = False
+                index = None
                 for checkCoord in currentPlayer.coordList:
                     if checkCoord == coord:
                         onList = True
+                        index = currentPlayer.coordList.index(coord)
                 
                 startCoord = currentPlayer.coordList[0]
                 antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
-                if not onList and self.checkMovePath(currentPlayer.coordList[-1], coord, antToMove): 
-                    #add the coord to the move list so we can check if it makes a valid move
-                    currentPlayer.coordList.append(coord)
-                    
-                    #enact the theoretical move
-                    move = Move(MOVE, currentPlayer.coordList, antToMove.type)
-                    
-                    #if the move wasn't valid, remove added coord from move list              
-                    if not self.isValidMove(move):
-                        currentPlayer.coordList.pop()
+                if not onList:
+                    if self.checkMovePath(currentPlayer.coordList[-1], coord, antToMove): 
+                        #add the coord to the move list so we can check if it makes a valid move
+                        currentPlayer.coordList.append(coord)
+                        
+                        #enact the theoretical move
+                        move = Move(MOVE, currentPlayer.coordList, antToMove.type)
+                        
+                        #if the move wasn't valid, remove added coord from move list              
+                        if not self.isValidMove(move):
+                            currentPlayer.coordList.pop()
+                        else:
+                            self.errorNotify = False
                     else:
-                        self.errorNotify = False;
+                        currentPlayer.coordList = []
+                else:
+                    #if the user clicked a previous location, change move to it
+                    numToRemove = len(currentPlayer.coordList) - (index + 1)
+                    for i in range(0, numToRemove):
+                        currentPlayer.coordList.pop()
+                
+                        
             #give coordList to UI so it can hightlight the player's path
             if not self.expectingAttack:
                 self.ui.coordList = currentPlayer.coordList
             
         #Check if its human player's turn during set up phase
-        if ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
-                and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
-            self.currentPlayers[self.state.whoseTurn].coordList.append(coord)
+        elif ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
+                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
+            self.players[self.state.whoseTurn].coordList.append(coord)
 
     ##
     #moveClickedCallback
@@ -963,9 +961,9 @@ class Game(object):
     ##
     def moveClickedCallback(self):
         #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
-                HumanPlayer.HumanPlayer and not len(self.currentPlayers[self.state.whoseTurn].coordList) == 0):
-            self.currentPlayers[self.state.whoseTurn].moveType = MOVE
+        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
+                HumanPlayer.HumanPlayer and not len(self.players[self.state.whoseTurn].coordList) == 0):
+            self.players[self.state.whoseTurn].moveType = MOVE
     
     ##
     #buildClickedCallback
@@ -974,7 +972,7 @@ class Game(object):
     ##
     def buildClickedCallback(self):
         #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
+        if (self.state.phase == PLAY_PHASE and type(self.players[self.state.whoseTurn]) is 
                 HumanPlayer.HumanPlayer and len(self.players[self.state.whoseTurn].coordList) == 1):
             whoseTurn = self.state.whoseTurn
             currentPlayer = self.players[whoseTurn]
@@ -998,8 +996,8 @@ class Game(object):
     def endClickedCallback(self):     
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
-                and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
-            self.currentPlayers[self.state.whoseTurn].moveType = END
+                and type(self.players[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
+            self.players[self.state.whoseTurn].moveType = END
     
     ##
     #buildWorkerClickedCallback
@@ -1008,7 +1006,7 @@ class Game(object):
     ##
     def buildWorkerCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.currentPlayers[whoseTurn]
+        currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = WORKER
@@ -1020,7 +1018,7 @@ class Game(object):
     ##    
     def buildDroneCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.currentPlayers[whoseTurn]
+        currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = DRONE
@@ -1032,7 +1030,7 @@ class Game(object):
     ##
     def buildDSoldierCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.currentPlayers[whoseTurn]
+        currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = D_SOLDIER
@@ -1044,7 +1042,7 @@ class Game(object):
     ##
     def buildISoldierCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.currentPlayers[whoseTurn]
+        currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.buildType = I_SOLDIER  
@@ -1056,10 +1054,13 @@ class Game(object):
     ##
     def buildNothingCallback(self):
         whoseTurn = self.state.whoseTurn
-        currentPlayer = self.currentPlayers[whoseTurn]
+        currentPlayer = self.players[whoseTurn]
         
         self.ui.buildAntMenu = False
         currentPlayer.moveType = None
+        
+        self.ui.coordList = []
+        currentPlayer.coordList = []
     
     ##
     #nextClickedCallback
@@ -1078,14 +1079,6 @@ class Game(object):
     def continueClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
-    
-    ##
-    #checkBoxClickedCallback
-    #Description: Responds to a user clicking on a checkbox to select AIs
-    #
-    ##
-    def checkBoxClickedCallback(self, index):
-        self.players[index][1] = ACTIVE if self.players[index][1] == INACTIVE else INACTIVE
     
 a = Game()
 a.runGame()
