@@ -50,13 +50,6 @@ class UserInterface(object):
         pygame.display.set_icon(icon)
     
     ##
-    #submitMove
-    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
-    ##
-    def submitMove(self):
-        print "Clicked SUBMIT MOVE"
-    
-    ##
     #submitBuild
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     ##
@@ -564,9 +557,8 @@ class UserInterface(object):
         }
         #Initial values for buttons in human vs AI mode
         self.humanButtons = {
-        'Move':[self.findButtonCoords(1, True), 1, self.submitMove],
-        'Build':[self.findButtonCoords(2, True), 1, self.submitBuild],
-        'End':[self.findButtonCoords(3, True), 1, self.submitEndTurn]
+        'Build':[self.findButtonCoords(1, True), 1, self.submitBuild],
+        'End':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
         }
         #Initial values for buttons in human vs AI mode
         self.aiButtons = {

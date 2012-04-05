@@ -43,7 +43,6 @@ class Game(object):
         self.ui.buttons['Tournament'][-1] = self.tournamentPath
         self.ui.buttons['Human vs AI'][-1] = self.humanPath
         self.ui.buttons['AI vs AI'][-1] = self.aiPath      
-        self.ui.humanButtons['Move'][-1] = self.moveClickedCallback
         self.ui.humanButtons['Build'][-1] = self.buildClickedCallback
         self.ui.humanButtons['End'][-1] = self.endClickedCallback
         self.ui.aiButtons['Next'][-1] = self.nextClickedCallback
@@ -1001,17 +1000,6 @@ class Game(object):
         elif ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
                 and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
             self.currentPlayers[self.state.whoseTurn].coordList.append(coord)
-
-    ##
-    #moveClickedCallback
-    #Description: Responds to a user clicking on the move button
-    #
-    ##
-    def moveClickedCallback(self):
-        #Check if its human player's turn during play phase
-        if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
-                HumanPlayer.HumanPlayer and not len(self.currentPlayers[self.state.whoseTurn].coordList) == 0):
-            self.currentPlayers[self.state.whoseTurn].moveType = MOVE
     
     ##
     #buildClickedCallback
