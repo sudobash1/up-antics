@@ -95,9 +95,10 @@ class HumanPlayer(Player):
     #Description: Gets the attack to be made from the Player
     #
     #Parameters:
+    #   currentState - A clone of the current state (GameState)
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
-    def getAttack(self, enemyLocations):
+    def getAttack(self, currentState, enemyLocations):
         if self.coordList == []:
             return None
         else:

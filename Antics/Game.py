@@ -696,8 +696,13 @@ class Game(object):
                 #Draw the board again (to recognize user input inside loop)
                 self.ui.drawBoard(self.state, self.mode)
                 
+                #Create a clone of the state to give to the player
+                theState = self.state.clone()
+                if theState.whoseTurn == PLAYER_TWO:
+                    theState.flipBoard()
+                        
                 #get the attack from the player (flipped for player two)
-                attackCoords = self.state.coordLookup(currentPlayer.getAttack(validAttackCoords), currentPlayer.playerId)
+                attackCoords = self.state.coordLookup(currentPlayer.getAttack(theState, validAttackCoords), currentPlayer.playerId)
                 
                 #check for the move's validity
                 validAttack = self.isValidAttack(attackingAnt, attackCoords)
