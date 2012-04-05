@@ -545,7 +545,7 @@ class UserInterface(object):
         #Set up fonts.
         pygame.font.init()
         self.gameFont = pygame.font.Font(None, 25)
-        self.notifyFont = pygame.font.Font(None, 15)
+        self.notifyFont = pygame.font.Font(None, 20)
         self.tournFont = pygame.font.Font(None, 35)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(5, True)

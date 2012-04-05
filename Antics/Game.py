@@ -813,7 +813,7 @@ class Game(object):
     ##
     def startGame(self):
         if self.mode == None:
-            self.ui.notify("Please select a modejsdfkflflflflflfljdfkklsdajdfk.")
+            self.ui.notify("Please select a mode.")
             return
         
         #Make a temporary list to append to so that we may check how many AIs we have available.
