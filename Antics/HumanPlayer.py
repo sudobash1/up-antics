@@ -66,8 +66,8 @@ class HumanPlayer(Player):
         #wasn't empty if we got to this point
         
         #create the appropriate move
-        if self.moveType == MOVE:
-            chosenMove = Move(MOVE, coords, None)
+        if self.moveType == MOVE_ANT:
+            chosenMove = Move(MOVE_ANT, coords, None)
         elif self.moveType == BUILD:
             if self.buildType == None: 
                 return None
