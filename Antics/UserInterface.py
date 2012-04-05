@@ -16,6 +16,8 @@ DARK_RED = (150, 0, 0)
 LIGHT_RED = (255, 0, 0)
 DARK_GREEN = (0, 150, 0)
 LIGHT_GREEN = (0, 255, 0)
+DARK_BLUE = (0, 0, 150)
+LIGHT_BLUE = (0, 0, 255)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
@@ -340,7 +342,23 @@ class UserInterface(object):
             self.drawTable()
         else:
             self.screen.fill(BLACK)
+            #Draw the menu area.
             pygame.draw.rect(self.screen, WHITE, self.buttonArea)
+            #Define the player color indicator boxes.
+            bw = BOARD_SIZE.width
+            bh = BOARD_SIZE.height
+            cw = CELL_SIZE.width
+            ch = CELL_SIZE.height
+            cs = CELL_SPACING
+            outerRect = Rect(0, 0, bw * (cw + cs) + cs, (bh / 2 - 1) * (ch + cs) + cs)
+            innerRect = Rect(0, 0, bw * (cw + cs) - cs, (bh / 2 - 1) * (ch + cs) - cs)
+            p2RectYOffset = (bh / 2 + 1) * (cw + cs)
+            #Draw the player color indicator boxes.
+            pygame.draw.rect(self.screen, LIGHT_RED, outerRect)
+            pygame.draw.rect(self.screen, BLACK, innerRect.move((CELL_SPACING, CELL_SPACING)))
+            pygame.draw.rect(self.screen, LIGHT_BLUE, outerRect.move((0, p2RectYOffset)))
+            pygame.draw.rect(self.screen, BLACK, innerRect.move((CELL_SPACING, CELL_SPACING + p2RectYOffset)))
+            #Draw the cells themselves.
             for col in xrange(0, len(currentState.board)):
                 for row in xrange(0, len(currentState.board[col])):
                     self.drawCell(currentState.board[col][row])
