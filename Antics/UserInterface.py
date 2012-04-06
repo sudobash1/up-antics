@@ -161,6 +161,9 @@ class UserInterface(object):
     def checkBoxClicked(self, index):
         print "CLICKED CHECKBOX NUMBER " + str(index)
     
+    def submitSelectedAIs(self):
+        print "CLICKED SUBMIT SELECTED AIS"
+    
     def notify(self, message):
         self.lastNotification = message
     
@@ -315,7 +318,14 @@ class UserInterface(object):
             self.screen.blit(self.checkBoxTextures[safeList[index][1]], (tempX, tempY))
             label = self.notifyFont.render(str(safeList[index][0].author), True, BLACK)
             self.screen.blit(label, (tempX + self.checkBoxRect.width + FIELD_SPACING, tempY + (self.checkBoxRect.height - self.notifyFont.get_height()) / 2))
+        #Find out where the button should go.
+        buttonIndex = maxRows if maxRows < len(safeList) else len(safeList)
+        buttonY = YStartPixel + buttonIndex * (self.checkBoxRect.height + FIELD_SPACING)
+        #Reset the location of the button.
+        key = 'Submit Selected AIs'
+        self.submitSelected[key][0] = (XStartPixel, buttonY)
         #And last but not least, draw the "Submit Selected" button below the end of the first column.
+        self.drawButton(key, self.submitSelected)
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -446,15 +456,12 @@ class UserInterface(object):
                 checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
                 #If the checkbox clicked was in a column other than the first, add the implicit rows skipped.
                 checkIndex += columnClicked * maxRows
-                #checkIndex can't be negative, since it's used as an index
-                if checkIndex < 0:
-                    return
                 #If the checkindex falls within the list, go ahead and call the callback.
-                if checkIndex < len(safeList):
+                if checkIndex < len(safeList) and checkIndex >= 0:
                     #If the mode is human mode, there is an invisible player (the human) that I don't want clicked.
                     checkIndex += 1 if mode == HUMAN_MODE else 0
                     self.checkBoxClicked(checkIndex)
-    
+        
     ##
     #handleEvents
     #Description: Handles the more generic mouse movements. Finds out what has been
@@ -494,6 +501,10 @@ class UserInterface(object):
                             self.locationClicked((x, y))
                 elif self.choosingAIs:
                     self.handleAICheckList(event, mode)
+                    #Handle the AI selecting button.
+                    AIKey = self.submitSelected.keys()[0]
+                    if self.buttonRect.move(self.submitSelected[AIKey][0]).collidepoint(event.pos):
+                        self.handleButton(AIKey, 0, self.submitSelected)
             elif event.type == pygame.MOUSEBUTTONUP:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
@@ -503,6 +514,11 @@ class UserInterface(object):
                 for key in relButtons:
                     if self.buttonRect.move(relButtons[key][0]).collidepoint(event.pos):
                         self.handleButton(key, 1, relButtons)
+                #Handle the AI selecting button.
+                if self.choosingAIs:
+                    AIKey = self.submitSelected.keys()[0]
+                    if self.buttonRect.move(self.submitSelected[AIKey][0]).collidepoint(event.pos):
+                        self.handleButton(AIKey, 1, self.submitSelected)
                 #Check to see if text box should be selected or deselected
                 if mode == TOURNAMENT_MODE and self.buttonRect.move(self.textPosition).collidepoint(pygame.mouse.get_pos()):
                     boxSelected = True
@@ -521,6 +537,13 @@ class UserInterface(object):
                         relButtons[key][1] = 0
                     else:
                         relButtons[key][1] = 1
+                #Handle the AI selecting button.
+                if self.choosingAIs:
+                    AIKey = self.submitSelected.keys()[0]
+                    if self.buttonRect.move(self.submitSelected[AIKey][0]).collidepoint(event.pos):
+                        self.submitSelected[AIKey][1] = 0
+                    else:
+                        self.submitSelected[AIKey][1] = 1
             elif self.boxSelected and event.type == KEYDOWN:
                 if str(event.unicode) in [str(i) for i in range(0, 10)]:
                     self.textBoxContent += str(event.unicode)
@@ -598,23 +621,27 @@ class UserInterface(object):
         'Human vs AI':[self.findButtonCoords(1, False), 1, self.gameModeHumanAI],
         'AI vs AI':[self.findButtonCoords(0, False), 1, self.gameModeAIAI]
         }
-        #Initial values for buttons in human vs AI mode
+        #Initial values for buttons in human vs AI mode.
         self.humanButtons = {
         'Build':[self.findButtonCoords(1, True), 1, self.submitBuild],
         'End':[self.findButtonCoords(2, True), 1, self.submitEndTurn]
         }
-        #Initial values for buttons in human vs AI mode
+        #Initial values for buttons in human vs AI mode.
         self.aiButtons = {
         'Next':[self.findButtonCoords(1, True), 1, self.submitNext],
         'Continue':[self.findButtonCoords(2, True), 1, self.submitContinue]
         }
-        #Initial values for build ant buttons
+        #Initial values for build ant buttons.
         self.antButtons = {
         'Worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
         'Drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
         'D_Soldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
         'I_Soldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
         'None':[self.findButtonCoords(5, True), 1, self.submitNoBuild]
+        }
+        #Initial value for submit button for AI checklist.
+        self.submitSelected = {
+        'Submit Selected AIs':[(0,0), 1, self.submitSelectedAIs]
         }
         #Properties of our single text box
         self.textPosition = self.findButtonCoords(2, True)
