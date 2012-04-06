@@ -322,7 +322,7 @@ class UserInterface(object):
         buttonIndex = maxRows if maxRows < len(safeList) else len(safeList)
         buttonY = YStartPixel + buttonIndex * (self.checkBoxRect.height + FIELD_SPACING)
         #Reset the location of the button.
-        key = 'Submit Selected AIs'
+        key = self.submitSelected.keys()[0]
         self.submitSelected[key][0] = (XStartPixel, buttonY)
         #And last but not least, draw the "Submit Selected" button below the end of the first column.
         self.drawButton(key, self.submitSelected)
