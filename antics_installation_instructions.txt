@@ -1,0 +1,101 @@
+######################
+WINDOWS INSTRUCTIONS
+######################
+pygame: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
+python: http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi
+
+The most important detail to be aware of here, is that pygame is only compiled
+to run in 32-bit mode at the moment. 64-bit computers will still run it, so
+don't worry about having to drop this AI class (there are 64 bit pre-release
+binaries, but I don't want to mess with those). That said, you're probably
+going to want to download python from the links I provided, even if you already
+have python.
+remember: DOWNLOAD 32-BIT!
+
+1. Start by downloading python 2.7 (32-bit) from the link I provided. Any
+    version of 2.7 will do. I used 2.7.2, but I imagine 2.7.1 and 2.7.3 if it
+    ever comes out will work equally well.
+
+2. Install the version of python you downloaded.
+
+3. Next, download pygame 1.9.1 (32-bit) from the provided link. 1.9.2a0 would
+    work too, but you don't necessarily need it.
+
+4. Begin to install your downloaded version of pygame. When pygame asks you
+    where you want to install, check your available options. If you downloaded
+    the correct version of python, one of the options will be
+    "python 2.7 from registry". Choose this option. If you downloaded the wrong
+    version of python, the only option will be "python from another location".
+
+5. If everything has gone smoothly up to this point, you're almost golden!
+    There's just one more change I want to make. Currently python isn't on your
+    path (or at least it shouldn't be), which means that you can't use the
+    command line (terminal) to run python programs. This will hurt you in the
+    end because you won't be able to get much information when your AI fails.
+    The reason being that the terminal running python will close since it is
+    only dedicated to that instance of python. We're now going to add python to
+    your system path!
+    By the way, there is no action to be taken in the above step. it's just
+    informative.
+
+6. You first need to navigate to your "system properties" window. Typically
+    this can be achieved by right-clicking on "My Computer" or "Computer" and
+    clicking "Properties", but on some distributions of Windows, you need to
+    click "Advanced system settings" in the sidebar on the window that pops up.
+
+7. If your don't like the GUI, or you're lost, try the following to get the
+    window: hold the windows key and press "r". That will bring up a window
+    called "run". Copy and paste the following line into the text field in
+    "run":
+    rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,0
+
+8. Now go to the "advanced" tab on the "System Properties" window. Click
+    "Environment Variables".
+
+9. In the resulting window are two fields:
+    "User variables for <your username>" and "System Variables". You want to
+    find the "path" variable in the user variables.
+
+10. Find out where you installed python. This is often an issue for people with
+    multiple python installations. pygame only installs into one of your python
+    installation, so if you have python installed in multiple places on your
+    computer, you can try using one only to realize:
+    "Oh no! I can't use pygame!" To circumvent that, make sure you find your
+    32-bit installation of python.
+    This was another block of text that required no action and just explained
+    things, courtesy of Cole Mercer.
+
+11. One way to find out if the python version you've decided on is the right
+    one, is to test it out. Navigate to the directory and run "python.exe". In
+    the reulting terminal, you should see some header text that starts with
+    "Python 2.7.2" (it's .2 for me because I didn't use 2.7.1) and includes
+    "32 bit" somwhere later on.
+
+12. In the terminal, type the following line:
+    import pygame
+    If you don't get an error, this is the right installation. If you do get an
+    error, go find another python installation somwhere else on your computer,
+    and try again from step 11.
+
+13. Once you find the right directory, copy its path. for example, my python
+    path is "C:\Python27". Inside this directory you can find "python.exe".
+
+14. Migrate back to your environment variables window, select "path" click
+    "edit", put a semicolon at the end of the path, and then paste your python
+    path right after the semicolon. After that, press ok until you're out of
+    system properties.
+
+15. Finally, open up a terminal and type the following line:
+    python
+    if that works, :), if not, :(. then type this next line:
+    import pygame
+    if that doesn't give you an error, you can go to town. Try to use the
+    terminal to run aNTiCS, because that will give you more information
+    about failures.
+
+16. BTW, in order to run aNTiCS from the terminal, just type "python" then
+    press the spacebar, then drag Game.py from your aNTiCS folder onto your
+    terminal, the press the enter key.
+
+17. If you've reached this step, your attention span is truly something to be
+    admired. Give yourself a pat on the back and have fun playing aNTiCS!
