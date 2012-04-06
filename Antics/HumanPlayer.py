@@ -96,9 +96,10 @@ class HumanPlayer(Player):
     #
     #Parameters:
     #   currentState - A clone of the current state (GameState)
+    #   attackingAnt - The ant currently making the attack (Ant)
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
-    def getAttack(self, currentState, enemyLocations):
+    def getAttack(self, currentState, attackingAnt, enemyLocations):
         if self.coordList == []:
             return None
         else:

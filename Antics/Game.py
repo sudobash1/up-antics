@@ -430,7 +430,7 @@ class Game(object):
                     theState.flipBoard()
                         
                 #get the attack from the player (flipped for player two)
-                attackCoords = self.state.coordLookup(currentPlayer.getAttack(theState, validAttackCoords), currentPlayer.playerId)
+                attackCoords = self.state.coordLookup(currentPlayer.getAttack(theState, attackingAnt.clone(), validAttackCoords), currentPlayer.playerId)
                 
                 #check for the move's validity
                 validAttack = self.isValidAttack(attackingAnt, attackCoords)

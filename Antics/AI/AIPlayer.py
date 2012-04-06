@@ -174,8 +174,9 @@ class AIPlayer(Player):
     #
     #Parameters:
     #   currentState - A clone of the current state (GameState)
+    #   attackingAnt - The ant currently making the attack (Ant)
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
-    def getAttack(self, currentState, enemyLocations):
+    def getAttack(self, currentState, attackingAnt, enemyLocations):
         #Attack a random enemy.
         return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
