@@ -171,7 +171,7 @@ class UserInterface(object):
         #Draw a white box to make the black box appear empty
         noteBox = Rect(0, 0, self.buttonRect.width + CELL_SPACING + 1, self.buttonRect.height + CELL_SPACING + 1)
         pygame.draw.rect(self.screen, WHITE, noteBox.move(self.messageLocation).move(-CELL_SPACING / 2, -CELL_SPACING / 2))
-        #Find where to insert newlines
+        #Chop up text by moving to a new line every time you get close to the edge of the notification area.
         breakupIndex = 0
         lineNum = 0
         while self.notifyFont.size(self.lastNotification[breakupIndex:])[0] > self.buttonRect.width:
@@ -295,17 +295,27 @@ class UserInterface(object):
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
     
-    def drawAIChecklist(self):
+    def drawAIChecklist(self, mode):
+        #Replace the AIList with a shorter one if in human mode because I don't want to draw the human player in the checklist.
+        safeList = self.allAIs[1:] if mode == HUMAN_MODE else self.allAIs
+        #Find out how many AIs can be put in a column.
+        maxRows = (self.screen.get_height() - 100) / (self.checkBoxRect.height + FIELD_SPACING)
+        secondColumnOffset = (self.screen.get_width() - self.buttonArea.width) / 2
+        #Prevent the list from overflowing on the screen.
+        safeList = safeList[:2 * maxRows] if len(safeList) > maxRows * 2 else safeList
+        #Decide on where the checkList should start on screen.
         XStartPixel = 50
-        YStartPixel = self.screen.get_height() / 2 - len(self.allAIs) * self.checkBoxRect.height / 2
+        YStartPixel = 50 + self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
         if YStartPixel < 0:
             YStartPixel = 0
-        #Draw it.
-        for index in range(0, len(self.allAIs)):
-            tempY = YStartPixel + index * (self.checkBoxRect.height + FIELD_SPACING)
-            self.screen.blit(self.checkBoxTextures[self.allAIs[index][1]], (XStartPixel, tempY))
-            label = self.notifyFont.render(str(self.allAIs[index][0].author), True, BLACK)
-            self.screen.blit(label, (XStartPixel + self.checkBoxRect.width + FIELD_SPACING, tempY))
+        #Draw the checkList.
+        for index in range(0, len(safeList)):
+            tempX = XStartPixel + (secondColumnOffset if index >= maxRows else 0)
+            tempY = YStartPixel + index % maxRows * (self.checkBoxRect.height + FIELD_SPACING)
+            self.screen.blit(self.checkBoxTextures[safeList[index][1]], (tempX, tempY))
+            label = self.notifyFont.render(str(safeList[index][0].author), True, BLACK)
+            self.screen.blit(label, (tempX + self.checkBoxRect.width + FIELD_SPACING, tempY + (self.checkBoxRect.height - self.notifyFont.get_height()) / 2))
+        #And last but not least, draw the "Submit Selected" button below the end of the first column.
     
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -351,7 +361,7 @@ class UserInterface(object):
         self.handleEvents(mode)
         if self.choosingAIs:
             self.screen.fill(WHITE)
-            self.drawAIChecklist()
+            self.drawAIChecklist(mode)
         elif mode == TOURNAMENT_MODE:
             self.screen.fill(WHITE)
             #Draw the box into which the user can enter the number of games they want to play.
@@ -415,6 +425,36 @@ class UserInterface(object):
         
         buttons[key][1] = released
     
+    def handleAICheckList(self, event, mode):
+        #Replace the AIList with a shorter one if in human mode because find the human player in the checklist.
+        safeList = self.allAIs[1:] if mode == HUMAN_MODE else self.allAIs
+        #Find out how many AIs can be in a column.
+        maxRows = (self.screen.get_height() - 100) / (self.checkBoxRect.height + FIELD_SPACING)
+        secondColumnOffset = (self.screen.get_width() - self.buttonArea.width) / 2
+        #The list can't overflow on the screen.
+        safeList = safeList[:2 * maxRows] if len(safeList) > maxRows * 2 else safeList
+        #Check if a column was clicked (x position of mouse may result in a checkbox being clicked)
+        columnClicked = -1
+        if event.pos[0] - 50 > 0 and event.pos[0] - 50 < self.checkBoxRect.width:
+            columnClicked = 0
+        elif event.pos[0] - 50 - secondColumnOffset > 0 and event.pos[0] - 50 - secondColumnOffset < self.checkBoxRect.width:
+            columnClicked = 1
+        #If a column was clicked, check if a row was clicked.
+        if columnClicked > -1:
+            yStart = 50 + self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
+            if (event.pos[1] - yStart + FIELD_SPACING) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
+                checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
+                #If the checkbox clicked was in a column other than the first, add the implicit rows skipped.
+                checkIndex += columnClicked * maxRows
+                #checkIndex can't be negative, since it's used as an index
+                if checkIndex < 0:
+                    return
+                #If the checkindex falls within the list, go ahead and call the callback.
+                if checkIndex < len(safeList):
+                    #If the mode is human mode, there is an invisible player (the human) that I don't want clicked.
+                    checkIndex += 1 if mode == HUMAN_MODE else 0
+                    self.checkBoxClicked(checkIndex)
+    
     ##
     #handleEvents
     #Description: Handles the more generic mouse movements. Finds out what has been
@@ -453,12 +493,7 @@ class UserInterface(object):
                         if x < BOARD_SIZE.width and y < BOARD_SIZE.height:
                             self.locationClicked((x, y))
                 elif self.choosingAIs:
-                    if event.pos[0] - 50 > 0 and event.pos[0] - 50 < self.checkBoxRect.width:
-                        yStart = self.screen.get_height() / 2 - len(self.allAIs) * self.checkBoxRect.height / 2
-                        if (event.pos[1] - yStart + FIELD_SPACING) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
-                            checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
-                            if checkIndex < len(self.allAIs):
-                                self.checkBoxClicked(checkIndex)
+                    self.handleAICheckList(event, mode)
             elif event.type == pygame.MOUSEBUTTONUP:
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
