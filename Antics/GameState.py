@@ -1,6 +1,19 @@
 from Constants import *
 from Inventory import Inventory
 from Building import Building
+
+def addCoords(tuple1, tuple2):
+    if len(tuple1) != len(tuple2):
+        return None
+    else:
+        return tuple([tuple1[i] + tuple2[i] for i in range(0, len(tuple1))])
+
+def subtractCoords(tuple1, tuple2):
+    if len(tuple1) != len(tuple2):
+        return None
+    else:
+        return tuple([tuple1[i] - tuple2[i] for i in range(0, len(tuple1))])
+
 ##
 #GameState
 #Description: The current state of the game.

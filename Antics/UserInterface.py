@@ -8,6 +8,7 @@ import pygame, os, sys
 from pygame.locals import *
 from Building import Building
 from Constants import *
+from GameState import addCoords, subtractCoords
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -23,18 +24,6 @@ CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
 FIELD_SPACING = 10
-
-def addCoords(tuple1, tuple2):
-    if len(tuple1) != len(tuple2):
-        return None
-    else:
-        return tuple([tuple1[i] + tuple2[i] for i in range(0, len(tuple1))])
-
-def subtractCoords(tuple1, tuple2):
-    if len(tuple1) != len(tuple2):
-        return None
-    else:
-        return tuple([tuple1[i] - tuple2[i] for i in range(0, len(tuple1))])
 
 class UserInterface(object):
     ##

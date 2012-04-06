@@ -4,7 +4,7 @@ from Constants import *
 from Construction import CONSTR_STATS
 from Ant import UNIT_STATS
 from Move import Move
-from UserInterface import addCoords
+from GameState import addCoords
 ##
 #AIPlayer
 #Description: The responsbility of this class is to interact with the game by
