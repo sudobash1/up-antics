@@ -1,0 +1,63 @@
+Installing pygame on your macintosh gives a few interesting options, based on
+your version. That said, I'm going to start with how you find your version
+number, and we'll go from there.
+
+1. Click on the apple icon in the upper left corner of your screen.
+2. Click "About This Mac". It will likely be the first option.
+3. There should be an apple icon occupying most of the window that pops up.
+Below the apple are the words "Mac OS X". Below that is says "Version" and your
+version number. Only the first two numbers in version are important. I see
+"Version 10.5.8" so my version number is 10.5. Remember your version number for
+later.
+
+############################
+Actually Installing Pygame
+############################
+
+1. Download the appropriate version of python. You definitely want python 2.7
+(which can be 2.7.1 or above, as long as it's still 2.7). If your Mac version
+number is less than 10.6, you will want the corresponding version, which can be
+found here:
+http://www.python.org/ftp/python/2.7.2/python-2.7.2-macosx10.3.dmg
+If your version number is 10.6 or higher, you will want this link instead:
+http://www.python.org/ftp/python/2.7.2/python-2.7.2-macosx10.6.dmg
+
+2. Install python to the default location.
+
+3. Once python is installed, open a terminal and make sure you have the right version of python selected by typing the following line:
+python
+if you get a prompt that looks like the following:
+>>>
+then python is working. There should also be some header text above the prompt,
+which indicates what version of python you are running. the header should start
+with "Python 2.7". Mine starts with "Python 2.7.2" which does indeed start with
+"Python 2.7".
+If the version is not python 2.7, then you don't have the right version of
+python selected. Try the "Selecting the right version of Python" section in
+this guide.
+
+4. Next, install pygame. For this guide, you will want the following link:
+http://pygame.org/ftp/pygame-1.9.1release-python.org-32bit-py2.7-macosx10.3.dmg
+That will work for any version of OSX beyond 10.3.
+
+5. At this point, you should be done. Open at terminal and type the following
+line:
+python
+then this line:
+import pygame
+If you don't get any errors, you're good. If you do get errors and you followed
+the directions to this point, pygame may be installed in the wrong location.
+
+############################
+Installing Pygame for macports
+############################
+1. To be continued at a later date.
+############################
+Installing Pygame without python
+(Mac Version 10.6 or greater only)
+############################
+1. To be continued at a later date.
+############################
+Selecting the right version of Python
+############################
+1. Could do this right now, but I want to do vacation now. :)
