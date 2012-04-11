@@ -25,6 +25,13 @@ BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
 FIELD_SPACING = 10
 
+##
+#UserInterface
+#Description: class that handles all drawing and key presses, and translates everything to something that can more easily be understood by a programmer.
+#
+#Variables:
+#   inputSize - An (x,y) tuple expressing the size of the aNTiCS window in pixels.
+##
 class UserInterface(object):
     ##
     #__init__
@@ -144,18 +151,48 @@ class UserInterface(object):
     def submitStopTournament(self):
         print "Clicked STOP TOURNAMENT"
     
+    ##
+    #locationClicked
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    #
+    #Parameters:
+    #   coords - the cell on the board that was clicked.
+    ##
     def locationClicked(self, coords):
         print "Clicked LOCATION " + str(coords)
     
+    ##
+    #checkBoxClicked
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    #
+    #Parameters:
+    #   index - the index into the array self.allAIs.
+    ##
     def checkBoxClicked(self, index):
         print "CLICKED CHECKBOX NUMBER " + str(index)
     
+    ##
+    #submitSelectedAIs
+    #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
+    ##
     def submitSelectedAIs(self):
         print "CLICKED SUBMIT SELECTED AIS"
     
+    ##
+    #notify
+    #Description: changes the message displayed in the notification box.
+    #
+    #Parameters:
+    #   message - The message to be relayed to the user.
+    ##
     def notify(self, message):
         self.lastNotification = message
     
+    ##
+    #drawNotification
+    #Description: draws the notification currently being relayed to the user.
+    #   Breaks the notification into multiple lines if necessary.
+    ##
     def drawNotification(self):
         #Draw a black box to encapsulate the notification
         outerNoteBox = Rect(0, 0, self.buttonRect.width + 2 * CELL_SPACING, self.buttonRect.height + 2 * CELL_SPACING)
@@ -254,7 +291,8 @@ class UserInterface(object):
         self.screen.blit(label2, addCoords(self.scoreLocation, (0, label2.get_rect().height)))
     
     ##
-    #
+    #drawTextBox
+    #Description: Draws a box that holds text to the buttonArea.
     ##
     def drawTextBox(self):
         pygame.draw.rect(self.screen, DARK_RED if self.textBoxContent == '' else LIGHT_GREEN, self.buttonRect.move(self.textPosition))
@@ -263,6 +301,7 @@ class UserInterface(object):
         self.screen.blit(label, addCoords(self.textPosition, offset))
     
     ##
+    #drawTable
     #Description: Draws the tournament score table from a list of (author string, wins int, losses int, ties int) tuples.
     ##
     def drawTable(self):
@@ -287,6 +326,13 @@ class UserInterface(object):
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
     
+    ##
+    #drawAICheckList
+    #Description: draws a checklist of all AIs that are available to select.
+    #
+    #Parameters:
+    #   mode - The current game mode.
+    ##
     def drawAIChecklist(self, mode):
         #Replace the AIList with a shorter one if in human mode because I don't want to draw the human player in the checklist.
         safeList = self.allAIs[1:] if mode == HUMAN_MODE else self.allAIs
@@ -297,7 +343,7 @@ class UserInterface(object):
         safeList = safeList[:2 * maxRows] if len(safeList) > maxRows * 2 else safeList
         #Decide on where the checkList should start on screen.
         XStartPixel = 50
-        YStartPixel = 50 + self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
+        YStartPixel = self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
         if YStartPixel < 0:
             YStartPixel = 0
         #Draw the checkList.
@@ -316,6 +362,14 @@ class UserInterface(object):
         #And last but not least, draw the "Submit Selected" button below the end of the first column.
         self.drawButton(key, self.submitSelected)
     
+    ##
+    #drawCell
+    #Description: Draws a cell. The basic component of the board.
+    #
+    #Parameters:
+    #   currentLoc - The Location to be drawn in this cell. Locations can have
+    #       ants and buildings attached, so those will be drawn if present.
+    ##
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
         row = currentLoc.coords[1]
@@ -355,7 +409,9 @@ class UserInterface(object):
     #   starts drawing from here.
     #
     #Parameters:
-    #   currentState - 
+    #   currentState - The state of the board to draw as a GameState.
+    #   mode - The current game mode.
+    ##
     def drawBoard(self, currentState, mode):
         self.handleEvents(mode)
         if self.choosingAIs:
@@ -424,6 +480,16 @@ class UserInterface(object):
         
         buttons[key][1] = released
     
+    ##
+    #handleAICheckList
+    #Description: handles any MOUSE_BUTTON_DOWN events pertaining to the AI
+    #   check list.
+    #
+    #Parameters:
+    #   event - All information about the event. We already know its type due
+    #       to the fact we are in this method, but position of the click is
+    #       also important.
+    ##
     def handleAICheckList(self, event, mode):
         #Replace the AIList with a shorter one if in human mode because find the human player in the checklist.
         safeList = self.allAIs[1:] if mode == HUMAN_MODE else self.allAIs
@@ -440,7 +506,7 @@ class UserInterface(object):
             columnClicked = 1
         #If a column was clicked, check if a row was clicked.
         if columnClicked > -1:
-            yStart = 50 + self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
+            yStart = self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
             if (event.pos[1] - yStart + FIELD_SPACING) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
                 checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
                 #If the checkbox clicked was in a column other than the first, add the implicit rows skipped.
@@ -456,6 +522,9 @@ class UserInterface(object):
     #Description: Handles the more generic mouse movements. Finds out what has been
     #   clicked, and either calls handleButton on the activated button, or uses a
     #   callback to tell the HumanPlayer what the human clicked.
+    #
+    #Pararmeters:
+    #   mode - The current game mode.
     ##
     def handleEvents(self, mode):
         #Make sure we check the right buttons
@@ -539,6 +608,15 @@ class UserInterface(object):
                 elif event.key == 8 and self.textBoxContent != '':
                     self.textBoxContent = self.textBoxContent[:-1]
     
+    ##
+    #findButtonCoords
+    #Description: Finds the coordinates that button should be placed at based on its index from the top or bottom of the screen.
+    #
+    #Parameters:
+    #   index - There are reserved spaces for buttons, allowing for a certain buffer zone between each button.
+    #       This is the index from the top or bottom of the screen that this button should be placed at.
+    #   isTop - True if the index be counted from the top of the screen. False otherwise.
+    ##
     def findButtonCoords(self, index, isTop):
         buttonSpacing = 2 * CELL_SPACING
         buttonX = self.screen.get_width() - self.buttonRect.width - buttonSpacing
@@ -549,6 +627,10 @@ class UserInterface(object):
             buttonY = self.screen.get_height() - (index + 1) * (buttonSpacing + self.buttonRect.height)
             return buttonX, buttonY
     
+    ##
+    #initAssets
+    #Description: initializes everything the UserInterface needs to render a game state properly.
+    ##
     def initAssets(self):
         global CELL_SIZE
         #Declare the name of the folder that all textures are in.

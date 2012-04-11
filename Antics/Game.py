@@ -13,7 +13,6 @@ from Move import *
 #Game
 #Description: Keeps track of game logic and manages the play loop.
 ##
-
 class Game(object):
 
     ##
