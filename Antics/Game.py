@@ -393,6 +393,9 @@ class Game(object):
     #resolveAttack 
     #Description: Checks a player wants to attack and takes appropriate action.
     #
+	#Parameters:
+	#   attackingAnt - The Ant that has an available attack (Ant)
+    #   currentPlayer - The Player whose turn it currently is (Player)
     ##   
     def resolveAttack(self, attackingAnt, currentPlayer):
         #check if player wants to attack
@@ -556,9 +559,11 @@ class Game(object):
     ##
     #isValidMove(Move)
     #Description: Checks to see if the move is valid for the current player.
-    #  (maybe put in GameState to make available to students)
+    # 
+    #Parameters:
+    #   move - The Move to check (Move)
     #
-    #Returns: None if no move is given
+    #Returns: None if no move is given, true if the given move is valid, or false if the given move is invalid
     ##
     def isValidMove(self, move):
         #check for no move
@@ -679,9 +684,13 @@ class Game(object):
         
     ##
     #isValidPlacement
-    #Description: Length of targets cannot be longer than length of items
+    #Description: Checks that the given placement of Constructions is valid
     #
-    #Returns None if no target is given
+    #Paramters:
+    #   items - The items to place (Construction[])
+    #   targets - A list of the coordinates to place the items at ((int,int)[])
+    #
+    #Returns None if no target is given, true if it is a valid placement, or false if it is an invalid placement
     ##
     def isValidPlacement(self, items, targets):
         #If no target, return None (human vs ai caught by caller)
@@ -719,7 +728,13 @@ class Game(object):
     ##
     #isValidAttack
     #Description: Determines whether the attack with the given parameters is valid
-    #Attacking ant is assured to exist and belong to the player whose turn it is
+    #   Attacking ant is assured to exist and belong to the player whose turn it is
+    #
+    #Parameters:
+    #   attackingAnt - The Ant that is attacking (Ant)
+    #   attackCoords - The coordinates of the Ant that is being attacked ((int,int))
+    #
+    #Returns: None if there are no attackCoords, true if it is a valid attack, or false if it is not a valid attack
     ##  
     def isValidAttack(self, attackingAnt, attackCoords):
         if attackCoords == None:
@@ -745,6 +760,9 @@ class Game(object):
     ##
     #hasWon(int)
     #Description: Determines whether the game has ended in victory for the given player.
+    #
+    #Parameters:
+    #   playerId - The ID of the player being checked for winning (int)
     #   
     #Returns: True if the player with playerId has won the game.
     ##
@@ -763,6 +781,11 @@ class Game(object):
     #checkMoveStart 
     #Description: Checks if the location is valid to move from.
     #  (bounds and ant ownership)
+    #
+    #Parameters:
+    #   coord - The starting point for the move ((int, int))
+    #
+    #Returns: True if it is a valid starting point for a move and false if not
     ##
     def checkMoveStart(self, coord):
         #check location is on board
@@ -782,7 +805,14 @@ class Game(object):
     #Description: Checks if the location is valid to move to.
     #  (clear path, adjacent locations) 
     #
-    #fromCoord must always have been checked by the time it's passed
+    #Parameters:
+    #   fromCoord - The Ant's current coordinate ((int, int))
+    #   toCoord - The coorinate to move the Ant to ((int, int))
+    #   antToMove - The Ant that is being moved (Ant)
+    #
+    #Returns: True if it is a valid move and false otherwise
+    #
+    #Note: fromCoord must always have been checked by the time it's passed
     #  (either in checkMoveStart or previous checkMovePath call)
     ##
     def checkMovePath(self, fromCoord, toCoord, antToMove):
@@ -806,6 +836,11 @@ class Game(object):
     #checkBuildStart 
     #Description: Checks if the location is valid to build from.
     #  (bounds and building ownership)
+    #
+    #Parameters:
+    #   coord - The coordinate trying to be used to build ((int, int))
+    #
+    #Returns: True if it is a valid build location and false otherwise
     ##    
     def checkBuildStart(self, coord):
         #check location is on board
@@ -969,6 +1004,9 @@ class Game(object):
     ##
     #locationClickedCallback
     #Description: Responds to a user clicking on a board location
+    #
+    #Parameters:
+    #   coord - The coordinate clicked ((int, int))
     #
     ##
     def locationClickedCallback(self, coord):
@@ -1160,6 +1198,8 @@ class Game(object):
     #checkBoxClickedCallback
     #Description: Responds to a user clicking on a checkbox to select AIs
     #
+    #Parameters:
+    #   index - The index of the checkbox clicked on (int)
     ##
     def checkBoxClickedCallback(self, index):
         self.players[index][1] = ACTIVE if self.players[index][1] == INACTIVE else INACTIVE
