@@ -1,8 +1,8 @@
 ######################
 WINDOWS INSTRUCTIONS
 ######################
-pygame: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
 python: http://www.python.org/ftp/python/2.7.2/python-2.7.2.msi
+pygame: http://pygame.org/ftp/pygame-1.9.1.win32-py2.7.msi
 
 The most important detail to be aware of here, is that pygame is only compiled
 to run in 32-bit mode at the moment. 64-bit computers will still run it, so
