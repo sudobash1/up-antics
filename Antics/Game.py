@@ -56,7 +56,8 @@ class Game(object):
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
         self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
         self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
-        self.ui.antButtons['None'][-1] = self.buildNothingCallback
+        self.ui.antButtons['None'][-1] = self.buildNothingCallback    
+        self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
         self.ui.locationClicked = self.locationClickedCallback
         self.ui.checkBoxClicked = self.checkBoxClickedCallback
         #Finally, let the ui look at players
@@ -89,13 +90,16 @@ class Game(object):
                 
                 while not gameOver:
                     #draw the board (to recognize user input in game loop)
-                    self.ui.drawBoard(self.state, self.mode)
+                    self.ui.drawBoard(self.state, self.mode)  
                     
                     if self.state.phase != MENU_PHASE:
                         #if the player is player two, flip the board
                         theState = self.state.clone()
                         if theState.whoseTurn == PLAYER_TWO:
                             theState.flipBoard()
+                    else:
+                        #if we are in menu phase at this point, a reset was requested so break
+                        break
                     
                     if self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2:
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
@@ -136,6 +140,9 @@ class Game(object):
                             
                             #if AI mode, pause to observe move until next or continue is clicked
                             self.pauseForAIMode()
+                            if self.state.phase == MENU_PHASE:
+                                #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                                break
                             
                             if not constrsToPlace:
                                 constrsToPlace = []
@@ -177,6 +184,7 @@ class Game(object):
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
+                                print "ERROR: AI player submitted invalid placement"
                                 exit(0)
                             elif validPlace != None:
                                 self.ui.notify("Invalid placement.")
@@ -232,10 +240,16 @@ class Game(object):
                                 self.ui.coordList = []
                                 
                                 #if AI mode, pause to observe move until next or continue is clicked                               
-                                self.pauseForAIMode()   
+                                self.pauseForAIMode()
+                                if self.state.phase == MENU_PHASE:
+                                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                                    break
                                 
                                 #check and take action for attack
-                                self.resolveAttack(antToMove, currentPlayer)   
+                                self.resolveAttack(antToMove, currentPlayer)
+                                if self.state.phase == MENU_PHASE:
+                                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                                    break
 
                                 #clear all highlights after attack happens
                                 self.ui.coordList = []
@@ -261,6 +275,9 @@ class Game(object):
                                 
                                 #if AI mode, pause to observe move until next or continue is clicked
                                 self.pauseForAIMode()
+                                if self.state.phase == MENU_PHASE:
+                                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                                    break
                                 
                                 #clear all highlights after build
                                 self.ui.coordList = []    
@@ -290,15 +307,20 @@ class Game(object):
                                 
                                 #if AI mode, pause to observe move until next or continue is clicked
                                 self.pauseForAIMode()
+                                if self.state.phase == MENU_PHASE:
+                                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                                    break
                                 
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
                             else:
                                 #invalid move type, exit
+                                print "ERROR: invalid move type"
                                 exit(0)
                         else:     
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
+                                print "ERROR: AI player submitted invalid move"
                                 exit(0)
                             elif validMove != None:
                                 #if validMove is False and not None, clear move
@@ -306,7 +328,8 @@ class Game(object):
                                 self.ui.coordList = []
                             
                     else:
-                        #wrong phase, 
+                        #wrong phase
+                        print "ERROR: invalid phase"
                         exit(0)
 
                     #determine if if someone is a winner.
@@ -329,64 +352,64 @@ class Game(object):
                         self.currentPlayers[PLAYER_TWO].registerWin(True)
                 #end game loop
     
-                #check mode for appropriate response to game over
-                if self.mode == HUMAN_MODE or self.mode == AI_MODE:
-                    #reset the game
-                    self.resetGame()
-                    self.resetUI()
+                if self.state.phase != MENU_PHASE:
+                    #check mode for appropriate response to game over
+                    if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                        #reset the game
+                        self.resetGame()
+                        self.resetUI()
+                        
+                        #notify the user of the winner
+                        if winner == PLAYER_ONE:
+                            self.ui.notify("Player 1 has won the game!")
+                        else:
+                            self.ui.notify("Player 2 has won the game!")
+                    elif self.mode == TOURNAMENT_MODE: 
+                        #adjust the count of games to play for the current pair
+                        currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                     
-                    #notify the user of the winner
-                    if winner == PLAYER_ONE:
-                        self.ui.notify("Player 1 has won the game!")
+                        #reset the game
+                        self.resetGame()
+                    
+                        #give the new scores to the UI
+                        self.ui.tournamentScores = self.playerScores
+                    
+                        #adjust the wins and losses of players
+                        self.playerScores[winner][1] += 1
+                        self.playerScores[loser][2] += 1
+                       
+                        for i in range(0, len(self.gamesToPlay)):
+                            #if we found the current pairing
+                            if self.gamesToPlay[i][0] == currentPairing:
+                                #mark off another game for the pairing
+                                self.gamesToPlay[i][1] -= 1
+                                
+                                #if the pairing has no more games, then remove it
+                                if self.gamesToPlay[i][1] == 0:
+                                    self.gamesToPlay.remove(self.gamesToPlay[i])
+                                break
+                                
+                        if len(self.gamesToPlay) == 0:
+                            #if no more games to play, reset tournament stuff
+                            self.numGames = 0                               
+                            self.playerScores = []
+                            self.mode = TOURNAMENT_MODE
+                        else:
+                            #setup game to run again
+                            self.mode = TOURNAMENT_MODE
+                            self.state.phase = SETUP_PHASE_1
+                        
+                            #get players from next pairing
+                            playerOneId = self.gamesToPlay[0][0][0]
+                            playerTwoId = self.gamesToPlay[0][0][1]
+                        
+                            #set up new current players
+                            self.currentPlayers.append(self.players[playerOneId][0])
+                            self.currentPlayers.append(self.players[playerTwoId][0])     
                     else:
-                        self.ui.notify("Player 2 has won the game!")
-                elif self.mode == TOURNAMENT_MODE: 
-                    #adjust the count of games to play for the current pair
-                    currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
-                
-                    #reset the game
-                    self.resetGame()
-                
-                    #give the new scores to the UI
-                    self.ui.tournamentScores = self.playerScores
-                
-                    #adjust the wins and losses of players
-                    self.playerScores[winner][1] += 1
-                    self.playerScores[loser][2] += 1
-                   
-                    for i in range(0, len(self.gamesToPlay)):
-                        #if we found the current pairing
-                        if self.gamesToPlay[i][0] == currentPairing:
-                            #mark off another game for the pairing
-                            self.gamesToPlay[i][1] -= 1
-                            
-                            #if the pairing has no more games, then remove it
-                            if self.gamesToPlay[i][1] == 0:
-                                self.gamesToPlay.remove(self.gamesToPlay[i])
-                            break
-                            
-                    if len(self.gamesToPlay) == 0:
-                        #if no more games to play, reset tournament stuff
-                        self.numGames = 0                               
-                        self.playerScores = []
-                        self.mode = TOURNAMENT_MODE
-                    else:
-                        #setup game to run again
-                        self.mode = TOURNAMENT_MODE
-                        self.state.phase = SETUP_PHASE_1
-                    
-                        #get players from next pairing
-                        playerOneId = self.gamesToPlay[0][0][0]
-                        playerTwoId = self.gamesToPlay[0][0][1]
-                    
-                        #set up new current players
-                        self.currentPlayers.append(self.players[playerOneId][0])
-                        self.currentPlayers.append(self.players[playerTwoId][0])
-                    
-                    
-                else:
-                    #wrong or no mode, exit
-                    exit(0)
+                        #wrong or no mode, exit
+                        print "ERROR: invalid mode"
+                        exit(0)
     
     ##
     #resolveAttack 
@@ -426,6 +449,10 @@ class Game(object):
                 #Draw the board again (to recognize user input inside loop)
                 self.ui.drawBoard(self.state, self.mode)
                 
+                if self.state.phase == MENU_PHASE:
+                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                    return
+                
                 #Create a clone of the state to give to the player
                 theState = self.state.clone()
                 if theState.whoseTurn == PLAYER_TWO:
@@ -439,6 +466,7 @@ class Game(object):
                 if not validAttack:
                     if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
+                        print "ERROR: AI player submitted invalid attack"
                         exit(0)
                     else:
                         #if a human submitted an invalid attack, reset coordList
@@ -503,8 +531,10 @@ class Game(object):
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
         self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
         self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
-        self.ui.antButtons['None'][-1] = self.buildNothingCallback
-        self.ui.locationClicked = self.locationClickedCallback
+        self.ui.antButtons['None'][-1] = self.buildNothingCallback       
+        self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
+        self.ui.locationClicked = self.locationClickedCallback      
+        self.ui.checkBoxClicked = self.checkBoxClickedCallback
         self.ui.allAIs = self.players
             
     ##
@@ -868,6 +898,9 @@ class Game(object):
         if self.mode == AI_MODE:
             while not self.nextClicked and not self.continueClicked:
                 self.ui.drawBoard(self.state, self.mode)
+                if self.state.phase == MENU_PHASE:
+                    #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
+                    return
             #reset nextClicked to catch next move
             self.nextClicked = False
 
@@ -889,25 +922,9 @@ class Game(object):
             self.ui.notify("Please select a mode.")
             return
         
-        #Make a temporary list to append to so that we may check how many AIs we have available.
-        tempCurrent = [player for player in self.currentPlayers]
-        #Load the first two active players (idx 0 is human player)
-        for index in range(0, len(self.players)):
-            if self.players[index][1] == ACTIVE:
-                tempCurrent.append(self.players[index][0])
-                for playerEntry in self.players[index + 1:]:
-                    if playerEntry[1] == ACTIVE:
-                        tempCurrent.append(playerEntry[0])
-                        break
-                break
-        if len(tempCurrent) != 2:
-            self.ui.notify("Please select AIs to play game.")
+        if self.ui.choosingAIs:
+            self.ui.notify("Please submit AIs to play game.")
             return
-        elif self.ui.choosingAIs:
-            self.ui.choosingAIs = False
-            return
-
-        self.currentPlayers = tempCurrent
 
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
@@ -946,16 +963,20 @@ class Game(object):
             
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
-    
+            
     ##
     #tourneyPathCallback
     #Description: Responds to a user clicking on the Tournament button
     #
     ##
     def tourneyPathCallback(self):
-        #If already in tournament mode, do nothing. WILL BE CHANGED IN THE FUTURE
-        if self.mode == TOURNAMENT_MODE or self.state.phase != MENU_PHASE:
-            return
+        #Reset the game
+        self.resetGame()
+        self.resetUI()
+        #Reset tournament mode variables
+        self.playerScores = []
+        self.gamesToPlay = []
+        self.numGames = None
         #Attempt to load the AI files
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
@@ -970,9 +991,9 @@ class Game(object):
     #
     ##
     def humanPathCallback(self):
-        #If already in human mode, do nothing.
-        if self.mode == HUMAN_MODE or self.state.phase != MENU_PHASE:
-            return
+        #Reset the game and UI
+        self.resetGame()
+        self.resetUI()
         #Attempt to load the AI files
         self.loadAIs(True) 
         #Add the human player to the player list
@@ -989,9 +1010,9 @@ class Game(object):
     #
     ##
     def aiPathCallback(self):
-        #If already in ai mode, do nothing.
-        if self.mode == AI_MODE or self.state.phase != MENU_PHASE:
-            return
+        #Reset the game
+        self.resetGame()
+        self.resetUI()
         #Attempt to load the AI files
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
@@ -1010,8 +1031,7 @@ class Game(object):
     ##
     def locationClickedCallback(self, coord):
         if self.state.phase == MENU_PHASE:
-            self.ui.notify("Please start a game.")
-            self.errorNotify = True
+            self.ui.notify("Please start the game.")
             return
     
         #Check if its human player's turn during play phase
@@ -1084,6 +1104,10 @@ class Game(object):
     #
     ##
     def buildClickedCallback(self):
+        if self.state.phase == MENU_PHASE:
+            self.ui.notify("Please start the game.")
+            return
+        
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
                 HumanPlayer.HumanPlayer and len(self.currentPlayers[self.state.whoseTurn].coordList) == 1):
@@ -1106,7 +1130,11 @@ class Game(object):
     #Description: Responds to a user clicking on the end button
     #
     ##
-    def endClickedCallback(self):     
+    def endClickedCallback(self):
+        if self.state.phase == MENU_PHASE:
+            self.ui.notify("Please start the game.")
+            return
+            
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
                 and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
@@ -1183,6 +1211,9 @@ class Game(object):
     def nextClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.nextClicked = True
+        else:
+            self.ui.notify("Please start the game.")
+            return
     
     ##
     #continueClickedCallback
@@ -1192,6 +1223,9 @@ class Game(object):
     def continueClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
+        else:
+            self.ui.notify("Please start the game.")
+            return
     
     ##
     #checkBoxClickedCallback
@@ -1202,6 +1236,32 @@ class Game(object):
     ##
     def checkBoxClickedCallback(self, index):
         self.players[index][1] = ACTIVE if self.players[index][1] == INACTIVE else INACTIVE
+
+    ##
+    #submitClickedCallback
+    #Description: Responds to a user clicking on the submit button when selecting AIs
+    #
+    ##
+    def submitClickedCallback(self):
+        #Make a temporary list to append to so that we may check how many AIs we have available.
+        tempCurrent = []
+        #Load the first two active players (idx 0 is human player)
+        for index in range(0, len(self.players)):
+            if self.players[index][1] == ACTIVE:
+                tempCurrent.append(self.players[index][0])
+                for playerEntry in self.players[index + 1:]:
+                    if playerEntry[1] == ACTIVE:
+                        tempCurrent.append(playerEntry[0])
+                        break
+                break
+        if len(tempCurrent) != 2:
+            self.ui.notify("Please select more AIs to play this game type.")
+            return
+    
+        self.currentPlayers = tempCurrent
+                  
+        self.ui.notify("")
+        self.ui.choosingAIs = False
 
 a = Game()
 a.runGame()

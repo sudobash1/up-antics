@@ -417,6 +417,7 @@ class UserInterface(object):
         if self.choosingAIs:
             self.screen.fill(WHITE)
             self.drawAIChecklist(mode)
+            self.drawNotification()
         elif mode == TOURNAMENT_MODE:
             self.screen.fill(WHITE)
             #Draw the box into which the user can enter the number of games they want to play.
@@ -712,7 +713,7 @@ class UserInterface(object):
         }
         #Initial value for submit button for AI checklist.
         self.submitSelected = {
-        'Submit Selected AIs':[(0,0), 1, self.submitSelectedAIs]
+        'Submit AIs':[(0,0), 1, self.submitSelectedAIs]
         }
         #Properties of our single text box
         self.textPosition = self.findButtonCoords(2, True)
