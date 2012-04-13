@@ -47,7 +47,7 @@ remember: DOWNLOAD 32-BIT!
     window: hold the windows key and press "r". That will bring up a window
     called "run". Copy and paste the following line into the text field in
     "run":
-    rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl,0
+    sysdm.cpl
 
 8. Now go to the "advanced" tab on the "System Properties" window. Click
     "Environment Variables".
