@@ -25,14 +25,9 @@ http://www.python.org/ftp/python/2.7.2/python-2.7.2-macosx10.6.dmg
 2. Install python to the default location.
 
 3. Once python is installed, open a terminal and make sure you have the right version of python selected by typing the following line:
-python
-if you get a prompt that looks like the following:
->>>
-then python is working. There should also be some header text above the prompt,
-which indicates what version of python you are running. the header should start
-with "Python 2.7". Mine starts with "Python 2.7.2" which does indeed start with
-"Python 2.7".
-If the version is not python 2.7, then you don't have the right version of
+python -V
+The output you get should look something like "Python 2.7.x", where x is any number greater than 0, but most likely less than 10.
+If the version is not python 2.7.x, then you don't have the right version of
 python selected. Try the "Selecting the right version of Python" section in
 this guide.
 
@@ -51,13 +46,29 @@ the directions to this point, pygame may be installed in the wrong location.
 ############################
 Installing Pygame for macports
 ############################
-1. To be continued at a later date.
+
+1. Actually, I'm considering removing this.
+The mac I got a hold of didn't play nice with
+macports, and I don't have time to fix it right now.
+
 ############################
-Installing Pygame without python
+Installing Pygame without installing python
 (Mac Version 10.6 or greater only)
 ############################
-1. To be continued at a later date.
+1. If you have OSX version 10.6, install pygame from here:
+http://www.pygame.org/ftp/pygame-1.9.2pre-py2.6-macosx10.6.mpkg.zip
+If you have OSX 10.7, use this pygame instead:
+http://www.pygame.org/ftp/pygame-1.9.2pre-py2.7-macosx10.7.mpkg.zip
+
+2. As long as you haven't changed the system python, you should now be able to do
+step 5 of "Actually Installing Pygame". If so, you're done. If not,  use the following section
+"Selecting the right version of Python" to select your system python (2.6 for OSX 10.6, or 2.7 for OSX 10.7).
+
 ############################
 Selecting the right version of Python
+(possibly requires Mac Version 10.6)
 ############################
-1. Could do this right now, but I want to do vacation now. :)
+
+1. Type the following line into your terminal:
+defaults write com.apple.versioner.python Version 2.7
+typing "python -V" should now return a 2.7.x version of python
