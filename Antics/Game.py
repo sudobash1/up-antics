@@ -364,7 +364,8 @@ class Game(object):
                             self.ui.notify("Player 1 has won the game!")
                         else:
                             self.ui.notify("Player 2 has won the game!")
-                    elif self.mode == TOURNAMENT_MODE: 
+                    elif self.mode == TOURNAMENT_MODE:
+                        
                         #adjust the count of games to play for the current pair
                         currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                     
@@ -415,8 +416,8 @@ class Game(object):
     #resolveAttack 
     #Description: Checks a player wants to attack and takes appropriate action.
     #
-	#Parameters:
-	#   attackingAnt - The Ant that has an available attack (Ant)
+    #Parameters:
+    #   attackingAnt - The Ant that has an available attack (Ant)
     #   currentPlayer - The Player whose turn it currently is (Player)
     ##   
     def resolveAttack(self, attackingAnt, currentPlayer):
@@ -546,8 +547,6 @@ class Game(object):
     #           offset by 1 to account for the human player as player one.
     ##
     def loadAIs(self, humanMode):
-        #If humanMode, then we're going to start AI ids at a higher number. Change modifier to reflect this
-        modifier = 1 if humanMode else 0
         #Reset the player list in case some have been loaded already
         self.players = []
         self.ui.allAIs = self.players
@@ -568,7 +567,7 @@ class Game(object):
                 if temp == None:
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
-                self.players.append([temp.AIPlayer(len(self.players) + modifier), INACTIVE])
+                self.players.append([temp.AIPlayer(-1), INACTIVE])
             else:
                 #No proper AIs were found in the subdirectory, notify
                 self.ui.notify("AIs could not be loaded.")
@@ -929,6 +928,11 @@ class Game(object):
         if self.state.phase == MENU_PHASE:     
             #set up stuff for tournament mode
             if self.mode == TOURNAMENT_MODE:
+                #reset tournament variables
+                self.playerScores = [] # [[author,wins,losses], ...]
+                self.gamesToPlay = [] #((p1.id, p2.id), numGames)
+                self.numGames = None
+            
                 if self.ui.textBoxContent != '':
                     self.numGames = int(self.ui.textBoxContent)
                 else:
@@ -942,25 +946,37 @@ class Game(object):
                 self.ui.tournamentScores = []
                 
                 for i in range(0, len(self.players)):
-                    if self.players[i][1] == ACTIVE:
-                        #initialize the player's win/loss scores
-                        tempAuth = self.players[i][0].author
-                        #If the length of the author's name is longer than 24 characters, truncate it to 24 characters
-                        if len(tempAuth) > 20:
-                            tempAuth = tempAuth[0:21] + "..."
-                        
-                        self.playerScores.append([tempAuth, 0, 0])
-                        self.ui.tournamentScores.append([tempAuth, 0, 0])
-                        
-                        for j in range(i, len(self.players)):
-                            if self.players[i][0] != self.players[j][0] and self.players[j][1] == ACTIVE:
-                                self.gamesToPlay.append([(i, j), None])
+                    #initialize the player's win/loss scores
+                    tempAuth = self.players[i][0].author
+                    #If the length of the author's name is longer than 24 characters, truncate it to 24 characters
+                    if len(tempAuth) > 20:
+                        tempAuth = tempAuth[0:21] + "..."
+                    
+                    self.playerScores.append([tempAuth, 0, 0])
+                    self.ui.tournamentScores.append([tempAuth, 0, 0])
+                    
+                    for j in range(i, len(self.players)):
+                        if self.players[i][0] != self.players[j][0]:
+                            self.gamesToPlay.append([(self.players[i][0].playerId, self.players[j][0].playerId), None])
                             
                 numPairings = len(self.gamesToPlay)
                 for i in range(0, numPairings):
                     #assign equal number of games to each pairing (rounds down)
                     self.gamesToPlay[i][1] = self.numGames
             
+            #Make a temporary list to append to so that we may check how many AIs we have available.
+            tempCurrent = []
+             
+            #Load the first two active players (idx 0 is human player)
+            for index in range(0, len(self.players)):
+                tempCurrent.append(self.players[index][0])
+                for playerEntry in self.players[index + 1:]:
+                    tempCurrent.append(playerEntry[0])
+                    break
+                break
+
+            self.currentPlayers = tempCurrent
+                 
             #change the phase to setup
             self.state.phase = SETUP_PHASE_1
             
@@ -983,7 +999,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
-            self.ui.notify("Mode set to Tournament Mode.")
+            self.ui.notify("Mode set to Tournament. Select at least two AIs.")
     
     ##
     #humanPathCallback
@@ -1002,7 +1018,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = HUMAN_MODE
-            self.ui.notify("Mode set to Human vs. AI.")
+            self.ui.notify("Mode set to Human vs. AI. Select one AI.")
     
     ##
     #aiPathCallback
@@ -1019,7 +1035,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = AI_MODE
-            self.ui.notify("Mode set to AI vs. AI.")    
+            self.ui.notify("Mode set to AI vs. AI. Select two AIs.")    
      
     ##
     #locationClickedCallback
@@ -1242,25 +1258,31 @@ class Game(object):
     #Description: Responds to a user clicking on the submit button when selecting AIs
     #
     ##
-    def submitClickedCallback(self):
-        #Make a temporary list to append to so that we may check how many AIs we have available.
-        tempCurrent = []
-        #Load the first two active players (idx 0 is human player)
-        for index in range(0, len(self.players)):
-            if self.players[index][1] == ACTIVE:
-                tempCurrent.append(self.players[index][0])
-                for playerEntry in self.players[index + 1:]:
-                    if playerEntry[1] == ACTIVE:
-                        tempCurrent.append(playerEntry[0])
-                        break
-                break
-        if len(tempCurrent) != 2:
+    def submitClickedCallback(self):      
+        currId = 0
+        inactivePlayers = []
+        for i in range(0, len(self.players)):
+            if self.players[i][1] == ACTIVE:
+                self.players[i][0].playerId = currId
+                currId += 1
+            else:
+                inactivePlayers.append(self.players[i])
+        
+        #check to see if we have enough checked players
+        if (len(self.players) - len(inactivePlayers)) < 2:
             self.ui.notify("Please select more AIs to play this game type.")
             return
-    
-        self.currentPlayers = tempCurrent
-                  
-        self.ui.notify("")
+        
+        #remove all inactive players
+        for player in inactivePlayers:
+            self.players.remove(player)
+        
+        if self.mode == HUMAN_MODE and len(self.players) > 2:
+            self.ui.notify("Too many AIs selected. Using first from list.")
+        elif self.mode == AI_MODE and len(self.players) > 2:
+            self.ui.notify("Too many AIs selected. Using first two from list.")
+        else:
+            self.ui.notify("")
         self.ui.choosingAIs = False
 
 a = Game()
