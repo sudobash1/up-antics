@@ -355,9 +355,11 @@ class Game(object):
                 if self.state.phase != MENU_PHASE:
                     #check mode for appropriate response to game over
                     if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                        currMode = self.mode
                         #reset the game
                         self.resetGame()
-                        self.resetUI()
+                        self.mode = currMode
+                            
                         
                         #notify the user of the winner
                         if winner == PLAYER_ONE:
