@@ -1056,12 +1056,17 @@ class Game(object):
         if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             whoseTurn = self.state.whoseTurn
             currentPlayer = self.currentPlayers[whoseTurn]
+            self.ui.validCoordList = []
+            changedMove = False
             
             #add location to human player's movelist if appropriatocity is valid
             
             if len(currentPlayer.coordList) == 0:
                 #Clicked when nothing selected yet (select ant or building)
-                if self.checkMoveStart(coord) or self.checkBuildStart(coord) or self.expectingAttack:
+                if self.checkMoveStart(coord):
+                    currentPlayer.coordList.append(coord)
+                    changedMove = True
+                elif self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
                 self.errorNotify = False
                     
@@ -1073,6 +1078,7 @@ class Game(object):
                         currentPlayer.coordList.pop()
                     else:
                         currentPlayer.moveType = MOVE_ANT
+                        self.ui.validCoordList = []
                     self.errorNotify = False
                 
             else:
@@ -1098,6 +1104,7 @@ class Game(object):
                             currentPlayer.coordList.pop()
                         else:
                             self.errorNotify = False
+                            changedMove = True
                     else:
                         currentPlayer.coordList = []
                 else:
@@ -1105,12 +1112,35 @@ class Game(object):
                     numToRemove = len(currentPlayer.coordList) - (index + 1)
                     for i in range(0, numToRemove):
                         currentPlayer.coordList.pop()
-                
-                        
+                        changedMove = True
+                            
             #give coordList to UI so it can hightlight the player's path
             if not self.expectingAttack:
                 self.ui.coordList = currentPlayer.coordList
             
+            #highlight any valid adjacent moves
+            if changedMove:
+                adjacentCoords = []
+                adjacentCoords.append(addCoords(coord, (0, -1)))
+                adjacentCoords.append(addCoords(coord, (0, 1)))
+                adjacentCoords.append(addCoords(coord, (-1, 0)))
+                adjacentCoords.append(addCoords(coord, (1, 0)))
+                
+                for aCoord in adjacentCoords:
+                    onList = False
+                    for checkCoord in currentPlayer.coordList:
+                        if checkCoord == aCoord:
+                            onList = True
+                    
+                    if not onList:
+                        antLoc = currentPlayer.coordList[0]
+                        antToMove = self.state.board[antLoc[0]][antLoc[1]].ant
+                        currentPlayer.coordList.append(aCoord)
+                        move = Move(MOVE_ANT, currentPlayer.coordList, antToMove.type)
+                        if self.isValidMove(move):
+                            self.ui.validCoordList.append(aCoord)
+                        currentPlayer.coordList.pop()
+                
         #Check if its human player's turn during set up phase
         elif ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 
                 and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
@@ -1157,6 +1187,7 @@ class Game(object):
         if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
                 and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
             self.currentPlayers[self.state.whoseTurn].moveType = END
+            self.ui.validCoordList = []
     
     ##
     #buildWorkerClickedCallback

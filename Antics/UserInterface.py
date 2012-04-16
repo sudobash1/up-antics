@@ -20,6 +20,7 @@ LIGHT_GREEN = (0, 255, 0)
 DARK_BLUE = (0, 0, 150)
 LIGHT_BLUE = (0, 0, 255)
 ROBIN_EGG_BLUE = (0, 204, 204)
+GOLDENROD = (238, 173, 14)
 CELL_SIZE = Rect(0,0,10,10)
 BOARD_SIZE = Rect(0,0,10,10)
 CELL_SPACING = 5
@@ -398,7 +399,7 @@ class UserInterface(object):
                 pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
         #Also shade potential moves.
         if currentLoc.coords in self.validCoordList:
-            pygame.draw.rect(self.screen, ROBIN_EGG_BLUE, shadeRect.move(shadeXpixel, shadeYpixel))
+            pygame.draw.rect(self.screen, GOLDENROD, shadeRect.move(shadeXpixel, shadeYpixel))
         #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
         if currentLoc.coords in self.attackList:
             pygame.draw.rect(self.screen, LIGHT_RED, shadeRect.move(shadeXpixel, shadeYpixel))
