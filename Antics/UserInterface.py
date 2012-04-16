@@ -295,10 +295,16 @@ class UserInterface(object):
     #Description: Draws a box that holds text to the buttonArea.
     ##
     def drawTextBox(self):
+        #Start by drawing the text box in the appropriate color.
         pygame.draw.rect(self.screen, DARK_RED if self.textBoxContent == '' else LIGHT_GREEN, self.buttonRect.move(self.textPosition))
+        #Then draw the number in the text box.
         label = self.gameFont.render(self.textBoxContent + ('|' if self.boxSelected else ''), True, BLACK)
         offset = subtractCoords(self.buttonRect.center, label.get_rect().center)
         self.screen.blit(label, addCoords(self.textPosition, offset))
+        #Finally, draw the text box title.
+        boxLabel = self.gameFont.render("Games to play:", True, BLACK)
+        boxLabelOffset = (0, - boxLabel.get_height() - FIELD_SPACING)
+        self.screen.blit(boxLabel, addCoords(self.textPosition, boxLabelOffset))
     
     ##
     #drawTable
