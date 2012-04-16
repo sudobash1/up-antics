@@ -383,12 +383,12 @@ class UserInterface(object):
         Xpixel = CELL_SPACING * (col + 1) + CELL_SIZE.width * col
         Ypixel = CELL_SPACING * (row + 1) + CELL_SIZE.height * row
         #Create a Rect that shows up if the square is selected.
-        shadeWidth = 2 * CELL_SPACING + CELL_SIZE.width
-        shadeHeight = 2 * CELL_SPACING + CELL_SIZE.height
+        shadeWidth = CELL_SPACING / 2 * 2 + CELL_SIZE.width
+        shadeHeight = CELL_SPACING  / 2 * 2 + CELL_SIZE.height
         shadeRect = Rect(0, 0, shadeWidth, shadeHeight)
         #Find the X and Y coordinates to draw the shade at.
-        shadeXpixel = Xpixel - CELL_SPACING
-        shadeYpixel = Ypixel - CELL_SPACING
+        shadeXpixel = Xpixel - CELL_SPACING / 2
+        shadeYpixel = Ypixel - CELL_SPACING / 2
         if self.coordList != []:
             if currentLoc.coords in self.coordList[:-1]:
                 #Draw the shadeRect if currentLoc is in coordList
