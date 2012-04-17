@@ -262,7 +262,8 @@ class UserInterface(object):
             self.screen.blit(self.isCarryingTex, (Xpixel + XoffsetCarry, Ypixel + YoffsetCarry))
         #Draw hasMoved marker as a shade across the image
         if ant.hasMoved:
-            self.screen.blit(self.hasMovedTex, (Xpixel, Ypixel))
+            self.shaderTex.fill(BLACK)
+            self.screen.blit(self.shaderTex, (Xpixel, Ypixel))
     
     ##
     #drawButton
@@ -390,19 +391,24 @@ class UserInterface(object):
         #Find the X and Y coordinates to draw the shade at.
         shadeXpixel = Xpixel - CELL_SPACING / 2
         shadeYpixel = Ypixel - CELL_SPACING / 2
+        #Create a True/False list indicating which shaders should be drawn
+        drawList = []
+        colorList = [DARK_GREEN, LIGHT_GREEN, GOLDENROD, LIGHT_RED]
         if self.coordList != []:
-            if currentLoc.coords in self.coordList[:-1]:
-                #Draw the shadeRect if currentLoc is in coordList
-                pygame.draw.rect(self.screen, DARK_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
-            elif currentLoc.coords == self.coordList[-1]:
-                #Draw brighter if the currentLoc is the last move selected
-                pygame.draw.rect(self.screen, LIGHT_GREEN, shadeRect.move(shadeXpixel, shadeYpixel))
+            #Draw the shadeRect if currentLoc is in coordList
+            drawList.append(True if currentLoc.coords in self.coordList[:-1] else False)
+            #Draw brighter if the currentLoc is the last move selected
+            drawList.append(True if currentLoc.coords == self.coordList[-1] else False)
+        else:
+            drawList += [False, False]
         #Also shade potential moves.
-        if currentLoc.coords in self.validCoordList:
-            pygame.draw.rect(self.screen, GOLDENROD, shadeRect.move(shadeXpixel, shadeYpixel))
+        drawList.append(True if currentLoc.coords in self.validCoordList else False)
         #Draw the shade for a cell highlighted for attacks if currentLoc is in attackList
-        if currentLoc.coords in self.attackList:
-            pygame.draw.rect(self.screen, LIGHT_RED, shadeRect.move(shadeXpixel, shadeYpixel))
+        drawList.append(True if currentLoc.coords in self.attackList else False)
+        #Draw the background shades
+        for index in xrange(0, len(drawList)):
+            if drawList[index]:
+                pygame.draw.rect(self.screen, colorList[index], shadeRect.move(shadeXpixel, shadeYpixel))
         #Draw the cell itself
         pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
         #Draw what's in this cell
@@ -410,6 +416,12 @@ class UserInterface(object):
             self.drawConstruction(currentLoc.constr, (col, row))
         if currentLoc.ant != None:
             self.drawAnt(currentLoc.ant, (col, row))
+        #Draw the translucent foreground shades.
+        for index in xrange(0, len(drawList)):
+            if drawList[index]:
+                self.shaderTex.fill(colorList[index])
+                self.screen.blit(self.shaderTex, CELL_SIZE.move(Xpixel, Ypixel))
+
     ##
     #drawBoard
     #Description: This is the bread and butter of the UserInterface class. Everything
@@ -655,9 +667,8 @@ class UserInterface(object):
         self.antTexs.append(pygame.image.load(os.path.join(texFolder, "drone.bmp")))
         self.antTexs.append(pygame.image.load(os.path.join(texFolder, "direct.bmp")))
         self.antTexs.append(pygame.image.load(os.path.join(texFolder, "indirect.bmp")))
-        #Load isCarrying and hasMoved textures, which will allow players to see the conditions of their ants.
+        #Load isCarrying and texture, which will allow players to see the conditions of their ants.
         self.isCarryingTex = pygame.image.load(os.path.join(texFolder, "isCarrying.bmp"))
-        self.hasMovedTex = pygame.image.load(os.path.join(texFolder, "hasMoved.bmp"))
         #CheckBox textures
         self.checkBoxTextures = []
         self.checkBoxTextures.append(pygame.image.load(os.path.join(texFolder, "unchecked.bmp")))
@@ -672,14 +683,15 @@ class UserInterface(object):
         self.buttonRect = self.buttonTextures[0].get_rect()
         #Make CELL_SIZE equal to the size of an ant image.
         CELL_SIZE = self.constructionTexs[0].get_rect()
+        #Create shaderTex, which will be used to translucently shade ants.
+        self.shaderTex = pygame.Surface((CELL_SIZE.width, CELL_SIZE.height))
         #Make White transparent (alpha 0) for all textures (well, buttons don't actually need it).
         for construction in self.constructionTexs:
             construction.set_colorkey(WHITE)
         for ant in self.antTexs:
             ant.set_colorkey(WHITE)
         self.isCarryingTex.set_colorkey(WHITE)
-        self.hasMovedTex.set_colorkey(GREY)
-        self.hasMovedTex.set_alpha(50)
+        self.shaderTex.set_alpha(50)
         #Set up fonts.
         pygame.font.init()
         self.statFont = pygame.font.Font(None, 15)

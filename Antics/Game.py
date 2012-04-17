@@ -1101,7 +1101,7 @@ class Game(object):
                         
                         #if the move wasn't valid, remove added coord from move list              
                         if not self.isValidMove(move):
-                            currentPlayer.coordList.pop()
+                            currentPlayer.coordList = []
                         else:
                             self.errorNotify = False
                             changedMove = True
@@ -1120,6 +1120,7 @@ class Game(object):
             
             #highlight any valid adjacent moves
             if changedMove:
+                self.ui.validCoordList = []
                 adjacentCoords = []
                 adjacentCoords.append(addCoords(coord, (0, -1)))
                 adjacentCoords.append(addCoords(coord, (0, 1)))
