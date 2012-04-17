@@ -54,8 +54,8 @@ class Game(object):
         self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
         self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['Direct Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['Indirect Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback    
         self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
         self.ui.locationClicked = self.locationClickedCallback
@@ -74,9 +74,15 @@ class Game(object):
         while True:
             self.ui.drawBoard(self.state, self.mode)
             #Determine current chosen game mode. Enter different execution paths based on the mode, which must be chosen by clicking a button.
-            
+            if self.mode == None:
+                self.ui.notify("Please select a game mode.")
+            elif not self.ui.choosingAIs and self.state.phase == MENU_PHASE:
+                self.ui.notify("Please start the game.")
+                
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
+                #clear notifications
+                self.ui.notify("")
                 #init game stuffs
                 #build a list of things to place for player 1 in setup phase 1
                 #1 anthill/queen, 9 obstacles
@@ -532,8 +538,8 @@ class Game(object):
         self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
         self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['D_Soldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['I_Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['Direct Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['Indirect Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback       
         self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
         self.ui.locationClicked = self.locationClickedCallback      
@@ -1001,7 +1007,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
-            self.ui.notify("Mode set to Tournament. Select at least two AIs.")
+            self.ui.notify("Mode set to Tournament. Submit at least two AIs.")
     
     ##
     #humanPathCallback
@@ -1020,7 +1026,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = HUMAN_MODE
-            self.ui.notify("Mode set to Human vs. AI. Select one AI.")
+            self.ui.notify("Mode set to Human vs. AI. Submit one AI.")
     
     ##
     #aiPathCallback
@@ -1037,7 +1043,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = AI_MODE
-            self.ui.notify("Mode set to AI vs. AI. Select two AIs.")    
+            self.ui.notify("Mode set to AI vs. AI. Submit two AIs.")    
      
     ##
     #locationClickedCallback
@@ -1048,10 +1054,6 @@ class Game(object):
     #
     ##
     def locationClickedCallback(self, coord):
-        if self.state.phase == MENU_PHASE:
-            self.ui.notify("Please start the game.")
-            return
-    
         #Check if its human player's turn during play phase
         if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             whoseTurn = self.state.whoseTurn
@@ -1153,10 +1155,6 @@ class Game(object):
     #
     ##
     def buildClickedCallback(self):
-        if self.state.phase == MENU_PHASE:
-            self.ui.notify("Please start the game.")
-            return
-        
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is 
                 HumanPlayer.HumanPlayer and len(self.currentPlayers[self.state.whoseTurn].coordList) == 1):
@@ -1179,11 +1177,7 @@ class Game(object):
     #Description: Responds to a user clicking on the end button
     #
     ##
-    def endClickedCallback(self):
-        if self.state.phase == MENU_PHASE:
-            self.ui.notify("Please start the game.")
-            return
-            
+    def endClickedCallback(self):    
         #Check if its human player's turn during play phase
         if (self.state.phase == PLAY_PHASE and self.expectingAttack == False 
                 and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer):
@@ -1261,9 +1255,6 @@ class Game(object):
     def nextClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.nextClicked = True
-        else:
-            self.ui.notify("Please start the game.")
-            return
     
     ##
     #continueClickedCallback
@@ -1273,9 +1264,6 @@ class Game(object):
     def continueClickedCallback(self):
         if self.state.phase != MENU_PHASE:
             self.continueClicked = True
-        else:
-            self.ui.notify("Please start the game.")
-            return
     
     ##
     #checkBoxClickedCallback
