@@ -636,6 +636,8 @@ class UserInterface(object):
     #   index - There are reserved spaces for buttons, allowing for a certain buffer zone between each button.
     #       This is the index from the top or bottom of the screen that this button should be placed at.
     #   isTop - True if the index be counted from the top of the screen. False otherwise.
+    #
+    #Returns: The coordinates of the button.
     ##
     def findButtonCoords(self, index, isTop):
         buttonSpacing = 2 * CELL_SPACING
