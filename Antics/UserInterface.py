@@ -190,6 +190,37 @@ class UserInterface(object):
         self.lastNotification = message
     
     ##
+    #getCaptureValues
+    #Description: determines whether any anthills are being captured.
+    #
+    #Parameters:
+    #   state - the current gameState
+    #
+    #Returns: a tuple representing the anthills of each player. If a player's
+    #   anthill is being captured, their space in the tuple will contain the
+    #   health of their anthill. Otherwise that space will be set to -1.
+    ##
+    def getCaptureValues(self, state):
+        #Find the health of player 1's anthill, and whether it's being captured.
+        player1Val = -1
+        player1Hill = state.inventories[0].getAnthill()
+        if player1Hill != None:
+            hCoords = player1Hill.coords
+            boardAnt = state.board[hCoords[0]][hCoords[1]].ant
+            if boardAnt != None and boardAnt.player != player1Hill.player:
+                player1Val = player1Hill.captureHealth
+        #Find the health of player 2's anthill, and whether it's being captured.
+        player2Val = -1
+        player2Hill = state.inventories[1].getAnthill()
+        if player2Hill != None:
+            hCoords = player2Hill.coords
+            boardAnt = state.board[hCoords[0]][hCoords[1]].ant
+            if boardAnt != None and boardAnt.player != player2Hill.player:
+                player2Val = player2Hill.captureHealth
+        #Return the values acquired from the above calculations.
+        return player1Val, player2Val
+    
+    ##
     #drawNotification
     #Description: draws the notification currently being relayed to the user.
     #   Breaks the notification into multiple lines if necessary.
@@ -264,6 +295,51 @@ class UserInterface(object):
         if ant.hasMoved:
             self.shaderTex.fill(BLACK)
             self.screen.blit(self.shaderTex, (Xpixel, Ypixel))
+    
+    ##
+    #drawCaptureHealth
+    #Description: draw the health of the anthill that's about to die.
+    #
+    #Parameters:
+    #   health - the amount of health to draw (int, int).
+    ##
+    def drawCaptureHealth(self, health):
+        label1 = self.monsterFont.render(str(health[0]), True, DARK_RED, WHITE)
+        label2 = self.monsterFont.render(str(health[1]), True, DARK_RED, WHITE)
+        #Find out where to put the text onscreen.
+        label1Size = label1.get_size()
+        label2Size = label2.get_size()
+        label1Center = (label1Size[0] / 2, label1Size[1] / 2)
+        label2Center = (label2Size[0] / 2, label2Size[1] / 2)
+        boardCenter = ((self.screen.get_width() - self.buttonArea.width) / 2, self.screen.get_height() / 2)
+        #Initialize destinations for the sake of scope.
+        destination1 = 0
+        destination2 = 0
+        #Change the settings of the text surface to look the way it should.
+        label1.set_colorkey(WHITE)
+        label2.set_colorkey(WHITE)
+        label1.set_alpha(50)
+        label2.set_alpha(50)
+        #Find out which case occured. Both players have anthills getting captured, or just one.
+        if health[0] != -1 and health[1] != -1:
+            #Make destinations offset for both units.
+            destination1 = subtractCoords(boardCenter, (label1Size[0], label1Center[1]))
+            destination2 = subtractCoords(boardCenter, (0, label2Center[1]))
+            #Draw the text surface.
+            self.screen.blit(label1, destination1)
+            self.screen.blit(label2, destination2)
+        elif health[0] != -1:
+            destination1 = subtractCoords(boardCenter, label1Center)
+            destination2 = 0
+            #Draw the text surface.
+            self.screen.blit(label1, destination1)
+        elif health[1] != -1:
+            destination1 = 0
+            destination2 = subtractCoords(boardCenter, label2Center)
+            #Draw the text surface.
+            self.screen.blit(label2, destination2)
+        else:
+            print "Oh my gawd my code broke in UserInterface.drawCaptureHealth"
     
     ##
     #drawButton
@@ -447,24 +523,19 @@ class UserInterface(object):
             self.screen.fill(BLACK)
             #Draw the menu area.
             pygame.draw.rect(self.screen, WHITE, self.buttonArea)
-            #Define the player color indicator boxes.
-            bw = BOARD_SIZE.width
-            bh = BOARD_SIZE.height
-            cw = CELL_SIZE.width
-            ch = CELL_SIZE.height
-            cs = CELL_SPACING
-            outerRect = Rect(0, 0, bw * (cw + cs) + cs, (bh / 2 - 1) * (ch + cs) + cs)
-            innerRect = Rect(0, 0, bw * (cw + cs) - cs, (bh / 2 - 1) * (ch + cs) - cs)
-            p2RectYOffset = (bh / 2 + 1) * (cw + cs)
             #Draw the player color indicator boxes.
-            pygame.draw.rect(self.screen, LIGHT_RED, outerRect)
-            pygame.draw.rect(self.screen, BLACK, innerRect.move((CELL_SPACING, CELL_SPACING)))
-            pygame.draw.rect(self.screen, LIGHT_BLUE, outerRect.move((0, p2RectYOffset)))
-            pygame.draw.rect(self.screen, BLACK, innerRect.move((CELL_SPACING, CELL_SPACING + p2RectYOffset)))
+            pygame.draw.rect(self.screen, LIGHT_RED, self.outerRect)
+            pygame.draw.rect(self.screen, BLACK, self.innerRect.move((CELL_SPACING, CELL_SPACING)))
+            pygame.draw.rect(self.screen, LIGHT_BLUE, self.outerRect.move((0, self.p2RectYOffset)))
+            pygame.draw.rect(self.screen, BLACK, self.innerRect.move((CELL_SPACING, CELL_SPACING + self.p2RectYOffset)))
             #Draw the cells themselves.
             for col in xrange(0, len(currentState.board)):
                 for row in xrange(0, len(currentState.board[col])):
                     self.drawCell(currentState.board[col][row])
+            #If necessary, draw the captureHealth of any anthill being captured.
+            captureVals = self.getCaptureValues(currentState)
+            if captureVals[0] != -1 or captureVals[1] != -1:
+                self.drawCaptureHealth(captureVals)
             #Make sure we draw the right buttons
             relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
             if self.buildAntMenu == True:
@@ -700,6 +771,7 @@ class UserInterface(object):
         self.notifyFont = pygame.font.Font(None, 16)
         self.gameFont = pygame.font.Font(None, 25)
         self.tournFont = pygame.font.Font(None, 25)
+        self.monsterFont = pygame.font.Font(None, 300)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(0, True)
         #Where should notifications be drawn?
@@ -736,6 +808,15 @@ class UserInterface(object):
         self.submitSelected = {
         'Submit AIs':[(0,0), 1, self.submitSelectedAIs]
         }
+        #Define the player color indicator boxes.
+        bw = BOARD_SIZE.width
+        bh = BOARD_SIZE.height
+        cw = CELL_SIZE.width
+        ch = CELL_SIZE.height
+        cs = CELL_SPACING
+        self.outerRect = Rect(0, 0, bw * (cw + cs) + cs, (bh / 2 - 1) * (ch + cs) + cs)
+        self.innerRect = Rect(0, 0, bw * (cw + cs) - cs, (bh / 2 - 1) * (ch + cs) - cs)
+        self.p2RectYOffset = (bh / 2 + 1) * (cw + cs)
         #Properties of our single text box
         self.textPosition = self.findButtonCoords(2, True)
         self.textBoxContent = ''
