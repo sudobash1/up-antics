@@ -289,25 +289,27 @@ class Game(object):
                                 self.ui.coordList = []    
                                 
                             elif move.moveType == END:
+                                #take care of end of turn business for ants and contructions
                                 for ant in self.state.inventories[self.state.whoseTurn].ants:
-                                    #reset hasMoved on all ants of player
-                                    ant.hasMoved = False
                                     constrUnderAnt = self.state.board[ant.coords[0]][ant.coords[1]].constr
                                     if constrUnderAnt != None:
-                                        if type(constrUnderAnt) is Building and not constrUnderAnt.player == self.state.whoseTurn:
-                                            #affect capture health of buildings
+                                        #if constr is enemy's and ant hasnt moved, affect capture health of buildings
+                                        if type(constrUnderAnt) is Building and not ant.hasMoved and not constrUnderAnt.player == self.state.whoseTurn:
                                             constrUnderAnt.captureHealth -= 1
                                             if constrUnderAnt.captureHealth == 0 and constrUnderAnt.type != ANTHILL:
                                                 constrUnderAnt.player = self.state.whoseTurn
                                                 constrUnderAnt.captureHealth = CONSTR_STATS[constrUnderAnt.type][CAP_HEALTH]
+                                        #have all worker ants on food sources gather food
                                         elif constrUnderAnt.type == FOOD and ant.type == WORKER:
-                                            #have all worker ants on food sources gather food
                                             ant.carrying = True
+                                        #deposit carried food (only workers carry)
                                         elif (constrUnderAnt.type == ANTHILL or constrUnderAnt.type == TUNNEL) and ant.carrying == True:
-                                            #deposit carried food (only workers carry)
                                             self.state.inventories[self.state.whoseTurn].foodCount += 1
                                             ant.carrying = False
-                                            
+                                    
+                                    #reset hasMoved on all ants of player
+                                    ant.hasMoved = False   
+                                    
                                 #clear any currently highlighted squares
                                 self.ui.coordList = []
                                 
