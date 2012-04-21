@@ -1,4 +1,4 @@
-import os, re, sys, math, HumanPlayer
+import os, re, sys, math, time, HumanPlayer
 from UserInterface import *
 from Construction import *
 from Constants import *
@@ -72,12 +72,15 @@ class Game(object):
     def runGame(self):
         # initialize board be ready for player input for game parameter
         while True:
+            #Determine current chosen game mode. Enter different execution paths
+            #based on the mode, which must be chosen by clicking a button.
             self.ui.drawBoard(self.state, self.mode)
-            #Determine current chosen game mode. Enter different execution paths based on the mode, which must be chosen by clicking a button.
-            if self.mode == None:
-                self.ui.notify("Please select a game mode.")
-            elif not self.ui.choosingAIs and self.state.phase == MENU_PHASE:
-                self.ui.notify("Please start the game.")
+            
+            if not self.errorNotify:
+                if self.mode == None:
+                    self.ui.notify("Please select a game mode.")
+                elif not self.ui.choosingAIs and self.state.phase == MENU_PHASE:
+                    self.ui.notify("Please start the game.")
                 
             #player has clicked start game so enter game loop
             if self.state.phase != MENU_PHASE:
@@ -95,9 +98,6 @@ class Game(object):
                 loser = None
                 
                 while not gameOver:
-                    #draw the board (to recognize user input in game loop)
-                    self.ui.drawBoard(self.state, self.mode)  
-                    
                     if self.state.phase != MENU_PHASE:
                         #if the player is player two, flip the board
                         theState = self.state.clone()
@@ -358,22 +358,30 @@ class Game(object):
                         #tell the players if they won or lost
                         self.currentPlayers[PLAYER_ONE].registerWin(False)
                         self.currentPlayers[PLAYER_TWO].registerWin(True)
+                        
+                    #draw the board (to recognize user input in game loop)
+                    self.ui.drawBoard(self.state, self.mode)
                 #end game loop
     
                 if self.state.phase != MENU_PHASE:
                     #check mode for appropriate response to game over
                     if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                        #wait for a few seconds to allow user to see end result
+                        time.sleep(1.5)
+                        #save the mode
                         currMode = self.mode
                         #reset the game
                         self.resetGame()
+                        #restore the mode
                         self.mode = currMode
-                            
-                        
+                                                 
                         #notify the user of the winner
                         if winner == PLAYER_ONE:
                             self.ui.notify("Player 1 has won the game!")
                         else:
                             self.ui.notify("Player 2 has won the game!")
+                            
+                        self.errorNotify = True
                     elif self.mode == TOURNAMENT_MODE:
                         
                         #adjust the count of games to play for the current pair
@@ -578,9 +586,6 @@ class Game(object):
                     temp = reload(globals()[moduleName])
                 #Create an instance of Player from temp
                 self.players.append([temp.AIPlayer(-1), INACTIVE])
-            else:
-                #No proper AIs were found in the subdirectory, notify
-                self.ui.notify("AIs could not be loaded.")
         #Remove current directory from python's import search order.
         sys.path.pop(0)
         #Revert working directory to parent.
@@ -1010,6 +1015,9 @@ class Game(object):
             self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
             self.ui.notify("Mode set to Tournament. Submit at least two AIs.")
+        else:
+            self.ui.notify("Could not load enough AI players for game type.")
+            self.errorNotify = True
     
     ##
     #humanPathCallback
@@ -1029,6 +1037,9 @@ class Game(object):
             self.ui.choosingAIs = True
             self.mode = HUMAN_MODE
             self.ui.notify("Mode set to Human vs. AI. Submit one AI.")
+        else:
+            self.ui.notify("Could not load enough AI players for game type.")
+            self.errorNotify = True
     
     ##
     #aiPathCallback
@@ -1046,6 +1057,9 @@ class Game(object):
             self.ui.choosingAIs = True
             self.mode = AI_MODE
             self.ui.notify("Mode set to AI vs. AI. Submit two AIs.")    
+        else:
+            self.ui.notify("Could not load enough AI players for game type.")
+            self.errorNotify = True
      
     ##
     #locationClickedCallback
