@@ -203,7 +203,7 @@ class UserInterface(object):
     def getCaptureValues(self, state):
         #Find the health of player 1's anthill, and whether it's being captured.
         player1Val = -1
-        player1Hill = state.inventories[0].getAnthill()
+        player1Hill = state.inventories[PLAYER_ONE].getAnthill()
         if player1Hill != None:
             hCoords = player1Hill.coords
             boardAnt = state.board[hCoords[0]][hCoords[1]].ant
@@ -211,7 +211,7 @@ class UserInterface(object):
                 player1Val = player1Hill.captureHealth
         #Find the health of player 2's anthill, and whether it's being captured.
         player2Val = -1
-        player2Hill = state.inventories[1].getAnthill()
+        player2Hill = state.inventories[PLAYER_TWO].getAnthill()
         if player2Hill != None:
             hCoords = player2Hill.coords
             boardAnt = state.board[hCoords[0]][hCoords[1]].ant
@@ -219,6 +219,24 @@ class UserInterface(object):
                 player2Val = player2Hill.captureHealth
         #Return the values acquired from the above calculations.
         return player1Val, player2Val
+    
+    ##
+    #getCaptureValue
+    #Description: determines whether the given location is being captured.
+    #
+    #Parameters:
+    #   loc - a location containing an ant tunnel, which may or may not be getting captured.
+    #
+    #Returns: an integer containing the ant tunnel's health if it is being captured,
+    #   or -1 otherwise.
+    ##
+    def getCaptureValue(self, loc):
+        if loc.constr == None or loc.constr.type != TUNNEL:
+            return -1
+        elif loc.ant == None or loc.ant.player == loc.constr.player:
+            return -1
+        else:
+            return loc.constr.captureHealth
     
     ##
     #drawNotification
@@ -297,15 +315,15 @@ class UserInterface(object):
             self.screen.blit(self.shaderTex, (Xpixel, Ypixel))
     
     ##
-    #drawCaptureHealth
+    #drawCaptureHealths
     #Description: draw the health of the anthill that's about to die.
     #
     #Parameters:
     #   health - the amount of health to draw (int, int).
     ##
-    def drawCaptureHealth(self, health):
+    def drawCaptureHealths(self, health):
         label1 = self.monsterFont.render(str(health[0]), True, DARK_RED, WHITE)
-        label2 = self.monsterFont.render(str(health[1]), True, DARK_RED, WHITE)
+        label2 = self.monsterFont.render(str(health[1]), True, DARK_BLUE, WHITE)
         #Find out where to put the text onscreen.
         label1Size = label1.get_size()
         label2Size = label2.get_size()
@@ -340,6 +358,26 @@ class UserInterface(object):
             self.screen.blit(label2, destination2)
         else:
             print "Oh my gawd my code broke in UserInterface.drawCaptureHealth"
+    
+    ##
+    #drawCaptureHealth
+    #Description: draw the health of the ant tunnel that's about to die.
+    #
+    #Parameters:
+    #   health - the amount of health to draw.
+    #   coords - the board coordinates to draw at.
+    #   player - the playerID of the player being drawn for.
+    ##
+    def drawCaptureHealth(self, health, coords, player):
+        #Create and add settings to the text we want to draw. Background needs to be set so we don't have per pixel alpha.
+        label = self.captureFont.render(str(health), True, LIGHT_RED if player == PLAYER_ONE else LIGHT_BLUE, WHITE)
+        label.set_colorkey(WHITE)
+        label.set_alpha(100)
+        #Find where to place the text.
+        sizeDiff = subtractCoords(CELL_SIZE.size, subtractCoords(label.get_size(), (0, 10)))
+        halfDiff = (sizeDiff[0] / 2, sizeDiff[1] / 2)
+        #Draw the text.
+        self.screen.blit(label, addCoords(coords, halfDiff))
     
     ##
     #drawButton
@@ -497,6 +535,10 @@ class UserInterface(object):
             if drawList[index]:
                 self.shaderTex.fill(colorList[index])
                 self.screen.blit(self.shaderTex, CELL_SIZE.move(Xpixel, Ypixel))
+        #Draw the captureHealth of any ant tunnel being captured.
+        captureVal = self.getCaptureValue(currentLoc)
+        if captureVal != -1:
+            self.drawCaptureHealth(captureVal, (Xpixel, Ypixel), currentLoc.constr.player)
 
     ##
     #drawBoard
@@ -532,10 +574,10 @@ class UserInterface(object):
             for col in xrange(0, len(currentState.board)):
                 for row in xrange(0, len(currentState.board[col])):
                     self.drawCell(currentState.board[col][row])
-            #If necessary, draw the captureHealth of any anthill being captured.
+            #Draw the captureHealth of any anthill being captured.
             captureVals = self.getCaptureValues(currentState)
             if captureVals[0] != -1 or captureVals[1] != -1:
-                self.drawCaptureHealth(captureVals)
+                self.drawCaptureHealths(captureVals)
             #Make sure we draw the right buttons
             relButtons = {} if mode == None else self.humanButtons if mode == HUMAN_MODE else self.aiButtons
             if self.buildAntMenu == True:
@@ -771,6 +813,7 @@ class UserInterface(object):
         self.notifyFont = pygame.font.Font(None, 16)
         self.gameFont = pygame.font.Font(None, 25)
         self.tournFont = pygame.font.Font(None, 25)
+        self.captureFont = pygame.font.Font(None, 130)
         self.monsterFont = pygame.font.Font(None, 300)
         #Where should scores be drawn?
         self.scoreLocation = self.findButtonCoords(0, True)

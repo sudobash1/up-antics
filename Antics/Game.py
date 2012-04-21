@@ -1171,6 +1171,7 @@ class Game(object):
                     self.ui.buildAntMenu = True                    
                 
                 currentPlayer.moveType = BUILD
+                self.ui.validCoordList = []
 
     ##
     #endClickedCallback
