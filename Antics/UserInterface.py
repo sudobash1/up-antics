@@ -7,11 +7,13 @@
 import pygame, os, sys
 from pygame.locals import *
 from Building import Building
+from Ant import UNIT_STATS
 from Constants import *
 from GameState import addCoords, subtractCoords
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+OFF_BLACK = BLACK#(1, 1, 1)
 GREY = (195, 195, 195)
 DARK_RED = (150, 0, 0)
 LIGHT_RED = (255, 0, 0)
@@ -279,11 +281,16 @@ class UserInterface(object):
     def drawConstruction(self, item, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
         Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
-        self.screen.blit(self.constructionTexs[item.type], (Xpixel, Ypixel))
+        constrTex = self.constructionTexs[item.type].copy()
+        background = pygame.Surface(CELL_SIZE.size)
         if type(item) is Building:
-            #Draw player marker in lower left
-            playerNumber = self.statFont.render(str(item.player + 1), True, BLACK)
-            self.screen.blit(playerNumber, (Xpixel, Ypixel + CELL_SIZE.height - playerNumber.get_height()))
+            background.fill(LIGHT_RED if item.player == PLAYER_ONE else LIGHT_BLUE)
+            constrTex.set_colorkey(self.playerAlpha)
+        else:
+            background.fill(WHITE)
+        background.blit(constrTex, (0, 0))
+        background.set_colorkey(WHITE)
+        self.screen.blit(background, (Xpixel, Ypixel))
     
     ##
     #drawAnt
@@ -296,14 +303,23 @@ class UserInterface(object):
     def drawAnt(self, ant, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
         Ypixel = CELL_SPACING * (position[1] + 1) + CELL_SIZE.height * position[1]
-        self.screen.blit(self.antTexs[ant.type], (Xpixel, Ypixel))
-        #Draw player marker in upper left
-        playerNumber = self.statFont.render(str(ant.player + 1), True, BLACK)
-        self.screen.blit(playerNumber, (Xpixel, Ypixel))
-        #Draw current health in the upper right
-        antHealth = self.statFont.render("Health: " + str(ant.health), True, BLACK)
-        XoffsetHealth = CELL_SIZE.width - antHealth.get_width()
-        self.screen.blit(antHealth, (Xpixel + XoffsetHealth, Ypixel))
+        #Start by drawing the ant itself onto a solid player color background.
+        #The player color should only show in areas of the playerAlpha color.
+        background = pygame.Surface(CELL_SIZE.size)
+        background.fill(LIGHT_RED if ant.player == PLAYER_ONE else LIGHT_BLUE)
+        background.blit(self.antTexs[ant.type], (0, 0))
+        background.set_colorkey(WHITE)
+        #Then draw the ant itself.
+        self.screen.blit(background, (Xpixel, Ypixel))
+        #Draw current health across the top from the left.
+        healthBox = Rect(0,0,10,6)
+        healthPerimiter = Rect(0,0,12,8)
+        for x in xrange(0, UNIT_STATS[ant.type][HEALTH]):
+            pygame.draw.rect(self.screen, DARK_GREEN, healthPerimiter.move(Xpixel + CELL_SIZE.width - 16 * (x + 1) - 1, Ypixel + 1))
+        for x in xrange(0, ant.health):
+            pygame.draw.rect(self.screen, LIGHT_GREEN, healthBox.move(Xpixel + CELL_SIZE.width - 16 * (x + 1), Ypixel + 2))
+        for x in xrange(ant.health, UNIT_STATS[ant.type][HEALTH]):
+            pygame.draw.rect(self.screen, DARK_RED, healthBox.move(Xpixel + CELL_SIZE.width - 16 * (x + 1), Ypixel + 2))
         #Draw isCarrying marker in lower right
         if ant.carrying:
             XoffsetCarry = CELL_SIZE.width - self.isCarryingTex.get_width()
@@ -523,8 +539,8 @@ class UserInterface(object):
         for index in xrange(0, len(drawList)):
             if drawList[index]:
                 pygame.draw.rect(self.screen, colorList[index], shadeRect.move(shadeXpixel, shadeYpixel))
-        #Draw the cell itself
-        pygame.draw.rect(self.screen, WHITE, CELL_SIZE.move(Xpixel, Ypixel))
+        #Draw the cell itself.
+        self.screen.blit(self.terrainTex, CELL_SIZE.move(Xpixel, Ypixel))
         #Draw what's in this cell
         if currentLoc.constr != None:
             self.drawConstruction(currentLoc.constr, (col, row))
@@ -784,6 +800,8 @@ class UserInterface(object):
         self.antTexs.append(pygame.image.load(os.path.join(texFolder, "indirect.bmp")))
         #Load isCarrying and texture, which will allow players to see the conditions of their ants.
         self.isCarryingTex = pygame.image.load(os.path.join(texFolder, "isCarrying.bmp"))
+        #Load the texture used for terrain (ground).
+        self.terrainTex = pygame.image.load(os.path.join(texFolder, "terrain.bmp"))
         #CheckBox textures
         self.checkBoxTextures = []
         self.checkBoxTextures.append(pygame.image.load(os.path.join(texFolder, "unchecked.bmp")))
@@ -800,11 +818,15 @@ class UserInterface(object):
         CELL_SIZE = self.constructionTexs[0].get_rect()
         #Create shaderTex, which will be used to translucently shade ants.
         self.shaderTex = pygame.Surface((CELL_SIZE.width, CELL_SIZE.height))
-        #Make White transparent (alpha 0) for all textures (well, buttons don't actually need it).
+        #Set the color that will be used as an alpha transparency to let player colors shine through.
+        self.playerAlpha = OFF_BLACK
+        #Make White transparent (alpha 0) for most textures (well, buttons don't actually need it).
         for construction in self.constructionTexs:
             construction.set_colorkey(WHITE)
+        #Ants don't get posted directly to the board. They go to an intermediate
+        #texture of their player color, so they don't need a WHITE alpha.
         for ant in self.antTexs:
-            ant.set_colorkey(WHITE)
+            ant.set_colorkey(self.playerAlpha)
         self.isCarryingTex.set_colorkey(WHITE)
         self.shaderTex.set_alpha(50)
         #Set up fonts.
