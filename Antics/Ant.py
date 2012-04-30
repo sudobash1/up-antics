@@ -15,7 +15,7 @@ UNIT_STATS.append((1, 3, 1, 2, 2)) #Indirect soldier
 #   pertaining to Ants that may be required by the game is stored in this
 #   class.
 #
-#Variables:
+# Variables:
 #   coords - An int[] of length 2, representing the Ant's position on the
 #       board.  Positions start at (0, 0) in the upper left and increase down
 #       and to the right.
