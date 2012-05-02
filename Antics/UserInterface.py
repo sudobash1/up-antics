@@ -33,7 +33,7 @@ FIELD_SPACING = 10
 #Description: class that handles all drawing and key presses, and translates everything to something that can more easily be understood by a programmer.
 #
 #Variables:
-#   inputSize - An (x,y) tuple expressing the size of the aNTiCS window in pixels.
+#   inputSize - An (x,y) tuple expressing the size of the aNTiCS window in pixels.((int,int))
 ##
 class UserInterface(object):
     ##
@@ -41,7 +41,7 @@ class UserInterface(object):
     #Description: Creates a new UserInterface
     #
     #Parameters:
-    #   inputSize - the size of the window to be created, in pixels.
+    #   inputSize - the size of the window to be created, in pixels.(int)
     ##
     def __init__(self, inputSize):
         self.screen = pygame.display.set_mode(inputSize)
@@ -159,7 +159,7 @@ class UserInterface(object):
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     #
     #Parameters:
-    #   coords - the cell on the board that was clicked.
+    #   coords - the cell on the board that was clicked.((int,int))
     ##
     def locationClicked(self, coords):
         print "Clicked LOCATION " + str(coords)
@@ -169,7 +169,7 @@ class UserInterface(object):
     #Description: Dummy method used as a placeholder for the event handling methods that will be passed in from Game.py.
     #
     #Parameters:
-    #   index - the index into the array self.allAIs.
+    #   index - the index into the array self.allAIs.(int)
     ##
     def checkBoxClicked(self, index):
         print "CLICKED CHECKBOX NUMBER " + str(index)
@@ -186,7 +186,7 @@ class UserInterface(object):
     #Description: changes the message displayed in the notification box.
     #
     #Parameters:
-    #   message - The message to be relayed to the user.
+    #   message - The message to be relayed to the user.(string)
     ##
     def notify(self, message):
         self.lastNotification = message
@@ -196,7 +196,7 @@ class UserInterface(object):
     #Description: determines whether any anthills are being captured.
     #
     #Parameters:
-    #   state - the current gameState
+    #   state - the current gameState.(GameState)
     #
     #Returns: a tuple representing the anthills of each player. If a player's
     #   anthill is being captured, their space in the tuple will contain the
@@ -227,7 +227,7 @@ class UserInterface(object):
     #Description: determines whether the given location is being captured.
     #
     #Parameters:
-    #   loc - a location containing an ant tunnel, which may or may not be getting captured.
+    #   loc - a location containing an ant tunnel, which may or may not be getting captured.(Location)
     #
     #Returns: an integer containing the ant tunnel's health if it is being captured,
     #   or -1 otherwise.
@@ -275,8 +275,8 @@ class UserInterface(object):
     #Description: Draws a non-moving structure of the specified type to the specified location on the game board.
     #
     #Parameters:
-    #   item - an object subclassed from Construction.
-    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
+    #   item - an object subclassed from Construction.(Construction or Building)
+    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.((int,int))
     ##
     def drawConstruction(self, item, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
@@ -297,8 +297,8 @@ class UserInterface(object):
     #Description: Draws an Ant of the specified type to the specified location on the game board.
     #
     #Parameters:
-    #   ant - an Ant object.
-    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.
+    #   ant - an Ant object.(Ant)
+    #   position - a tuple that indicates a cell on the board. This will be converted to a pixel location.((int,int))
     ##
     def drawAnt(self, ant, position):
         Xpixel = CELL_SPACING * (position[0] + 1) + CELL_SIZE.width * position[0]
@@ -335,7 +335,7 @@ class UserInterface(object):
     #Description: draw the health of the anthill that's about to die.
     #
     #Parameters:
-    #   health - the amount of health to draw (int, int).
+    #   health - the amount of health to draw.(int, int)
     ##
     def drawCaptureHealths(self, health):
         label1 = self.monsterFont.render(str(health[0]), True, DARK_RED, WHITE)
@@ -380,9 +380,9 @@ class UserInterface(object):
     #Description: draw the health of the ant tunnel that's about to die.
     #
     #Parameters:
-    #   health - the amount of health to draw.
-    #   coords - the board coordinates to draw at.
-    #   player - the playerID of the player being drawn for.
+    #   health - the amount of health to draw.(int)
+    #   coords - the board coordinates to draw at.((int,int))
+    #   player - the playerID of the player being drawn for.(int)
     ##
     def drawCaptureHealth(self, health, coords, player):
         #Create and add settings to the text we want to draw. Background needs to be set so we don't have per pixel alpha.
@@ -400,7 +400,7 @@ class UserInterface(object):
     #Description: Draws a button to the board. All necessary information is contained in self.buttons under the given key.
     #
     #Parameters:
-    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
+    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.(string)
     ##
     def drawButton(self, key, buttons):
         label = self.gameFont.render(key, True, BLACK)
@@ -413,8 +413,8 @@ class UserInterface(object):
     #Description: Draws the scores of both players as given.
     #
     #Parameters:
-    #   player1Score - the integer value of player 1's food stock.
-    #   player2Score - the integer value of player 2's food stock.
+    #   player1Score - the integer value of player 1's food stock.(int)
+    #   player2Score - the integer value of player 2's food stock.(int)
     ##
     def drawScoreBoard(self, player1Score, player2Score):
         label1 = self.gameFont.render("Player 1: " + str(player1Score) + " food", True, BLACK)
@@ -444,7 +444,7 @@ class UserInterface(object):
     ##
     def drawTable(self):
         XStartPixel = 50
-        YStartPixel = self.screen.get_height() / 2 - len(self.tournamentScores) * 20 / 2
+        YStartPixel = self.screen.get_height() / 2 - len(self.tournamentScores) * (self.tournFont.get_height() + FIELD_SPACING) / 2 - CELL_SPACING
         if YStartPixel < 0:
             YStartPixel = 0
         #Prepend the column headers to the tournamentScores list, so that we can draw the entire table without special cases.
@@ -469,7 +469,7 @@ class UserInterface(object):
     #Description: draws a checklist of all AIs that are available to select.
     #
     #Parameters:
-    #   mode - The current game mode.
+    #   mode - The current game mode.(int)
     ##
     def drawAIChecklist(self, mode):
         #Replace the AIList with a shorter one if in human mode because I don't want to draw the human player in the checklist.
@@ -506,7 +506,7 @@ class UserInterface(object):
     #
     #Parameters:
     #   currentLoc - The Location to be drawn in this cell. Locations can have
-    #       ants and buildings attached, so those will be drawn if present.
+    #       ants and buildings attached, so those will be drawn if present.(Location)
     ##
     def drawCell(self, currentLoc):
         col = currentLoc.coords[0]
@@ -562,8 +562,8 @@ class UserInterface(object):
     #   starts drawing from here.
     #
     #Parameters:
-    #   currentState - The state of the board to draw as a GameState.
-    #   mode - The current game mode.
+    #   currentState - The state of the board to draw as a GameState.(GameState)
+    #   mode - The current game mode.(int)
     ##
     def drawBoard(self, currentState, mode):
         self.handleEvents(mode)
@@ -619,9 +619,9 @@ class UserInterface(object):
     #   to notify Game.py.
     #
     #Parameters:
-    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
+    #   key - a key in the self.buttons hash table, known in Python as a Dictionary.(string)
     #   released - an integer/boolean that represents the state of the button: 1 if the button
-    #       is released, or 0 if the button is depressed.
+    #       is released, or 0 if the button is depressed.(int)
     ##
     def handleButton(self, key, released, buttons):
         if buttons[key][1] != released and released == 1:
@@ -637,7 +637,8 @@ class UserInterface(object):
     #Parameters:
     #   event - All information about the event. We already know its type due
     #       to the fact we are in this method, but position of the click is
-    #       also important.
+    #       also important.(pygame.Event)
+    #   mode - The current game mode.(int)
     ##
     def handleAICheckList(self, event, mode):
         #Replace the AIList with a shorter one if in human mode because find the human player in the checklist.
@@ -678,12 +679,30 @@ class UserInterface(object):
     #       always 1.(string)
     ##
     def handleHotkey(self, mode, char):
-        if mode == HUMAN_MODE:
-            return None
-        elif mode == TOURNAMENT_MODE:
-            return None
+        if char == '\r':
+            self.buttons['Start'][-1]()
+        elif mode == HUMAN_MODE:
+            if not self.buildAntMenu:
+                if char == ' ':
+                    self.humanButtons['End'][-1]()
+                elif char == 'b':
+                    self.humanButtons['Build'][-1]()
+            else:
+                if char == 'w':
+                    self.antButtons['Worker'][-1]()
+                elif char == 'd':
+                    self.antButtons['Drone'][-1]()
+                elif char == 's':
+                    self.antButtons['Direct Soldier'][-1]()
+                elif char == 'i':
+                    self.antButtons['Indirect Soldier'][-1]()
+                elif char == 'n':
+                    self.antButtons['None'][-1]()
         elif mode == AI_MODE:
-            return None
+            if char == 'n':
+                self.aiButtons['Next'][-1]()
+            elif char == 'c':
+                self.aiButtons['Continue'][-1]()
     
     ##
     #handleEvents
@@ -692,7 +711,7 @@ class UserInterface(object):
     #   callback to tell the HumanPlayer what the human clicked.
     #
     #Pararmeters:
-    #   mode - The current game mode.
+    #   mode - The current game mode.(int)
     ##
     def handleEvents(self, mode):
         #Make sure we check the right buttons
@@ -775,6 +794,7 @@ class UserInterface(object):
                     self.textBoxContent += str(event.unicode)
                 elif event.key == 8 and self.textBoxContent != '':
                     self.textBoxContent = self.textBoxContent[:-1]
+            elif event.type == KEYDOWN:
                 self.handleHotkey(mode, str(event.unicode))
     
     ##
@@ -783,8 +803,8 @@ class UserInterface(object):
     #
     #Parameters:
     #   index - There are reserved spaces for buttons, allowing for a certain buffer zone between each button.
-    #       This is the index from the top or bottom of the screen that this button should be placed at.
-    #   isTop - True if the index be counted from the top of the screen. False otherwise.
+    #       This is the index from the top or bottom of the screen that this button should be placed at.(int)
+    #   isTop - True if the index be counted from the top of the screen. False otherwise.(boolean)
     #
     #Returns: The coordinates of the button.
     ##
