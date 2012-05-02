@@ -453,7 +453,7 @@ class UserInterface(object):
         lengths = [0 for i in range(0, len(scores[0]) + 1)]
         for score in scores:
             for index in range(0, len(score)):
-                if len(str(score[index])) > lengths[index+1]:
+                if self.tournFont.size(str(score[index]))[0] > lengths[index+1]:
                     lengths[index + 1] = self.tournFont.size(str(score[index]))[0]
         #Draw the table itself
         for index in range(0, len(scores)):
