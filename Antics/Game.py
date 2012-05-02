@@ -737,10 +737,16 @@ class Game(object):
     #
     #Returns None if no target is given, true if it is a valid placement, or false if it is an invalid placement
     ##
-    def isValidPlacement(self, items, targets):
-        #If no target, return None (human vs ai caught by caller)
+    def isValidPlacement(self, items, targets):      
+        #check for well-formed input of targets (from players)
+        if type(targets) != list:
+            return False
+         #If no target, return None (human vs ai caught by caller)
         if len(targets) == 0:
             return None
+        for coord in targets:
+            if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+                return False
 
         for i in range(0, len(targets)):
             #check targets[i] is within proper boundaries x-wise
@@ -784,6 +790,11 @@ class Game(object):
     def isValidAttack(self, attackingAnt, attackCoords):
         if attackCoords == None:
             return None
+        
+        #check for well-formed input from players
+        if (type(attackCoords) != tuple or len(attackCoords) != 2 or 
+                type(attackCoords[0]) != int or type(attackCoords[1]) != int):
+            return False
     
         attackLoc = self.state.board[attackCoords[0]][attackCoords[1]]
         
