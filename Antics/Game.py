@@ -1014,7 +1014,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
-            self.ui.notify("Mode set to Tournament. Submit at least two AIs.")
+            self.ui.notify("Mode set to Tournament. Submit at least two AI players.")
         else:
             self.ui.notify("Could not load enough AI players for game type.")
             self.errorNotify = True
@@ -1311,6 +1311,10 @@ class Game(object):
         if (len(self.players) - len(inactivePlayers)) < 2:
             self.ui.notify("Please select more AIs to play this game type.")
             return
+        if (len(self.players) - len(inactivePlayers)) > 23 and self.mode == TOURNAMENT_MODE:
+            self.ui.notify("Please select less than 24 AI players to play this game type.")
+            return
+            
         
         #remove all inactive players
         for player in inactivePlayers:
