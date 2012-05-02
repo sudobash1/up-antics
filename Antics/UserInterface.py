@@ -481,7 +481,7 @@ class UserInterface(object):
         safeList = safeList[:2 * maxRows] if len(safeList) > maxRows * 2 else safeList
         #Decide on where the checkList should start on screen.
         XStartPixel = 50
-        YStartPixel = self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
+        YStartPixel = self.screen.get_height() / 2 - min(len(safeList), maxRows) * (self.checkBoxRect.height + FIELD_SPACING) / 2
         if YStartPixel < 0:
             YStartPixel = 0
         #Draw the checkList.
@@ -621,7 +621,7 @@ class UserInterface(object):
     #Parameters:
     #   key - a key in the self.buttons hash table, known in Python as a Dictionary.
     #   released - an integer/boolean that represents the state of the button: 1 if the button
-    #   is released, or 0 if the button is depressed.
+    #       is released, or 0 if the button is depressed.
     ##
     def handleButton(self, key, released, buttons):
         if buttons[key][1] != released and released == 1:
@@ -655,7 +655,7 @@ class UserInterface(object):
             columnClicked = 1
         #If a column was clicked, check if a row was clicked.
         if columnClicked > -1:
-            yStart = self.screen.get_height() / 2 - len(safeList) * (self.checkBoxRect.height + FIELD_SPACING) / 2
+            yStart = self.screen.get_height() / 2 - min(len(safeList), maxRows) * (self.checkBoxRect.height + FIELD_SPACING) / 2
             if (event.pos[1] - yStart + FIELD_SPACING) % (self.checkBoxRect.height + FIELD_SPACING) > FIELD_SPACING:
                 checkIndex = (event.pos[1] - yStart) / (self.checkBoxRect.height + FIELD_SPACING)
                 #If the checkbox clicked was in a column other than the first, add the implicit rows skipped.
@@ -665,7 +665,26 @@ class UserInterface(object):
                     #If the mode is human mode, there is an invisible player (the human) that I don't want clicked.
                     checkIndex += 1 if mode == HUMAN_MODE else 0
                     self.checkBoxClicked(checkIndex)
-        
+    
+    ##
+    #handleHotkey
+    #Description: Handles any key presses in place of using the mouse to press
+    #   buttons. All hotkeys are hard coded in here.
+    #
+    #Parameters:
+    #   mode - The current game mode.(int)
+    #   char - The key that was pressed. Actually passed as a string, but since
+    #       each keyboard event is spawned by one key, the string length is
+    #       always 1.(string)
+    ##
+    def handleHotkey(self, mode, char):
+        if mode == HUMAN_MODE:
+            return None
+        elif mode == TOURNAMENT_MODE:
+            return None
+        elif mode == AI_MODE:
+            return None
+    
     ##
     #handleEvents
     #Description: Handles the more generic mouse movements. Finds out what has been
@@ -756,6 +775,7 @@ class UserInterface(object):
                     self.textBoxContent += str(event.unicode)
                 elif event.key == 8 and self.textBoxContent != '':
                     self.textBoxContent = self.textBoxContent[:-1]
+                self.handleHotkey(mode, str(event.unicode))
     
     ##
     #findButtonCoords
