@@ -613,20 +613,22 @@ class Game(object):
         if move == None:
             return None
         
-        #check for no move type
-        if move.moveType == None:
+        #check that the move is well-formed typewise (tuples, ints, etc)
+        if type(move) != Move:
             return False
-            
-        #for END type moves
+        if type(move.moveType) != int:
+            return False
+        #for END type moves, lots we don't need to check
         if move.moveType == END:
             return True
-        
-        #check for an empty coord list
-        if move.coordList == None or len(move.coordList) == 0:
+        if move.coordList == None or type(move.coordList) != list or len(move.coordList) == 0:
             return False
-            
-        #CHECK THAT THE MOVE IS WELL FORMED (typewise, tuples, ints, etc)
-        
+        for coord in move.coordList:
+            if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+                return False
+        if type(move.buildType) != type(None) and type(move.buildType) != int:
+            return False
+
         #for MOVE_ANT and BUILD type moves
         if move.moveType == MOVE_ANT:
             firstCoord = move.coordList[0]
@@ -1087,7 +1089,7 @@ class Game(object):
                 elif self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
                 self.errorNotify = False
-                    
+                     
             elif len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
                 #Clicked most recently added location (unselect building or submit ant move)
                 if not self.ui.buildAntMenu:
@@ -1097,6 +1099,7 @@ class Game(object):
                     else:
                         currentPlayer.moveType = MOVE_ANT
                         self.ui.validCoordList = []
+                    #clear notifications
                     self.errorNotify = False
                 
             else:
