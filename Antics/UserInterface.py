@@ -256,18 +256,18 @@ class UserInterface(object):
         breakupIndex = 0
         lineNum = 0
         while self.notifyFont.size(self.lastNotification[breakupIndex:])[0] > self.buttonRect.width:
-            pctToNewline = float(self.buttonRect.width) / float(self.notifyFont.size(self.lastNotification)[0])
-            indexOfNewline = int(float(len(self.lastNotification)) * pctToNewline) - 1
-            while self.lastNotification[indexOfNewline - 1] != " " or indexOfNewline == breakupIndex:
-                indexOfNewline -= 1
+            pctToNewline = float(self.buttonRect.width) / float(self.notifyFont.size(self.lastNotification[breakupIndex:])[0])
+            indexOfNewline = int(float(len(self.lastNotification[breakupIndex:])) * pctToNewline) - 1
+            while self.lastNotification[breakupIndex+indexOfNewline] != " " or indexOfNewline == breakupIndex:
+               indexOfNewline -= 1
             if indexOfNewline == breakupIndex:
                 indexOfNewline = int(float(len(self.lastNotification)) * pctToNewline) - 1
-            messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:breakupIndex+indexOfNewline], True, DARK_RED)
+            messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:breakupIndex+indexOfNewline].lstrip(), True, DARK_RED)
             self.screen.blit(messageSurface, (self.messageLocation[0], self.messageLocation[1] + lineNum * self.notifyFont.get_height()))
             breakupIndex += indexOfNewline
             lineNum += 1
         
-        messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:], True, DARK_RED)
+        messageSurface = self.notifyFont.render(self.lastNotification[breakupIndex:].lstrip(), True, DARK_RED)
         self.screen.blit(messageSurface, (self.messageLocation[0], self.messageLocation[1] + lineNum * self.notifyFont.get_height()))
     
     ##
