@@ -41,10 +41,6 @@ MOVE_ANT = 0
 BUILD = 1
 END = 2
 
-#Activity of AI players
-INACTIVE = 0
-ACTIVE = 1
-
 #Indices into unit stats
 MOVEMENT = 0
 HEALTH = 1
@@ -56,3 +52,12 @@ COST = 4
 MOVE_COST = 0
 CAP_HEALTH = 1
 BUILD_COST = 2
+
+#Activity of AI players
+INACTIVE = 0
+ACTIVE = 1
+
+#Error codes used by game
+INVALID_PLACEMENT = 0
+INVALID_MOVE = 1
+INVALID_ATTACK = 2

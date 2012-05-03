@@ -204,8 +204,7 @@ class Game(object):
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 #exit gracefully
-                                print "ERROR: AI player submitted invalid placement"
-                                exit(0)
+                                self.error(INVALID_PLACEMENT, targets)
                             elif validPlace != None:
                                 self.ui.notify("Invalid placement.")
                                 self.errorNotify = True
@@ -335,24 +334,15 @@ class Game(object):
                                 
                                 #switch whose turn it is
                                 self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
-                            else:
-                                #invalid move type, exit
-                                print "ERROR: invalid move type"
-                                exit(0)
+
                         else:     
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
-                                print "ERROR: AI player submitted invalid move"
-                                exit(0)
+                                self.error(INVALID_MOVE, move)
                             elif validMove != None:
                                 #if validMove is False and not None, clear move
                                 currentPlayer.coordList = []
                                 self.ui.coordList = []
-                            
-                    else:
-                        #wrong phase
-                        print "ERROR: invalid phase"
-                        exit(0)
 
                     #determine if if someone is a winner.
                     if self.hasWon(PLAYER_ONE):
@@ -439,10 +429,6 @@ class Game(object):
                             #set up new current players
                             self.currentPlayers.append(self.players[playerOneId][0])
                             self.currentPlayers.append(self.players[playerTwoId][0])     
-                    else:
-                        #wrong or no mode, exit
-                        print "ERROR: invalid mode"
-                        exit(0)
     
     ##
     #resolveAttack 
@@ -499,8 +485,7 @@ class Game(object):
                 if not validAttack:
                     if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
-                        print "ERROR: AI player submitted invalid attack"
-                        exit(0)
+                        self.error(INVALID_ATTACK, attackCoords)
                     else:
                         #if a human submitted an invalid attack, reset coordList
                         currentPlayer.coordList = []
@@ -792,6 +777,27 @@ class Game(object):
         return True
     
     ##
+    #isValidCoord
+    #Description: Retruns whether this coord represents a valid board location. 
+    #
+    #Parameters:
+    #   coord - The coord to be checked trying to be checked ((int, int))
+    #
+    #Returns: True if the coordinate is between (0,0) and (9,9)
+    ##
+    def isValidCoord(self, coord):
+        #check for well-formed coord
+        if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+            return False
+        
+        #check boundaries
+        if coord[0] < 0 or coord[1] < 0 or coord[0] > BOARD_LENGTH or coord[1] > BOARD_LENGTH:
+            return False
+            
+        return True
+    
+    
+    ##
     #isValidAttack
     #Description: Determines whether the attack with the given parameters is valid
     #   Attacking ant is assured to exist and belong to the player whose turn it is
@@ -951,27 +957,7 @@ class Game(object):
                     if self.ui.validCoordList.count(aCoord) == 0 and self.isValidCoord(aCoord):
                         self.ui.validCoordList.append(aCoord)
         self.ui.validCoordList.remove(antCoord)
-    ##
-    #isValidCoord
-    #Description: Retruns whether this coord represents a valid board location. 
-    #
-    #Parameters:
-    #   coord - The coord to be checked trying to be checked ((int, int))
-    #
-    #Returns: True if the coordinate is between (0,0) and (9,9)
-    ##
-    def isValidCoord(self, coord):
-        #check for well-formed coord
-        if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
-            return False
-        
-        #check boundaries
-        if coord[0] < 0 or coord[1] < 0 or coord[0] > BOARD_LENGTH or coord[1] > BOARD_LENGTH:
-            return False
-            
-        return True
-    
-    ##
+
     ##
     #pauseForAIMode
     #Description: Will pause the game if set to AI mode until user clicks next or continue
@@ -986,6 +972,45 @@ class Game(object):
                     return
             #reset nextClicked to catch next move
             self.nextClicked = False
+            
+    ##
+    #error
+    #Description: Called when an AI player makes an error. Gives a description
+    #    of what went wrong and exits the program.
+    #
+    #Parameters:
+    #   errorCode - A code indicating the type of error
+    ##
+    def error(self, errorCode, info):
+        errorMsg = "AI ERROR: "
+        if errorCode == INVALID_PLACEMENT:
+            #info is a coord list     
+            errorMsg += "invalid placement\nCoords given: "
+            lastCoord = info.pop()
+            for coord in info:
+                errorMsg += "(" + coord[0] + ", " + coord[1] + "), "
+            errorMsg += "(" + lastCoord[0] + ", " + lastCoord[1] + ")"
+        elif errorCode == INVALID_MOVE:
+            #info is a move           
+            errorMsg += "invalid move\n"
+            if info == None:
+                errorMsg += "Move is non-move type: None"
+            elif type(info) != Move:
+                errorMsg += "Move is non-move type: " + type(info) 
+            elif info.moveType == None:
+                errorMsg += "moveType is non-int type: None"
+            elif type(info.moveType) != Move:
+                errorMsg += "moveType is non-int type: " + type(info.moveType)
+            elif info.moveType < MOVE_ANT or info.moveType > END:
+                errorMsg += "moveType not a recognized value: " + info.moveType
+            elif info.moveType == MOVE:
+                pass
+        else: #INVALID_ATTACK
+            #info is a coord          
+            errorMsg += "invalid attack\n"
+    
+        print errorMsg
+        exit(0)
 
     ############################################################# 
     #####  #####  #      #      ####   #####  #####  #   #  #####
