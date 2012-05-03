@@ -9,7 +9,7 @@ from Constants import *
 #   ants - The ants belonging to the player
 #    queen - The Player's queen Ant
 #    anthill - The player's anthill
-#    constructions - An array of all the Player's Constructions
+#    constrs - An array of all the Player's Constructions
 #   foodCount - The amount of food that the player has to use
 ##
 class Inventory(object):
@@ -26,7 +26,7 @@ class Inventory(object):
     def __init__(self, playerId, antArray, inputConstructions, inputFood):
         self.player = playerId
         self.ants = antArray
-        self.constructions = inputConstructions      
+        self.constrs = inputConstructions      
         self.foodCount = inputFood
         
     def getQueen(self):
@@ -38,13 +38,13 @@ class Inventory(object):
         return None
         
     def getAnthill(self):
-        if self.constructions == None:
+        if self.constrs == None:
             return None
         
-        for checkConstruction in self.constructions:
+        for checkConstruction in self.constrs:
             if checkConstruction.type == ANTHILL: return checkConstruction
         
         return None
         
     def clone(self):
-        return Inventory(self.player,self.ants,self.constructions,self.foodCount)
+        return Inventory(self.player,self.ants,self.constrs,self.foodCount)

@@ -145,7 +145,7 @@ class Game(object):
                                 self.state.board[target[0]][target[1]].constr = constr
                                 if constr.type == ANTHILL or constr.type == TUNNEL:
                                     #update the inventory
-                                    self.state.inventories[self.state.whoseTurn].constructions.append(constr)
+                                    self.state.inventories[self.state.whoseTurn].constrs.append(constr)
                             
                             #if AI mode, pause to observe move until next or continue is clicked
                             self.pauseForAIMode()
@@ -171,11 +171,11 @@ class Game(object):
                                         p1inventory = self.state.inventories[PLAYER_ONE]
                                         p2inventory = self.state.inventories[PLAYER_TWO]
                                         #get anthill coords
-                                        p1AnthillCoords = p1inventory.constructions[0].coords
-                                        p2AnthillCoords = p2inventory.constructions[0].coords
+                                        p1AnthillCoords = p1inventory.constrs[0].coords
+                                        p2AnthillCoords = p2inventory.constrs[0].coords
                                         #get tunnel coords
-                                        p1TunnelCoords = p1inventory.constructions[1].coords
-                                        p2TunnelCoords = p2inventory.constructions[1].coords
+                                        p1TunnelCoords = p1inventory.constrs[1].coords
+                                        p2TunnelCoords = p2inventory.constrs[1].coords
                                         #create queen and worker ants
                                         p1Queen = Ant(p1AnthillCoords, QUEEN, PLAYER_ONE)
                                         p2Queen = Ant(p2AnthillCoords, QUEEN, PLAYER_TWO)
@@ -453,7 +453,7 @@ class Game(object):
                 self.ui.notify("Select ant to attack")
             
             #players must attack if possible and we know at least one is valid
-            attackCoords = None
+            attackCoord = None
             validAttack = False
             
             #if a human player, let it know an attack is expected (to affect location clicked context)
@@ -464,7 +464,7 @@ class Game(object):
                 self.expectingAttack = True
             
             #keep requesting coords until valid attack is given
-            while attackCoords == None or not validAttack:               
+            while attackCoord == None or not validAttack:               
                 #Draw the board again (to recognize user input inside loop)
                 self.ui.drawBoard(self.state, self.mode)
                 
@@ -478,14 +478,14 @@ class Game(object):
                     theState.flipBoard()
                         
                 #get the attack from the player (flipped for player two)
-                attackCoords = self.state.coordLookup(currentPlayer.getAttack(theState, attackingAnt.clone(), validAttackCoords), currentPlayer.playerId)
+                attackCoord = self.state.coordLookup(currentPlayer.getAttack(theState, attackingAnt.clone(), validAttackCoords), currentPlayer.playerId)
                 
                 #check for the move's validity
-                validAttack = self.isValidAttack(attackingAnt, attackCoords)
+                validAttack = self.isValidAttack(attackingAnt, attackCoord)
                 if not validAttack:
                     if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
-                        self.error(INVALID_ATTACK, attackCoords)
+                        self.error(INVALID_ATTACK, attackCoord)
                     else:
                         #if a human submitted an invalid attack, reset coordList
                         currentPlayer.coordList = []
@@ -497,13 +497,13 @@ class Game(object):
                 currentPlayer.coordList = []
             
             #decrement ants health
-            attackedAnt = self.state.board[attackCoords[0]][attackCoords[1]].ant
+            attackedAnt = self.state.board[attackCoord[0]][attackCoord[1]].ant
             attackedAnt.health -= UNIT_STATS[attackingAnt.type][ATTACK]
             
             #check for dead ant
             if attackedAnt.health <= 0:
                 #remove dead ant from board
-                self.state.board[attackCoords[0]][attackCoords[1]].ant = None
+                self.state.board[attackCoord[0]][attackCoord[1]].ant = None
                 #remove dead ant from inventory
                 self.state.inventories[opponentId].ants.remove(attackedAnt)
                 
@@ -745,23 +745,22 @@ class Game(object):
         if len(targets) == 0:
             return None
         for coord in targets:
-            if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+            if not self.isValidCoord(coord):
                 return False
 
         for i in range(0, len(targets)):
-            #check targets[i] is within proper boundaries x-wise
-            if not (targets[i][0] >= 0 and targets[i][0] < BOARD_LENGTH):
-                #Nobody can place in the center two rows of the board or on their opponents side
-                return False
-            
+            #Nobody can place in the center two rows of the board or on their opponents side
+                 
             #check item type
             if items[i].type == ANTHILL or items[i].type == TUNNEL or items[i].type == GRASS:
                 #check targets[i] is within proper boundaries y-wise
+                #must be on own side
                 if not (targets[i][1] >= 0 and targets[i][1] < BOARD_LENGTH / 2 - 1):
                     return False
             #check item type
             elif items[i].type == FOOD:
                 #check targets[i] is within proper boundaries y-wise
+                #must be on opponent's side
                 if not (targets[i][1] < BOARD_LENGTH and targets[i][1] >= BOARD_LENGTH / 2 + 1):
                     return False
             else:
@@ -775,7 +774,43 @@ class Game(object):
                 return False
                     
         return True
+      
+    ##
+    #isValidAttack
+    #Description: Determines whether the attack with the given parameters is valid
+    #   Attacking ant is assured to exist and belong to the player whose turn it is
+    #
+    #Parameters:
+    #   attackingAnt - The Ant that is attacking (Ant)
+    #   attackCoord - The coordinates of the Ant that is being attacked ((int,int))
+    #
+    #Returns: None if there is no attackCoord, true if valid attack, or false if invalid attack
+    ##  
+    def isValidAttack(self, attackingAnt, attackCoord):
+        if attackCoord == None:
+            return None
+        
+        #check for well-formed input from players
+        if not self.isValidCoord(attackCoord):
+            return False
     
+        attackLoc = self.state.board[attackCoord[0]][attackCoord[1]]
+        
+        if attackLoc.ant == None or attackLoc.ant.player == attackingAnt.player:
+            return False
+        
+        #we know we have an enemy ant
+        range = UNIT_STATS[attackingAnt.type][RANGE]
+        diffX = abs(attackingAnt.coords[0] - attackCoord[0])
+        diffY = abs(attackingAnt.coords[1] - attackCoord[1])
+        
+        #pythagoras would be proud
+        if range ** 2 >= diffX ** 2 + diffY ** 2:
+            #return True if within range
+            return True
+        else:
+            return False
+   
     ##
     #isValidCoord
     #Description: Retruns whether this coord represents a valid board location. 
@@ -791,69 +826,11 @@ class Game(object):
             return False
         
         #check boundaries
-        if coord[0] < 0 or coord[1] < 0 or coord[0] > BOARD_LENGTH or coord[1] > BOARD_LENGTH:
+        if coord[0] < 0 or coord[1] < 0 or coord[0] >= BOARD_LENGTH or coord[1] >= BOARD_LENGTH:
             return False
             
         return True
-    
-    
-    ##
-    #isValidAttack
-    #Description: Determines whether the attack with the given parameters is valid
-    #   Attacking ant is assured to exist and belong to the player whose turn it is
-    #
-    #Parameters:
-    #   attackingAnt - The Ant that is attacking (Ant)
-    #   attackCoords - The coordinates of the Ant that is being attacked ((int,int))
-    #
-    #Returns: None if there are no attackCoords, true if it is a valid attack, or false if it is not a valid attack
-    ##  
-    def isValidAttack(self, attackingAnt, attackCoords):
-        if attackCoords == None:
-            return None
-        
-        #check for well-formed input from players
-        if (type(attackCoords) != tuple or len(attackCoords) != 2 or 
-                type(attackCoords[0]) != int or type(attackCoords[1]) != int):
-            return False
-    
-        attackLoc = self.state.board[attackCoords[0]][attackCoords[1]]
-        
-        if attackLoc.ant == None or attackLoc.ant.player == attackingAnt.player:
-            return False
-        
-        #we know we have an enemy ant
-        range = UNIT_STATS[attackingAnt.type][RANGE]
-        diffX = abs(attackingAnt.coords[0] - attackCoords[0])
-        diffY = abs(attackingAnt.coords[1] - attackCoords[1])
-        
-        #pythagoras would be proud
-        if range ** 2 >= diffX ** 2 + diffY ** 2:
-            #return True if within range
-            return True
-        else:
-            return False
    
-    ##
-    #hasWon(int)
-    #Description: Determines whether the game has ended in victory for the given player.
-    #
-    #Parameters:
-    #   playerId - The ID of the player being checked for winning (int)
-    #   
-    #Returns: True if the player with playerId has won the game.
-    ##
-    def hasWon(self, playerId):
-        opponentId = (playerId + 1) % 2
-        
-        if ((self.state.phase == PLAY_PHASE) and 
-        ((self.state.inventories[opponentId].getQueen() == None) or
-        (self.state.inventories[opponentId].getAnthill().captureHealth <= 0) or
-        (self.state.inventories[playerId].foodCount >= 11))):
-            return True
-        else:
-            return False
-      
     ##
     #checkMoveStart 
     #Description: Checks if the location is valid to move from.
@@ -866,8 +843,7 @@ class Game(object):
     ##
     def checkMoveStart(self, coord):
         #check location is on board
-        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
-                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
+        if self.isValidCoord(coord):
             antToMove = self.state.board[coord[0]][coord[1]].ant
             #check that an ant exists at the loc
             if antToMove != None:
@@ -893,8 +869,7 @@ class Game(object):
     ##
     def checkMovePath(self, fromCoord, toCoord):
         #check location is on board
-        if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
-                toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
+        if self.isValidCoord(toCoord):
             #check that squares are adjacent (difference on only one axis is 1)
             if ((abs(fromCoord[0] - toCoord[0]) == 1 and abs(fromCoord[1] - toCoord[1]) == 0) or
                     (abs(fromCoord[0] - toCoord[0]) == 0 and abs(fromCoord[1] - toCoord[1]) == 1)):
@@ -917,8 +892,7 @@ class Game(object):
     ##    
     def checkBuildStart(self, coord):
         #check location is on board
-        if (coord[0] >= 0 and coord[0] < BOARD_LENGTH and
-                coord[1] >= 0 and coord[1] < BOARD_LENGTH):
+        if self.isValidCoord(coord):
             loc = self.state.board[coord[0]][coord[1]]
             #check that an empty anthill exists at the loc
             if loc.constr != None and loc.constr.type == ANTHILL and loc.ant == None:
@@ -957,7 +931,27 @@ class Game(object):
                     if self.ui.validCoordList.count(aCoord) == 0 and self.isValidCoord(aCoord):
                         self.ui.validCoordList.append(aCoord)
         self.ui.validCoordList.remove(antCoord)
-
+    
+    ##
+    #hasWon(int)
+    #Description: Determines whether the game has ended in victory for the given player.
+    #
+    #Parameters:
+    #   playerId - The ID of the player being checked for winning (int)
+    #   
+    #Returns: True if the player with playerId has won the game.
+    ##
+    def hasWon(self, playerId):
+        opponentId = (playerId + 1) % 2
+        
+        if ((self.state.phase == PLAY_PHASE) and 
+        ((self.state.inventories[opponentId].getQueen() == None) or
+        (self.state.inventories[opponentId].getAnthill().captureHealth <= 0) or
+        (self.state.inventories[playerId].foodCount >= 11))):
+            return True
+        else:
+            return False
+      
     ##
     #pauseForAIMode
     #Description: Will pause the game if set to AI mode until user clicks next or continue
@@ -988,8 +982,8 @@ class Game(object):
             errorMsg += "invalid placement\nCoords given: "
             lastCoord = info.pop()
             for coord in info:
-                errorMsg += "(" + coord[0] + ", " + coord[1] + "), "
-            errorMsg += "(" + lastCoord[0] + ", " + lastCoord[1] + ")"
+                errorMsg += "(" + str(coord[0]) + ", " + str(coord[1]) + "), "
+            errorMsg += "(" + str(lastCoord[0]) + ", " + str(lastCoord[1]) + ")"
         elif errorCode == INVALID_MOVE:
             #info is a move           
             errorMsg += "invalid move\n"
