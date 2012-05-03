@@ -21,47 +21,17 @@ class Game(object):
     #
     ##
     def __init__(self):
-        #BOARDS ARE SQUARE
-        board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
-        p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
-        p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
-        self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
-        #all the players loaded in the game
+        #Initialize the game variables
         self.players = []
-        #the current two players playing the game
-        self.currentPlayers = []
-        self.mode = None
+        self.initGame()
+        #Initializes the UI variables
         self.ui = UserInterface((865,695))
-        self.ui.initAssets()
-        self.errorNotify = False
-        #Human vs AI mode
-        self.expectingAttack = False
-        #AI vs AI mode: used for stepping through moves
-        self.nextClicked = False
-        self.continueClicked = False
-        #Tournament mode
+        self.initUI()
+        #Initializes tournament mode variables
         self.playerScores = [] # [[author,wins,losses], ...]
         self.gamesToPlay = [] #((p1.id, p2.id), numGames)
         self.numGames = None
-        #UI Callback functions
-        self.ui.buttons['Start'][-1] = self.startGameCallback
-        self.ui.buttons['Tournament'][-1] = self.tourneyPathCallback
-        self.ui.buttons['Human vs AI'][-1] = self.humanPathCallback
-        self.ui.buttons['AI vs AI'][-1] = self.aiPathCallback      
-        self.ui.humanButtons['Build'][-1] = self.buildClickedCallback
-        self.ui.humanButtons['End'][-1] = self.endClickedCallback
-        self.ui.aiButtons['Next'][-1] = self.nextClickedCallback
-        self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
-        self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
-        self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['Soldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['Ranged Soldier'][-1] = self.buildISoldierCallback
-        self.ui.antButtons['None'][-1] = self.buildNothingCallback    
-        self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
-        self.ui.locationClicked = self.locationClickedCallback
-        self.ui.checkBoxClicked = self.checkBoxClickedCallback
-        #Finally, let the ui look at players
-        self.ui.allAIs = self.players
+        
     
     ##
     #runGame
@@ -70,7 +40,6 @@ class Game(object):
     #
     ##
     def runGame(self):
-        # initialize board be ready for player input for game parameter
         while True:
             #Determine current chosen game mode. Enter different execution paths
             #based on the mode, which must be chosen by clicking a button.
@@ -375,7 +344,7 @@ class Game(object):
                         #save the mode
                         currMode = self.mode
                         #reset the game
-                        self.resetGame()
+                        self.initGame()
                         #restore the mode
                         self.mode = currMode
                                                  
@@ -392,7 +361,7 @@ class Game(object):
                         currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
                     
                         #reset the game
-                        self.resetGame()
+                        self.initGame()
                     
                         #give the new scores to the UI
                         self.ui.tournamentScores = self.playerScores
@@ -511,11 +480,11 @@ class Game(object):
             self.pauseForAIMode()
             
     ##
-    #resetGame
+    #initGame
     #Description: resets the game's attributes to their starting state
     #
     ##
-    def resetGame(self):
+    def initGame(self):
         board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
@@ -531,11 +500,11 @@ class Game(object):
         #Don't reset Tournament Mode's variables, might need to run more games
         
     ##
-    #resetUI
+    #initUI
     #Description: resets the game's UI attributes to their starting state
     #
     ##
-    def resetUI(self):
+    def initUI(self):
         self.ui.initAssets()
         #UI Callback functions
         self.ui.buttons['Start'][-1] = self.startGameCallback
@@ -1090,8 +1059,8 @@ class Game(object):
     ##
     def tourneyPathCallback(self):
         #Reset the game
-        self.resetGame()
-        self.resetUI()
+        self.initGame()
+        self.initUI()
         #Reset tournament mode variables
         self.playerScores = []
         self.gamesToPlay = []
@@ -1114,8 +1083,8 @@ class Game(object):
     ##
     def humanPathCallback(self):
         #Reset the game and UI
-        self.resetGame()
-        self.resetUI()
+        self.initGame()
+        self.initUI()
         #Attempt to load the AI files
         self.loadAIs(True) 
         #Add the human player to the player list
@@ -1136,8 +1105,8 @@ class Game(object):
     ##
     def aiPathCallback(self):
         #Reset the game
-        self.resetGame()
-        self.resetUI()
+        self.initGame()
+        self.initUI()
         #Attempt to load the AI files
         self.loadAIs(False)
         #Check right number of players, if successful set the mode.
