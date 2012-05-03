@@ -91,6 +91,7 @@ class Game(object):
                 #1 anthill/queen, 9 obstacles
                 constrsToPlace = []
                 constrsToPlace += [Building(None, ANTHILL, PLAYER_ONE)]
+                constrsToPlace += [Building(None, TUNNEL, PLAYER_ONE)]
                 constrsToPlace += [Construction(None, GRASS) for i in xrange(0,9)]
                 
                 gameOver = False
@@ -111,7 +112,9 @@ class Game(object):
                         currentPlayer = self.currentPlayers[self.state.whoseTurn]
                         if type(currentPlayer) is HumanPlayer.HumanPlayer:
                             if constrsToPlace[0].type == ANTHILL:
-                                self.ui.notify("Place anthill on your side.") 
+                                self.ui.notify("Place anthill on your side.")
+                            elif constrsToPlace[0].type == TUNNEL:
+                                self.ui.notify("Place tunnel on your side.")
                             elif constrsToPlace[0].type == GRASS:
                                 self.ui.notify("Place grass on your side.")
                             elif constrsToPlace[0].type == FOOD:
@@ -140,7 +143,7 @@ class Game(object):
                                 constr.coords = target
                                 #put constr on board
                                 self.state.board[target[0]][target[1]].constr = constr
-                                if (constr.type == ANTHILL):
+                                if constr.type == ANTHILL or constr.type == TUNNEL:
                                     #update the inventory
                                     self.state.inventories[self.state.whoseTurn].constructions.append(constr)
                             
@@ -155,6 +158,7 @@ class Game(object):
                                 if self.state.phase == SETUP_PHASE_1:
                                     if self.state.whoseTurn == PLAYER_ONE:
                                         constrsToPlace += [Building(None, ANTHILL, PLAYER_TWO)]
+                                        constrsToPlace += [Building(None, TUNNEL, PLAYER_TWO)]
                                         constrsToPlace += [Construction(None, GRASS) for i in xrange(0,9)]
                                     elif self.state.whoseTurn == PLAYER_TWO:
                                         constrsToPlace += [Construction(None, FOOD) for i in xrange(0,2)]
@@ -164,22 +168,32 @@ class Game(object):
                                         constrsToPlace += [Construction(None, FOOD) for i in xrange(0,2)]
                                     elif self.state.whoseTurn == PLAYER_TWO:
                                         #if we're finished placing, add in queens and move to play phase
-                            
+                                        p1inventory = self.state.inventories[PLAYER_ONE]
+                                        p2inventory = self.state.inventories[PLAYER_TWO]
                                         #get anthill coords
-                                        p1AnthillCoords = self.state.inventories[PLAYER_ONE].getAnthill().coords
-                                        p2AnthillCoords = self.state.inventories[PLAYER_TWO].getAnthill().coords
-                                        #create queen ants
+                                        p1AnthillCoords = p1inventory.constructions[0].coords
+                                        p2AnthillCoords = p2inventory.constructions[0].coords
+                                        #get tunnel coords
+                                        p1TunnelCoords = p1inventory.constructions[1].coords
+                                        p2TunnelCoords = p2inventory.constructions[1].coords
+                                        #create queen and worker ants
                                         p1Queen = Ant(p1AnthillCoords, QUEEN, PLAYER_ONE)
                                         p2Queen = Ant(p2AnthillCoords, QUEEN, PLAYER_TWO)
-                                        #put queens on board
+                                        p1Worker = Ant(p1TunnelCoords, WORKER, PLAYER_ONE)
+                                        p2Worker = Ant(p2TunnelCoords, WORKER, PLAYER_TWO)
+                                        #put ants on board
                                         self.state.board[p1Queen.coords[0]][p1Queen.coords[1]].ant = p1Queen
                                         self.state.board[p2Queen.coords[0]][p2Queen.coords[1]].ant = p2Queen
+                                        self.state.board[p1Worker.coords[0]][p1Worker.coords[1]].ant = p1Worker
+                                        self.state.board[p2Worker.coords[0]][p2Worker.coords[1]].ant = p2Worker
                                         #add the queens to the inventories
-                                        self.state.inventories[PLAYER_ONE].ants.append(p1Queen)
-                                        self.state.inventories[PLAYER_TWO].ants.append(p2Queen)
+                                        p1inventory.ants.append(p1Queen)
+                                        p2inventory.ants.append(p2Queen)
+                                        p1inventory.ants.append(p1Worker)
+                                        p2inventory.ants.append(p2Worker)
                                         #give the players the initial food
-                                        self.state.inventories[PLAYER_ONE].foodCount = 3
-                                        self.state.inventories[PLAYER_TWO].foodCount = 3
+                                        p1inventory.foodCount = 2
+                                        p2inventory.foodCount = 2
                                         #change to play phase
                                         self.ui.notify("")
                                         self.state.phase = PLAY_PHASE
@@ -738,7 +752,7 @@ class Game(object):
     #
     #Returns None if no target is given, true if it is a valid placement, or false if it is an invalid placement
     ##
-    def isValidPlacement(self, items, targets):      
+    def isValidPlacement(self, items, targets):
         #check for well-formed input of targets (from players)
         if type(targets) == type(None) or type(targets) != list:
             return False
@@ -756,7 +770,7 @@ class Game(object):
                 return False
             
             #check item type
-            if items[i].type == ANTHILL or items[i].type == GRASS:
+            if items[i].type == ANTHILL or items[i].type == TUNNEL or items[i].type == GRASS:
                 #check targets[i] is within proper boundaries y-wise
                 if not (targets[i][1] >= 0 and targets[i][1] < BOARD_LENGTH / 2 - 1):
                     return False
