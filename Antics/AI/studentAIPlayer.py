@@ -24,7 +24,7 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(AIPlayer,self).__init__(inputPlayerId, "AI Player 1")
+        super(AIPlayer,self).__init__(inputPlayerId, "AI Template (not implemented)")
     
     ##
     #getPlacement

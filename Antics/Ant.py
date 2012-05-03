@@ -1,7 +1,7 @@
 from Constants import *
 
-#Unit stats array
-#(movement, health, attack, range, cost)[type]
+#Unit stats array [ant type][stat]
+#(movement, health, attack, range, cost)
 UNIT_STATS = []
 UNIT_STATS.append((3, 3, 2, 1, None)) #Queen
 UNIT_STATS.append((1, 2, 1, 1, 1)) #Worker

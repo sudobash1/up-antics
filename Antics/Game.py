@@ -54,8 +54,8 @@ class Game(object):
         self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
         self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['Direct Soldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['Indirect Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['Ranged Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback    
         self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
         self.ui.locationClicked = self.locationClickedCallback
@@ -495,6 +495,7 @@ class Game(object):
             #if a human player, let it know an attack is expected (to affect location clicked context)
             if type(currentPlayer) is HumanPlayer.HumanPlayer:
                 self.expectingAttack = False
+                currentPlayer.coordList = []
             
             #decrement ants health
             attackedAnt = self.state.board[attackCoords[0]][attackCoords[1]].ant
@@ -548,8 +549,8 @@ class Game(object):
         self.ui.aiButtons['Continue'][-1] = self.continueClickedCallback
         self.ui.antButtons['Worker'][-1] = self.buildWorkerCallback
         self.ui.antButtons['Drone'][-1] = self.buildDroneCallback
-        self.ui.antButtons['Direct Soldier'][-1] = self.buildDSoldierCallback
-        self.ui.antButtons['Indirect Soldier'][-1] = self.buildISoldierCallback
+        self.ui.antButtons['Soldier'][-1] = self.buildDSoldierCallback
+        self.ui.antButtons['Ranged Soldier'][-1] = self.buildISoldierCallback
         self.ui.antButtons['None'][-1] = self.buildNothingCallback       
         self.ui.submitSelected['Submit AIs'][-1] = self.submitClickedCallback
         self.ui.locationClicked = self.locationClickedCallback      
@@ -645,7 +646,7 @@ class Game(object):
                         previousCoord = coord
                         continue  
                     #if any to-coords are invalid, return invalid move
-                    if not self.checkMovePath(previousCoord, coord, antToMove):
+                    if not self.checkMovePath(previousCoord, coord):
                         return False
                         
                     #subtract cost of loc from movement points
@@ -724,8 +725,8 @@ class Game(object):
                 
             
         else:
-            #what the heck kind of move is this?
-            pass
+            #invalid numeric move type
+            return False
         
     ##
     #isValidPlacement
@@ -739,7 +740,7 @@ class Game(object):
     ##
     def isValidPlacement(self, items, targets):      
         #check for well-formed input of targets (from players)
-        if type(targets) != list:
+        if type(targets) == type(None) or type(targets) != list:
             return False
          #If no target, return None (human vs ai caught by caller)
         if len(targets) == 0:
@@ -864,17 +865,13 @@ class Game(object):
     #Parameters:
     #   fromCoord - The Ant's current coordinate ((int, int))
     #   toCoord - The coorinate to move the Ant to ((int, int))
-    #   antToMove - The Ant that is being moved (Ant)
     #
     #Returns: True if it is a valid move and false otherwise
     #
     #Note: fromCoord must always have been checked by the time it's passed
     #  (either in checkMoveStart or previous checkMovePath call)
     ##
-    def checkMovePath(self, fromCoord, toCoord, antToMove):
-        #check that we're actaully moving an ant
-        if antToMove == None:
-            return False
+    def checkMovePath(self, fromCoord, toCoord):
         #check location is on board
         if (toCoord[0] >= 0 and toCoord[0] < BOARD_LENGTH and
                 toCoord[1] >= 0 and toCoord[1] < BOARD_LENGTH):
@@ -882,8 +879,8 @@ class Game(object):
             if ((abs(fromCoord[0] - toCoord[0]) == 1 and abs(fromCoord[1] - toCoord[1]) == 0) or
                     (abs(fromCoord[0] - toCoord[0]) == 0 and abs(fromCoord[1] - toCoord[1]) == 1)):
                 antAtLoc = self.state.board[toCoord[0]][toCoord[1]].ant
-                #check that an ant exists at the loc
-                if antAtLoc ==  None or antAtLoc == antToMove:
+                #check if an ant exists at the loc
+                if antAtLoc ==  None:
                     return True
                     
         return False
@@ -915,10 +912,55 @@ class Game(object):
                     return True
                     
         return False
-      
+    
+    ##
+    #highlightValidMoves
+    #Description: Highlights valid possible moves for the player when an ant is selected
+    #
+    #Parameters:
+    #   coord - The coordinate of the starting ant ((int, int))
+    ##
+    def highlightValidMoves(self, antCoord):
+        self.ui.validCoordList = [antCoord]
+        ant = self.state.board[antCoord[0]][antCoord[1]].ant
+        movement = UNIT_STATS[ant.type][MOVEMENT]
+        for i in range(0, movement):
+            adjacentCoords = []
+            for j in range(0, len(self.ui.validCoordList)):
+                coord = self.ui.validCoordList[j]
+                adjacentCoords.append(addCoords(coord, (0, -1)))
+                adjacentCoords.append(addCoords(coord, (0, 1)))
+                adjacentCoords.append(addCoords(coord, (-1, 0)))
+                adjacentCoords.append(addCoords(coord, (1, 0)))
+                
+                for aCoord in adjacentCoords:
+                    if self.ui.validCoordList.count(aCoord) == 0 and self.isValidCoord(aCoord):
+                        self.ui.validCoordList.append(aCoord)
+        self.ui.validCoordList.remove(antCoord)
+    ##
+    #isValidCoord
+    #Description: Retruns whether this coord represents a valid board location. 
+    #
+    #Parameters:
+    #   coord - The coord to be checked trying to be checked ((int, int))
+    #
+    #Returns: True if the coordinate is between (0,0) and (9,9)
+    ##
+    def isValidCoord(self, coord):
+        #check for well-formed coord
+        if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+            return False
+        
+        #check boundaries
+        if coord[0] < 0 or coord[1] < 0 or coord[0] > BOARD_LENGTH or coord[1] > BOARD_LENGTH:
+            return False
+            
+        return True
+    
+    ##
     ##
     #pauseForAIMode
-    #Description: will pause the game if set to AI mode until user clicks next or continue
+    #Description: Will pause the game if set to AI mode until user clicks next or continue
     #
     ##    
     def pauseForAIMode(self):
@@ -1027,7 +1069,7 @@ class Game(object):
         if len(self.players) >= 2:
             self.ui.choosingAIs = True
             self.mode = TOURNAMENT_MODE
-            self.ui.notify("Mode set to Tournament. Submit at least two AI players.")
+            self.ui.notify("Mode set to Tournament. Submit two or more AI players.")
         else:
             self.ui.notify("Could not load enough AI players for game type.")
             self.errorNotify = True
@@ -1087,25 +1129,29 @@ class Game(object):
         if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
             whoseTurn = self.state.whoseTurn
             currentPlayer = self.currentPlayers[whoseTurn]
-            self.ui.validCoordList = []
-            changedMove = False
             
-            #add location to human player's movelist if appropriatocity is valid
-            
+            #determine if the coord is on the list
+            onList = False
+            index = None
+            if (currentPlayer.coordList.count(coord) > 0):
+                onList = True
+                index = currentPlayer.coordList.index(coord)
+     
+            #add location to human player's movelist if appropriate  
             if len(currentPlayer.coordList) == 0:
-                #Clicked when nothing selected yet (select ant or building)
+                #clicked when nothing selected yet (select ant or building)
                 if self.checkMoveStart(coord):
                     currentPlayer.coordList.append(coord)
-                    changedMove = True
+                    self.highlightValidMoves(coord)
                 elif self.checkBuildStart(coord) or self.expectingAttack:
                     currentPlayer.coordList.append(coord)
                 self.errorNotify = False
                      
-            elif len(currentPlayer.coordList) != 0 and coord == currentPlayer.coordList[-1]:
-                #Clicked most recently added location (unselect building or submit ant move)
+            elif coord == currentPlayer.coordList[-1]:
+                #clicked most recently added location (unselect building or submit ant move)
                 if not self.ui.buildAntMenu:
-                    moveStartLoc = self.state.board[currentPlayer.coordList[0][0]][currentPlayer.coordList[0][1]]
-                    if moveStartLoc.ant == None:
+                    startCoord = currentPlayer.coordList[0]
+                    if self.state.board[startCoord[0]][startCoord[1]].ant == None:
                         currentPlayer.coordList.pop()
                     else:
                         currentPlayer.moveType = MOVE_ANT
@@ -1114,65 +1160,38 @@ class Game(object):
                     self.errorNotify = False
                 
             else:
-                onList = False
-                index = None
-                for checkCoord in currentPlayer.coordList:
-                    if checkCoord == coord:
-                        onList = True
-                        index = currentPlayer.coordList.index(coord)
-                
-                startCoord = currentPlayer.coordList[0]
-                antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
                 if not onList:
-                    if self.checkMovePath(currentPlayer.coordList[-1], coord, antToMove): 
-                        #add the coord to the move list so we can check if it makes a valid move
-                        currentPlayer.coordList.append(coord)
-                        
-                        #enact the theoretical move
-                        move = Move(MOVE_ANT, currentPlayer.coordList, antToMove.type)
-                        
-                        #if the move wasn't valid, remove added coord from move list              
-                        if not self.isValidMove(move):
-                            currentPlayer.coordList = []
-                        else:
-                            self.errorNotify = False
-                            changedMove = True
-                    else:
+                    #player clicked off the path
+                    startCoord = currentPlayer.coordList[0]
+                    antToMove = self.state.board[startCoord[0]][startCoord[1]].ant
+                    if self.ui.validCoordList.count(coord) != 0:
+                        #coord is a valid move coord
+                        if self.checkMovePath(currentPlayer.coordList[-1], coord): 
+                            #add the coord to the move list so we can check if it makes a valid move
+                            currentPlayer.coordList.append(coord)
+                            
+                            #enact the theoretical move
+                            move = Move(MOVE_ANT, currentPlayer.coordList, antToMove.type)
+                            
+                            #if the move wasn't valid, remove added coord from move list              
+                            if not self.isValidMove(move):
+                                currentPlayer.coordList.pop()
+                            else:
+                                self.ui.validCoordList.remove(coord)
+                                self.errorNotify = False
+                    elif not self.ui.buildAntMenu:
+                        #coord outside of valid radius
+                        self.ui.validCoordList = []
                         currentPlayer.coordList = []
                 else:
-                    #if the user clicked a previous location, change move to it
+                    #player clicked a previous location, change move to it
                     numToRemove = len(currentPlayer.coordList) - (index + 1)
                     for i in range(0, numToRemove):
-                        currentPlayer.coordList.pop()
-                        changedMove = True
+                        self.ui.validCoordList.append(currentPlayer.coordList.pop())
                             
             #give coordList to UI so it can hightlight the player's path
             if not self.expectingAttack:
-                self.ui.coordList = currentPlayer.coordList
-            
-            #highlight any valid adjacent moves
-            if changedMove:
-                self.ui.validCoordList = []
-                adjacentCoords = []
-                adjacentCoords.append(addCoords(coord, (0, -1)))
-                adjacentCoords.append(addCoords(coord, (0, 1)))
-                adjacentCoords.append(addCoords(coord, (-1, 0)))
-                adjacentCoords.append(addCoords(coord, (1, 0)))
-                
-                for aCoord in adjacentCoords:
-                    onList = False
-                    for checkCoord in currentPlayer.coordList:
-                        if checkCoord == aCoord:
-                            onList = True
-                    
-                    if not onList:
-                        antLoc = currentPlayer.coordList[0]
-                        antToMove = self.state.board[antLoc[0]][antLoc[1]].ant
-                        currentPlayer.coordList.append(aCoord)
-                        move = Move(MOVE_ANT, currentPlayer.coordList, antToMove.type)
-                        if self.isValidMove(move):
-                            self.ui.validCoordList.append(aCoord)
-                        currentPlayer.coordList.pop()
+                self.ui.coordList = currentPlayer.coordList       
                 
         #Check if its human player's turn during set up phase
         elif ((self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2) 

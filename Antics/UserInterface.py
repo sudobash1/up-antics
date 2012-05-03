@@ -693,9 +693,9 @@ class UserInterface(object):
                 elif char == 'd':
                     self.antButtons['Drone'][-1]()
                 elif char == 's':
-                    self.antButtons['Direct Soldier'][-1]()
+                    self.antButtons['Soldier'][-1]()
                 elif char == 'i':
-                    self.antButtons['Indirect Soldier'][-1]()
+                    self.antButtons['Ranged Soldier'][-1]()
                 elif char == 'n':
                     self.antButtons['None'][-1]()
         elif mode == AI_MODE:
@@ -905,8 +905,8 @@ class UserInterface(object):
         self.antButtons = {
         'Worker':[self.findButtonCoords(1, True), 1, self.submitWorker],
         'Drone':[self.findButtonCoords(2, True), 1, self.submitDrone],
-        'Direct Soldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
-        'Indirect Soldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
+        'Soldier':[self.findButtonCoords(3, True), 1, self.submitDSoldier],
+        'Ranged Soldier':[self.findButtonCoords(4, True), 1, self.submitISoldier],
         'None':[self.findButtonCoords(5, True), 1, self.submitNoBuild]
         }
         #Initial value for submit button for AI checklist.
