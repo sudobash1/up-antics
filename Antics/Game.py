@@ -339,6 +339,7 @@ class Game(object):
                 if self.state.phase != MENU_PHASE:
                     #check mode for appropriate response to game over
                     if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+                        #self.state.phase = MENU_PHASE
                         #wait for a few seconds to allow user to see end result
                         time.sleep(1.5)
                         #save the mode
