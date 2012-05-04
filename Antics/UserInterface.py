@@ -4,7 +4,7 @@
 #   and handles user input events.
 #
 ##
-import pygame, os, sys
+import pygame, os, sys, time
 from pygame.locals import *
 from Building import Building
 from Ant import UNIT_STATS
@@ -723,7 +723,8 @@ class UserInterface(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and time.clock() - self.lastClicked > self.clickCooldown:
+                self.lastClicked = time.clock()
                 #Start by checking the basic buttons that always get drawn
                 for key in self.buttons:
                     if self.buttonRect.move(self.buttons[key][0]).collidepoint(event.pos):
@@ -944,3 +945,6 @@ class UserInterface(object):
         self.choosingAIs = False
         #Set an initial value for the list of AIs that the game uses.
         self.allAIs = []
+        #Set a minimmum time between accepted clicks.
+        self.clickCooldown = 0.25
+        self.lastClicked = time.clock()
