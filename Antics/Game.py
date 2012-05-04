@@ -948,7 +948,7 @@ class Game(object):
     def error(self, errorCode, info):
         errorMsg = "AI ERROR: "
         if errorCode == INVALID_PLACEMENT:
-            #info is a coord list     
+            #info is a coord list
             errorMsg += "invalid placement\nCoords given: "
             lastCoord = info.pop()
             for coord in info:
@@ -960,13 +960,13 @@ class Game(object):
             if info == None:
                 errorMsg += "Move is non-move type: None"
             elif type(info) != Move:
-                errorMsg += "Move is non-move type: " + type(info) 
+                errorMsg += "Move is non-move type: " + str(type(info))
             elif info.moveType == None:
                 errorMsg += "moveType is non-int type: None"
             elif type(info.moveType) != Move:
-                errorMsg += "moveType is non-int type: " + type(info.moveType)
+                errorMsg += "moveType is non-int type: " + str(type(info.moveType))
             elif info.moveType < MOVE_ANT or info.moveType > END:
-                errorMsg += "moveType not a recognized value: " + info.moveType
+                errorMsg += "moveType not a recognized value: " + str(info.moveType)
             elif info.moveType == MOVE:
                 pass
         else: #INVALID_ATTACK

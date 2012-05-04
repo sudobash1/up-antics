@@ -40,7 +40,7 @@ class AIPlayer(Player):
         numToPlace = 0
         #implemented by students to return their next move
         if currentState.phase == SETUP_PHASE_1:
-            numToPlace = 10
+            numToPlace = 11
             moves = []
             for i in range(0, numToPlace):
                 move = None
