@@ -97,10 +97,10 @@ class AIPlayer(Player):
             return Move(END, None, None)
         #If you have the food for an ant tunnel, try to purchase something random.
         if myInv.foodCount >= CONSTR_STATS[TUNNEL][BUILD_COST]:
-            #First detect whether you have an ant with nothing under it
+            #First detect whether you have an ant WORKER with nothing under it
             placeableAnts = []
             for ant in myInv.ants:
-                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None and ant.type == WORKER:
+                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None and ant.type == WORKER and not ant.hasMoved:
                     placeableAnts.append(ant)
             #Then detect whether you have an anthill with nothing on top of it
             placeableHill = False

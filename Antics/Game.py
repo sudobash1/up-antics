@@ -199,7 +199,7 @@ class Game(object):
                         #get the move from the current player
                         move = currentPlayer.getMove(theState)
                         
-                        if not move == None and move.coordList != None:
+                        if move != None and move.coordList != None:
                             for i in xrange(0,len(move.coordList)):
                                 #translate coords of move to match player
                                 move.coordList[i] = self.state.coordLookup(move.coordList[i], self.state.whoseTurn)
@@ -339,15 +339,7 @@ class Game(object):
                 if self.state.phase != MENU_PHASE:
                     #check mode for appropriate response to game over
                     if self.mode == HUMAN_MODE or self.mode == AI_MODE:
-                        #self.state.phase = MENU_PHASE
-                        #wait for a few seconds to allow user to see end result
-                        time.sleep(1.5)
-                        #save the mode
-                        currMode = self.mode
-                        #reset the game
-                        self.initGame()
-                        #restore the mode
-                        self.mode = currMode
+                        self.state.phase = MENU_PHASE
                                                  
                         #notify the user of the winner
                         if winner == PLAYER_ONE:
@@ -947,6 +939,8 @@ class Game(object):
     ##
     def error(self, errorCode, info):
         errorMsg = "AI ERROR: "
+        import pdb
+        pdb.set_trace()
         if errorCode == INVALID_PLACEMENT:
             #info is a coord list
             errorMsg += "invalid placement\nCoords given: "
@@ -990,6 +984,13 @@ class Game(object):
     #
     ##
     def startGameCallback(self):
+        #save the mode
+        currMode = self.mode
+        #reset the game
+        self.initGame()
+        #restore the mode
+        self.mode = currMode
+        
         if self.mode == None:
             self.ui.notify("Please select a mode.")
             return
