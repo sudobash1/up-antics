@@ -117,14 +117,14 @@ class AIPlayer(Player):
                     return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
                 else:
                     #build an ant
-                    return Move(BUILD, [hill.coords], random.randint(WORKER, I_SOLDIER))
+                    return Move(BUILD, [hill.coords], random.randint(WORKER, R_SOLDIER))
             elif len(placeableAnts) != 0:
                 #build a tunnel
                 location = random.randint(0, len(placeableAnts) - 1)
                 return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
             elif placeableHill:
                 #build an ant
-                return Move(BUILD, [hill.coords], random.randint(WORKER, I_SOLDIER))
+                return Move(BUILD, [hill.coords], random.randint(WORKER, R_SOLDIER))
             else:
                 #I have resources to build, but no place to build things
                 pass

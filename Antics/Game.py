@@ -643,10 +643,10 @@ class Game(object):
                         buildCost = UNIT_STATS[WORKER][COST]
                     elif move.buildType == DRONE:
                         buildCost = UNIT_STATS[DRONE][COST]
-                    elif move.buildType == D_SOLDIER:
-                        buildCost = UNIT_STATS[D_SOLDIER][COST]
-                    elif move.buildType == I_SOLDIER:
-                        buildCost = UNIT_STATS[I_SOLDIER][COST]
+                    elif move.buildType == SOLDIER:
+                        buildCost = UNIT_STATS[SOLDIER][COST]
+                    elif move.buildType == R_SOLDIER:
+                        buildCost = UNIT_STATS[R_SOLDIER][COST]
                     else:
                         return False
                     
@@ -877,22 +877,38 @@ class Game(object):
     #   coord - The coordinate of the starting ant ((int, int))
     ##
     def highlightValidMoves(self, antCoord):
-        self.ui.validCoordList = [antCoord]
+        #create a list of 2 element tuples: (coord, path cost)
+        adjacentCoords = {antCoord:0}
         ant = self.state.board[antCoord[0]][antCoord[1]].ant
         movement = UNIT_STATS[ant.type][MOVEMENT]
         for i in range(0, movement):
-            adjacentCoords = []
-            for j in range(0, len(self.ui.validCoordList)):
-                coord = self.ui.validCoordList[j]
-                adjacentCoords.append(addCoords(coord, (0, -1)))
-                adjacentCoords.append(addCoords(coord, (0, 1)))
-                adjacentCoords.append(addCoords(coord, (-1, 0)))
-                adjacentCoords.append(addCoords(coord, (1, 0)))
-                
-                for aCoord in adjacentCoords:
-                    if self.ui.validCoordList.count(aCoord) == 0 and self.isValidCoord(aCoord):
-                        self.ui.validCoordList.append(aCoord)
+            tempCoords = {}
+            for coord in adjacentCoords:
+                for inc in [(0, -1), (0, 1), (-1, 0) ,(1, 0)]:
+                    newCoord = addCoords(coord, inc)
+                    if not self.isValidCoord(newCoord):
+                        continue
+                    construction = self.state.board[newCoord[0]][newCoord[1]].constr
+                    pathCost = adjacentCoords[coord] + (2 if construction and construction.type == GRASS else 1)
+                    if newCoord in adjacentCoords and adjacentCoords[newCoord] > pathCost:
+                        continue
+                    elif newCoord in tempCoords and tempCoords[newCoord] > pathCost:
+                        continue
+                    elif pathCost > movement:
+                        continue
+                    else:
+                        #If this is either previously unseen, or cheaper than previously seen, add it to adjacentCoords/
+                        tempCoords[newCoord] = pathCost
+            #Finally, add new coords to adjacentCoords, or update costs of perviously examined coords.
+            for coord in tempCoords:
+                if coord not in adjacentCoords:
+                    adjacentCoords[coord] = tempCoords[coord]
+                elif coord in adjacentCoords and adjacentCoords[coord] > tempCoords[coord]:
+                    adjacentCoords[coord] = tempCoords[coord]
+        for key in adjacentCoords:
+            self.ui.validCoordList.append(key)
         self.ui.validCoordList.remove(antCoord)
+
     
     ##
     #hasWon(int)
@@ -983,14 +999,7 @@ class Game(object):
     #Description: Starts a new game. Called when start game button is clicked.
     #
     ##
-    def startGameCallback(self):
-        #save the mode
-        currMode = self.mode
-        #reset the game
-        self.initGame()
-        #restore the mode
-        self.mode = currMode
-        
+    def startGameCallback(self):      
         if self.mode == None:
             self.ui.notify("Please select a mode.")
             return
@@ -1272,7 +1281,7 @@ class Game(object):
         currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
-        currentPlayer.buildType = D_SOLDIER
+        currentPlayer.buildType = SOLDIER
     
     ##
     #buildISoldierClickedCallback
@@ -1284,7 +1293,7 @@ class Game(object):
         currentPlayer = self.currentPlayers[whoseTurn]
         
         self.ui.buildAntMenu = False
-        currentPlayer.buildType = I_SOLDIER  
+        currentPlayer.buildType = R_SOLDIER  
     
     ##
     #buildNothinClickedCallback

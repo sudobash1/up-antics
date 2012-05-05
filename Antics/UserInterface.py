@@ -338,8 +338,8 @@ class UserInterface(object):
     #   health - the amount of health to draw.(int, int)
     ##
     def drawCaptureHealths(self, health):
-        label1 = self.monsterFont.render(str(health[0]), True, DARK_RED, WHITE)
-        label2 = self.monsterFont.render(str(health[1]), True, DARK_BLUE, WHITE)
+        label1 = self.monsterFont.render(str(health[0]), True, DARK_BLUE, WHITE)
+        label2 = self.monsterFont.render(str(health[1]), True, DARK_RED, WHITE)
         #Find out where to put the text onscreen.
         label1Size = label1.get_size()
         label2Size = label2.get_size()
@@ -694,7 +694,7 @@ class UserInterface(object):
                     self.antButtons['Drone'][-1]()
                 elif char == 's':
                     self.antButtons['Soldier'][-1]()
-                elif char == 'i':
+                elif char == 'r':
                     self.antButtons['Ranged Soldier'][-1]()
                 elif char == 'n':
                     self.antButtons['None'][-1]()
@@ -946,5 +946,5 @@ class UserInterface(object):
         #Set an initial value for the list of AIs that the game uses.
         self.allAIs = []
         #Set a minimmum time between accepted clicks.
-        self.clickCooldown = 0.25
+        self.clickCooldown = 0.15
         self.lastClicked = time.clock()

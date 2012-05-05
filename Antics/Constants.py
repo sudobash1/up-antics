@@ -27,8 +27,8 @@ AI_MODE = 2
 QUEEN = 0
 WORKER = 1
 DRONE = 2
-D_SOLDIER = 3
-I_SOLDIER = 4
+SOLDIER = 3
+R_SOLDIER = 4
 
 #Types of contructions
 ANTHILL = -4
