@@ -161,8 +161,8 @@ class Game(object):
                                         p1inventory.ants.append(p1Worker)
                                         p2inventory.ants.append(p2Worker)
                                         #give the players the initial food
-                                        p1inventory.foodCount = 2
-                                        p2inventory.foodCount = 2
+                                        p1inventory.foodCount = 1
+                                        p2inventory.foodCount = 1
                                         #change to play phase
                                         self.ui.notify("")
                                         self.state.phase = PLAY_PHASE

@@ -315,11 +315,11 @@ class UserInterface(object):
         healthBox = Rect(0,0,10,6)
         healthPerimiter = Rect(0,0,12,8)
         for x in xrange(0, UNIT_STATS[ant.type][HEALTH]):
-            pygame.draw.rect(self.screen, DARK_GREEN, healthPerimiter.move(Xpixel + CELL_SIZE.width - 16 * (x + 1) - 1, Ypixel + 1))
+            pygame.draw.rect(self.screen, DARK_GREEN, healthPerimiter.move(Xpixel + CELL_SIZE.width - 15 * (x + 1) - 1, Ypixel + 1))
         for x in xrange(0, ant.health):
-            pygame.draw.rect(self.screen, LIGHT_GREEN, healthBox.move(Xpixel + CELL_SIZE.width - 16 * (x + 1), Ypixel + 2))
+            pygame.draw.rect(self.screen, LIGHT_GREEN, healthBox.move(Xpixel + CELL_SIZE.width - 15 * (x + 1), Ypixel + 2))
         for x in xrange(ant.health, UNIT_STATS[ant.type][HEALTH]):
-            pygame.draw.rect(self.screen, DARK_RED, healthBox.move(Xpixel + CELL_SIZE.width - 16 * (x + 1), Ypixel + 2))
+            pygame.draw.rect(self.screen, DARK_RED, healthBox.move(Xpixel + CELL_SIZE.width - 15 * (x + 1), Ypixel + 2))
         #Draw isCarrying marker in lower right
         if ant.carrying:
             XoffsetCarry = CELL_SIZE.width - self.isCarryingTex.get_width()
