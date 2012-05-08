@@ -1005,7 +1005,14 @@ class Game(object):
     #Description: Starts a new game. Called when start game button is clicked.
     #
     ##
-    def startGameCallback(self):      
+    def startGameCallback(self):
+        #save the mode
+        currMode = self.mode
+        #reset the game
+        self.initGame()
+        #restore the mode
+        self.mode = currMode
+        
         if self.mode == None:
             self.ui.notify("Please select a mode.")
             return
