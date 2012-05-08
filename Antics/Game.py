@@ -63,11 +63,11 @@ class Game(object):
                 constrsToPlace += [Building(None, TUNNEL, PLAYER_ONE)]
                 constrsToPlace += [Construction(None, GRASS) for i in xrange(0,9)]
                 
-                gameOver = False
+                self.gameOver = False
                 winner = None
                 loser = None
                 
-                while not gameOver:
+                while not self.gameOver:
                     if self.state.phase != MENU_PHASE:
                         #if the player is player two, flip the board
                         theState = self.state.clone()
@@ -172,8 +172,9 @@ class Game(object):
                                     
                         else:
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
-                                #exit gracefully
+                                #cause current player to lose game because AIs aren't allowed to make mistakes.
                                 self.error(INVALID_PLACEMENT, targets)
+                                break
                             elif validPlace != None:
                                 self.ui.notify("Invalid placement.")
                                 self.errorNotify = True
@@ -308,6 +309,7 @@ class Game(object):
                             #human can give None move, AI can't
                             if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                                 self.error(INVALID_MOVE, move)
+                                break
                             elif validMove != None:
                                 #if validMove is False and not None, clear move
                                 currentPlayer.coordList = []
@@ -315,22 +317,10 @@ class Game(object):
 
                     #determine if if someone is a winner.
                     if self.hasWon(PLAYER_ONE):
-                        gameOver = True
-                        winner = self.currentPlayers[PLAYER_ONE].playerId
-                        loser = self.currentPlayers[PLAYER_TWO].playerId
-                        
-                        #tell the players if they won or lost
-                        self.currentPlayers[PLAYER_ONE].registerWin(True)
-                        self.currentPlayers[PLAYER_TWO].registerWin(False)
+                        self.setWinner(PLAYER_ONE)
                         
                     elif self.hasWon(PLAYER_TWO):
-                        gameOver = True
-                        loser = self.currentPlayers[PLAYER_ONE].playerId
-                        winner = self.currentPlayers[PLAYER_TWO].playerId
-                        
-                        #tell the players if they won or lost
-                        self.currentPlayers[PLAYER_ONE].registerWin(False)
-                        self.currentPlayers[PLAYER_TWO].registerWin(True)
+                        self.setWinner(PLAYER_TWO)
                         
                     #draw the board (to recognize user input in game loop)
                     self.ui.drawBoard(self.state, self.mode)
@@ -342,7 +332,7 @@ class Game(object):
                         self.state.phase = MENU_PHASE
                                                  
                         #notify the user of the winner
-                        if winner == PLAYER_ONE:
+                        if self.winner == PLAYER_ONE:
                             self.ui.notify("Player 1 has won the game!")
                         else:
                             self.ui.notify("Player 2 has won the game!")
@@ -360,8 +350,8 @@ class Game(object):
                         self.ui.tournamentScores = self.playerScores
                     
                         #adjust the wins and losses of players
-                        self.playerScores[winner][1] += 1
-                        self.playerScores[loser][2] += 1
+                        self.playerScores[self.winner][1] += 1
+                        self.playerScores[self.loser][2] += 1
                        
                         for i in range(0, len(self.gamesToPlay)):
                             #if we found the current pairing
@@ -391,6 +381,23 @@ class Game(object):
                             #set up new current players
                             self.currentPlayers.append(self.players[playerOneId][0])
                             self.currentPlayers.append(self.players[playerTwoId][0])     
+    
+    ##
+    #setWinner
+    #Description: Given a current player ID (0 or 1), sets that player to be the winner of the current game.
+    #
+    #Parameters:
+    #   id - the current player ID. (int)
+    ##
+    def setWinner(self, id):
+        self.gameOver = True
+        self.winner = self.currentPlayers[id].playerId
+        self.loser = self.currentPlayers[(id + 1) % 2].playerId
+        
+        
+        #tell the players if they won or lost
+        self.currentPlayers[id].registerWin(True)
+        self.currentPlayers[(id + 1) % 2].registerWin(False)
     
     ##
     #resolveAttack 
@@ -448,6 +455,7 @@ class Game(object):
                     if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                         #if an ai submitted an invalid attack, exit
                         self.error(INVALID_ATTACK, attackCoord)
+                        break
                     else:
                         #if a human submitted an invalid attack, reset coordList
                         currentPlayer.coordList = []
@@ -955,8 +963,6 @@ class Game(object):
     ##
     def error(self, errorCode, info):
         errorMsg = "AI ERROR: "
-        import pdb
-        pdb.set_trace()
         if errorCode == INVALID_PLACEMENT:
             #info is a coord list
             errorMsg += "invalid placement\nCoords given: "
@@ -984,7 +990,7 @@ class Game(object):
             errorMsg += "invalid attack\n"
     
         print errorMsg
-        exit(0)
+        self.setWinner((self.state.whoseTurn + 1) % 2)
 
     ############################################################# 
     #####  #####  #      #      ####   #####  #####  #   #  #####
