@@ -13,7 +13,7 @@ from GameState import addCoords, subtractCoords
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-OFF_BLACK = BLACK#(1, 1, 1)
+OFF_BLACK = (255, 0, 204)
 GREY = (195, 195, 195)
 DARK_RED = (150, 0, 0)
 LIGHT_RED = (255, 0, 0)
