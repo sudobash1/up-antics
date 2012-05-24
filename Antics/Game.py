@@ -1156,12 +1156,11 @@ class Game(object):
     def locationClickedCallback(self, coord):
         #Check if its human player's turn during play phase
         if self.state.phase == PLAY_PHASE and type(self.currentPlayers[self.state.whoseTurn]) is HumanPlayer.HumanPlayer:
-            whoseTurn = self.state.whoseTurn
-            currentPlayer = self.currentPlayers[whoseTurn]
+            currentPlayer = self.currentPlayers[self.state.whoseTurn]
             
             #determine if the coord is on the list
             onList = True if coord in currentPlayer.coordList else False
-            index = None
+            index = currentPlayer.coordList.index(coord) if onList else None
          
             if len(currentPlayer.coordList) == 0:
                 #clicked when nothing selected yet (select ant or building)
