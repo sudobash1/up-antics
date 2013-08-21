@@ -89,9 +89,9 @@ def antTypeToStr(type):
         return "WORKER"
     elif (type == DRONE):
         return "DRONE"
-    elif (type == D_SOLDIER):
+    elif (type == SOLDIER):
         return "SOLDIER"
-    elif (type == I_SOLDIER):
+    elif (type == R_SOLDIER):
         return "RANGED"
     else:
         return "???"
