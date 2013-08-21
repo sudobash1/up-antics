@@ -61,3 +61,53 @@ ACTIVE = 1
 INVALID_PLACEMENT = 0
 INVALID_MOVE = 1
 INVALID_ATTACK = 2
+
+##
+# moveTypeToStr
+#
+# returns a string the corresponds to a given move type
+#
+def moveTypeToStr(type):
+    if (type == MOVE_ANT):
+        return "MOVE_ANT"
+    elif (type == BUILD):
+        return "BUILD"
+    elif (type == END):
+        return "END"
+    else:
+        return "???"
+    
+##
+# antTypeToStr
+#
+# returns a string the corresponds to a given ant type
+#
+def antTypeToStr(type):
+    if (type == QUEEN):
+        return "QUEEN"
+    elif (type == WORKER):
+        return "WORKER"
+    elif (type == DRONE):
+        return "DRONE"
+    elif (type == D_SOLDIER):
+        return "SOLDIER"
+    elif (type == I_SOLDIER):
+        return "RANGED"
+    else:
+        return "???"
+    
+##
+# buildTypeToStr
+#
+# returns a string the corresponds to a given build type
+#
+def buildTypeToStr(type):
+    if (type == TUNNEL):
+        return "TUNNEL"
+    else:
+        return antTypeToStr(type)
+    
+    
+
+
+    
