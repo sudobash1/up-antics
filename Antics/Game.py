@@ -1,4 +1,4 @@
-import os, re, sys, math, time, HumanPlayer
+import os, re, sys, math, time, random, HumanPlayer
 from UserInterface import *
 from Construction import *
 from Constants import *
@@ -31,8 +31,51 @@ class Game(object):
         self.playerScores = [] # [[author,wins,losses], ...]
         self.gamesToPlay = [] #((p1.id, p2.id), numGames)
         self.numGames = None
+        #debug mode allows initial setup in human vs. AI to be automated
+        self.debugMode = False
+        self.randomSetup = False
         
-    
+    ##
+    #processCommandLine
+    #
+    # parses the command line arguments and configures the game
+    # appropriately.  Currently only "debug" arguments are supported. In this
+    # format: 
+    #            python Game.py debug [<myAIName>] [random]
+    def processCommandLine(self):
+        #process command line arguments
+        if (len(sys.argv) > 1):
+            #player wants to go straight to AI vs. Human for a
+            #specific AI
+            if sys.argv[1] == "debug":
+                self.debugMode = True
+                self.humanPathCallback()   #press the "Human vs. AI" button
+                #AI name should be specified as second command line arg
+                index = -1
+                if (len(sys.argv) > 2):
+                    ainame = sys.argv[2]
+                    for player in self.players:
+                        if ainame == player[0].author:
+                            index = self.players.index(player)
+                            break
+                    if (index < 0):
+                        print "ERROR:  AI '" + ainame + "' not found."
+                        print "Please specify one of the following:"
+                        for player in self.players[1:]:
+                            print '    "' + player[0].author + '"'
+                        return
+                    #select the specified AI and click "Submit"
+                    self.checkBoxClickedCallback(index)
+                    self.submitClickedCallback()
+                    self.startGameCallback()
+                #User may specify "random" as third argument to get a
+                #random layout.  
+                if (len(sys.argv) > 3) and (sys.argv[3] == "random"):
+                    self.randomSetup = True
+        
+
+
+        
     ##
     #start
     #Description: Runs the main game loop, requesting turns for each player. 
@@ -40,6 +83,8 @@ class Game(object):
     #
     ##
     def start(self):
+        self.processCommandLine()
+
         while True:
             #Determine current chosen game mode. Enter different execution paths
             #based on the mode, which must be chosen by clicking a button.
@@ -91,6 +136,17 @@ class Game(object):
                 #clear targets list as anything on list been processed on last loop
                 targets = []
                 
+                #do auto-random setup for human player if required
+                if (self.randomSetup) and (type(currentPlayer) is HumanPlayer.HumanPlayer):
+                    if (constrsToPlace[0].type != FOOD):
+                        coord = (random.randint(0,9), random.randint(0,3))
+                        if (self.state.board[coord[0]][coord[1]].constr == None):
+                            targets.append(coord)
+                    elif (constrsToPlace[0].type == FOOD):
+                        coord = (random.randint(0,9), random.randint(6,9))
+                        if (self.state.board[coord[0]][coord[1]].constr == None):
+                            targets.append(coord)
+
                 #hide the 1st player's set anthill and grass placement from the 2nd player
                 if theState.whoseTurn == PLAYER_TWO and self.state.phase == SETUP_PHASE_1:
                     theState.clearConstrs()
