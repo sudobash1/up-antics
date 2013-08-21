@@ -29,6 +29,8 @@ class Inventory(object):
         self.constrs = inputConstructions      
         self.foodCount = inputFood
         
+    ##
+    # return the queen in this inventory
     def getQueen(self):
         if self.ants == None:
             return None
@@ -36,7 +38,9 @@ class Inventory(object):
             if checkAnt.type == QUEEN: return checkAnt
             
         return None
-        
+
+    ##
+    # return the anthill in this inventory
     def getAnthill(self):
         if self.constrs == None:
             return None
@@ -45,6 +49,22 @@ class Inventory(object):
             if checkConstruction.type == ANTHILL: return checkConstruction
         
         return None
+
+    ## 
+    # construct a list of all the tunnels in this inventory
+    def getTunnels(self):
+        if self.constrs == None:
+            return []
+
+        result = []
+        for checkConstruction in self.constrs:
+            if checkConstruction.type == TUNNEL:
+                result.append(checkConstruction)
         
+        return result
+        
+
+    ##
+    # duplicate this inventory
     def clone(self):
         return Inventory(self.player,self.ants,self.constrs,self.foodCount)
