@@ -1,3 +1,5 @@
+from Constants import *
+
 ##
 #Move
 #Description: This class represents any valid move that can be made during Antics gameplay
@@ -23,3 +25,16 @@ class Move(object):
         self.coordList = inputCoordList
         self.buildType = inputBuildType
     
+
+    ##
+    # try to print this object out in an easier-to-read manner
+    def __str__(self):
+        moveName = str(moveTypeToStr(self.moveType))
+        buildName = str(buildTypeToStr(self.buildType))
+        if (self.moveType != BUILD):
+            buildName = ""
+        coordStr = str(self.coordList)
+        if (self.coordList == None):
+            coordStr = ""
+        
+        return "<Move: " + moveName + " " + buildName + " " +  coordStr + ">"
