@@ -626,7 +626,21 @@ class Game(object):
     #   # #     #     #     #     #  #      #
     #   # ##### ##### #     ##### #   # #####
     #########################################
-    
+
+    ##
+    # errorReport
+    #
+    # Description:  Notifies the user of an invalid move.  For AI
+    # players, this takes the form of a message on the console.
+    #
+    # Parameters:
+    #   msg - the message to send
+    #
+    def errorReport(self, msg):
+        if type(currentPlayer) is HumanPlayer.HumanPlayer:
+            return
+        print msg
+        
     ##
     #isValidMove(Move)
     #Description: Checks to see if the move is valid for the current player.
@@ -643,17 +657,35 @@ class Game(object):
         
         #check that the move is well-formed typewise (tuples, ints, etc)
         if type(move) != Move:
+            errorReport("ERROR: Invalid Move: " + str(move))
+            errorReport("ERROR:  player did not supply an object of type 'Move'")
             return False
         if type(move.moveType) != int:
+            errorReport("ERROR: Invalid Move: " + str(move))
+            errorReport("       Move type must be an integer.")
             return False
         #for END type moves, lots we don't need to check
         if move.moveType == END:
             return True
         if move.coordList == None or type(move.coordList) != list or len(move.coordList) == 0:
+            errorReport("ERROR: Invalid Move: " + str(move))
+            errorReport("       The coordinate list is empty!")
             return False
+        index = 0
         for coord in move.coordList:
-            if type(coord) != tuple or len(coord) != 2 or type(coord[0]) != int or type(coord[1]) != int:
+            if (type(coord) != tuple):
+                errorReport("ERROR: Invalid Move: " + str(move))
+                errorReport("       Coordinate at index " + str(index) + " is not a tuple.")
                 return False
+            if (len(coord) != 2):
+                errorReport("ERROR: Invalid Move: " + str(move))
+                errorReport("       Coordinate at index " + str(index) + " has " + str(len(coord)) + "entries instead of 2.")
+                return False
+            if (type(coord[0]) != int) or (type(coord[1]) != int):
+                errorReport("ERROR: Invalid Move: " + str(move))
+                errorReport("       Coordinate at index " + str(index) + " contains a value that is not an int.")
+                return False
+            index += 1
         if type(move.buildType) != type(None) and type(move.buildType) != int:
             return False
 
@@ -666,7 +698,8 @@ class Game(object):
                 antToMove = self.state.board[firstCoord[0]][firstCoord[1]].ant
                 movePoints = UNIT_STATS[antToMove.type][MOVEMENT]             
                 previousCoord = None
-                
+
+                index = 0
                 for coord in move.coordList:
                     #if first runthough, need to set up previous coord
                     if previousCoord == None:
@@ -674,6 +707,8 @@ class Game(object):
                         continue  
                     #if any to-coords are invalid, return invalid move
                     if not self.checkMovePath(previousCoord, coord):
+                        errorReport("ERROR: Invalid Move: " + str(move))
+                        errorReport("       Illegal movement path at index" + str(index))
                         return False
                         
                     #subtract cost of loc from movement points
@@ -684,16 +719,25 @@ class Game(object):
                         movePoints -= CONSTR_STATS[constrAtLoc.type][MOVE_COST]
                         
                     previousCoord = coord
+                    index += 1
                     
                 #within movement range and hasn't moved yet?
-                if movePoints >= 0 and antToMove.hasMoved == False:
-                    return True
-                else:
+                if (movePoints < 0):
+                    errorReport("ERROR: Invalid Move: " + str(move))
+                    errorReport("       Ant has insufficient movement points for this move")
                     return False
+                if antToMove.hasMoved:
+                    errorReport("ERROR: Invalid Move: " + str(move))
+                    errorReport("       Ant has already made a move this turn")
+                    return False
+                else:
+                    return True
                         
         elif move.moveType == BUILD:
             #coord list must contain one point for build
             if len(move.coordList) != 1:
+                errorReport("ERROR: Invalid Move: " + str(move))
+                errorReport("       for a BUILD move, the coordinate list should contain exactly 1 coordinate")
                 return False
         
             buildCoord = move.coordList[0]
@@ -714,13 +758,18 @@ class Game(object):
                     elif move.buildType == R_SOLDIER:
                         buildCost = UNIT_STATS[R_SOLDIER][COST]
                     else:
+                        errorReport("ERROR: Invalid Move: " + str(move))
+                        errorReport("       the buildType must be one of:  WORKER, DRONE, SOLDIER or R_SOLDIER.")
                         return False
                     
                     #check the player has enough food
-                    if self.state.inventories[self.state.whoseTurn].foodCount >= buildCost:
+                    currFood = self.state.inventories[self.state.whoseTurn].foodCount
+                    if currFood >= buildCost:
                         self.ui.notify("")
                         return True
                     else:
+                        errorReport("ERROR: Invalid Move: " + str(move))
+                        errorReport("       Player has " + str(currFood) + " food but needs " + str(buildCost) + " to build this ant")
                         self.ui.notify("Requires " + str(buildCost) + " food.")
                         self.errorNotify = True
                         return False
@@ -737,6 +786,8 @@ class Game(object):
                         if aCoord[0] >= 0 and aCoord[0] < 10 and aCoord[1] >= 0 and aCoord[1] < 10:
                             if (self.state.board[aCoord[0]][aCoord[1]].constr != None and
                                     self.state.board[aCoord[0]][aCoord[1]].constr.type == FOOD):
+                                errorReport("ERROR: Invalid Move: " + str(move))
+                                errorReport("       Cannot tunnel build next to food.")
                                 self.ui.notify("Cannot tunnel build next to food.")
                                 self.errorNotify = True
                                 return False
@@ -746,10 +797,11 @@ class Game(object):
                         self.ui.notify("")
                         return True
                     else:
-                        self.ui.notify("Requires "+str(buildCost) + " food.")
+                        self.ui.notify("Requires "+ str(buildCost) + " food.")
                         self.errorNotify = True
+                        errorReport("ERROR: Invalid Move: " + str(move))
+                        errorReport("       Must have at least " + str(buildCost) + " food to build a tunnel.")
                         return False
-                
             
         else:
             #invalid numeric move type
