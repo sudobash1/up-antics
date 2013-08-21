@@ -27,8 +27,11 @@ class AIPlayer(Player):
     
     ##
     #getPlacement
-    #Description: called during setup phase for each Construction that must be placed by the player.
-    #   These items are: 1 Anthill on the player's side; 9 grass on the player's side; and 2 food on the enemy's side.
+    #
+    #Description: called during setup phase for each Construction that
+    #   must be placed by the player.  These items are: 1 Anthill on
+    #   the player's side; 1 tunnel on player's side; 9 grass on the
+    #   player's side; and 2 food on the enemy's side.
     #
     #Parameters:
     #   construction - the Construction to be placed.
@@ -39,7 +42,7 @@ class AIPlayer(Player):
     def getPlacement(self, currentState):
         numToPlace = 0
         #implemented by students to return their next move
-        if currentState.phase == SETUP_PHASE_1:
+        if currentState.phase == SETUP_PHASE_1:    #stuff on my side
             numToPlace = 11
             moves = []
             for i in range(0, numToPlace):
@@ -56,7 +59,7 @@ class AIPlayer(Player):
                         currentState.board[x][y].constr == True
                 moves.append(move)
             return moves
-        elif currentState.phase == SETUP_PHASE_2:
+        elif currentState.phase == SETUP_PHASE_2:   #stuff on foe's side
             numToPlace = 2
             moves = []
             for i in range(0, numToPlace):
