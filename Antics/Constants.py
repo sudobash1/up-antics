@@ -23,6 +23,9 @@ TOURNAMENT_MODE = 0
 HUMAN_MODE = 1
 AI_MODE = 2
 
+#Amount of food require to win
+FOOD_GOAL = 11
+
 #Types of ants
 QUEEN = 0
 WORKER = 1
