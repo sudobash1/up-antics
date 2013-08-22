@@ -1,5 +1,7 @@
 import random
 from Constants import *
+from Ant import UNIT_STATS
+from Move import *
 
 #
 # AIPlayerUtils.py
@@ -187,8 +189,104 @@ def stepsToReach(currentState, src, dst):
     return -1
 
 ##
-# returns a reference the inventory of the player whose turn it is in
-# the given state
+# listAllBuildMoves
+#
+# calcualtes all the legal BUILD moves that the current player can
+# make
+#
+# Parameters
+#   currentState - currentState of the game
+#
+# Returns: a list of Move objects
+def listAllBuildMoves(currentState):
+    result = []
+
+    #if the anthill is unoccupied list a BUILD move for each ant
+    #that there is enough food to build
+    myInv = getCurrPlayerInventory(currentState)
+    hill = myInv.getAnthill()
+    if (currentState.board[hill.coords[0]][hill.coords[1]].ant == None):
+        for type in range(WORKER, R_SOLDIER + 1):
+            cost = UNIT_STATS[type][COST]
+            if (cost <= myInv.foodCount):
+                result.append(Move(BUILD, [hill.coords], type))
+
+    #if we don't have 3 food to build a tunnel then we're done
+    if (myInv.foodCount < 3):
+        return result
+                
+    #for each worker ant that is a legal position, you could build
+    #a tunnel
+    for ant in myInv.ants:
+        if (ant.type != WORKER): continue   #only workers can build tunnels
+        if (currentState.board[ant.coords[0]][ant.coords[1]].constr == None):
+            #see if there is adj food
+            inTheClear = True;   #assume ok to build until proven otherwise
+            for coord in listAdjacent(ant.coords):
+                if (not legalCoord((coord[0],coord[1]))):
+                    continue
+
+                #is there food here?
+                if (currentState.board[coord[0]][coord[1]].constr == FOOD):
+                    inTheClear = False
+                    break
+
+            #if no food was found then building a tunnel is valid
+            if inTheClear:
+                result.append(Move(BUILD, [ant.coords], TUNNEL))
+
+    return result
+
+##
+# listAllMovementMoves
+#
+# calculates all valid MOVE_ANT moves for the current player in a
+# given GameState
+#
+# Parameters:
+#   currentState - the current state
+#
+# Returns:  a list of Move objects
+def listAllMovementMoves(currentState):
+    result = []
+
+    #first get all MOVE_ANT moves for each ant in the inventory
+    myInv = getCurrPlayerInventory(currentState)
+    for ant in myInv.ants:
+        #skip ants that have already moved
+        if (ant.hasMoved): continue
+
+        #create a Move object for each valid movement path
+        allPaths = listAllMovementPaths(currentState,
+                                        ant.coords,
+                                        UNIT_STATS[ant.type][MOVEMENT])
+        for path in allPaths:
+            result.append(Move(MOVE_ANT, path, None))
+
+    return result
+
+
+##
+# listAllLegalMoves
+#
+# determines all the legal moves that can be made by the player
+# whose turn it currently is.
+#
+# Parameters:
+#   currentState - the current state
+#
+# Returns:  a list of Move objects
+def listAllLegalMoves(currentState):
+    result = []
+    result.extend(listAllMovementMoves(currentState))
+    result.extend(listAllBuildMoves(currentState))
+    result.append(Move(END, None, None))
+    return result
+
+
+
+##
+# Return: a reference to the inventory of the player whose turn it is
 def getCurrPlayerInventory(currentState):
     #Get my inventory
     resultInv = None
@@ -200,9 +298,7 @@ def getCurrPlayerInventory(currentState):
     return resultInv
     
 ##
-# getCurrPlayerQueen
-#
-# Return: a reference to the player's queen
+# Return: a reference to the QUEEN of the player whose turn it is
 def getCurrPlayerQueen(currentState):
     #find the queen
     queen = None
@@ -241,3 +337,85 @@ def getAntList(currentState,
 
     return result
         
+
+##
+# returns a character representation of a given ant
+# (helper for asciiPrintState)
+def charRepAnt(ant):
+    if (ant == None):
+        return " "
+    elif (ant.type == QUEEN):
+        return "Q"
+    elif (ant.type == WORKER):
+        return "W"
+    elif (ant.type == DRONE):
+        return "D"
+    elif (ant.type == SOLDIER):
+        return "S"
+    elif (ant.type == R_SOLDIER):
+        return "I"
+    else:
+        return "?"
+
+##
+# returns a character representation of a given construct
+# (helper for asciiPrintState)
+def charRepConstr(constr):
+    if (constr == None):
+        return " "
+    if (constr.type == ANTHILL):
+        return "^"
+    elif (constr.type == TUNNEL):
+        return "@"
+    elif (constr.type == GRASS):
+        return ";"
+    elif (constr.type == FOOD):
+        return "%"
+    else:
+        return "?"
+
+##
+# returns a character representation of a given location
+# (helper for asciiPrintState)
+def charRepLoc(loc):
+    if (loc == None):
+        return " "
+    elif (loc.ant != None):
+        return charRepAnt(loc.ant)
+    elif (loc.constr != None):
+        return charRepConstr(loc.constr)
+    else:
+        return "."
+
+
+##
+# asciiPrintState
+#
+# prints a text representation of a GameState to stdout.  This is useful for
+# debugging.
+#
+# Parameters:
+#    state - the state to print
+#
+def asciiPrintState(state):
+    #select coordinate ranges such that board orientation will match the GUI
+    #for either player
+    coordRange = range(0,10)
+    if (state.whoseTurn == PLAYER_TWO):
+        coordRange = range(9,-1,-1)
+
+    #print the board with a border of column/row indexes
+    print " 0123456789"    #column indexes
+    index = 0              #row index
+    for x in coordRange:
+        row = str(index)
+        for y in coordRange:
+            row += charRepLoc(state.board[y][x])
+        print row + str(index)
+        index += 1
+    print " 0123456789"    #column indexes
+
+    #print food totals
+    p1Food = state.inventories[0].foodCount
+    p2Food = state.inventories[1].foodCount
+    print " food: " + str(p1Food) + "/" + str(p2Food)
