@@ -637,6 +637,7 @@ class Game(object):
     #   msg - the message to send
     #
     def errorReport(self, msg):
+        currentPlayer = self.currentPlayers[self.state.whoseTurn]
         if type(currentPlayer) is HumanPlayer.HumanPlayer:
             return
         print msg
@@ -1043,7 +1044,7 @@ class Game(object):
         if ((self.state.phase == PLAY_PHASE) and 
         ((self.state.inventories[opponentId].getQueen() == None) or
         (self.state.inventories[opponentId].getAnthill().captureHealth <= 0) or
-        (self.state.inventories[playerId].foodCount >= 11))):
+        (self.state.inventories[playerId].foodCount >= FOOD_GOAL))):
             return True
         else:
             return False
@@ -1070,6 +1071,7 @@ class Game(object):
     #
     #Parameters:
     #   errorCode - A code indicating the type of error
+    #        info - the offending object that caused the error
     ##
     def error(self, errorCode, info):
         errorMsg = "AI ERROR: "
@@ -1082,18 +1084,18 @@ class Game(object):
             errorMsg += "(" + str(lastCoord[0]) + ", " + str(lastCoord[1]) + ")"
         elif errorCode == INVALID_MOVE:
             #info is a move           
-            errorMsg += "invalid move\n"
+            errorMsg += "invalid move: " + str(info) + "\n"
             if info == None:
                 errorMsg += "Move is non-move type: None"
             elif type(info) != Move:
                 errorMsg += "Move is non-move type: " + str(type(info))
             elif info.moveType == None:
                 errorMsg += "moveType is non-int type: None"
-            elif type(info.moveType) != Move:
+            elif type(info.moveType) != int:
                 errorMsg += "moveType is non-int type: " + str(type(info.moveType))
             elif info.moveType < MOVE_ANT or info.moveType > END:
                 errorMsg += "moveType not a recognized value: " + str(info.moveType)
-            elif info.moveType == MOVE:
+            elif info.moveType == MOVE_ANT:
                 pass
         else: #INVALID_ATTACK
             #info is a coord          
