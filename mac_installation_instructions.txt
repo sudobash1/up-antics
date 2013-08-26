@@ -72,3 +72,18 @@ Selecting the right version of Python
 1. Type the following line into your terminal:
 defaults write com.apple.versioner.python Version 2.7
 typing "python -V" should now return a 2.7.x version of python
+
+
+Important Addendum (thank you to Chris Workman):  Use the 32 bit
+version!
+
+It's worth-noting for OS X users, Apple has shipped with Python2.7.2, BUT the 64-bit version.  Pygame is 32-bit.  I've installed probably 50 libraries before and never ran into this problem.  I kept searching through the Antic documentation and didn't think I needed to re-install because all it said was I needed version 2.7.x, which I had.  OS X users Need to install python from the link in that documentation because thats for the 32-bit version.  On top of that, when one tries to "import pygame" from the python prompt, at first they will get an error message saying the module can't be found.  Usually this is due to the module not being in the SYSPATH.  This time, it wasn't the case.  Normally, to activate python, one just has to type "python" from command line.  Because we need the 32-bit version, students need to type "python2.7-32" instead of just "python" (which activates the default (2.7 64)).  Only when this is done does the pygame module show up as being installed and importable.  I take it this probably wasn't a a huge issue for OS X users two years ago because most users at that time had OS versions which shipped with python 32 bit.  So, in summary
+
+1) OS X users need to install the 32 bit version of 2.7, which is the
+link in the documentation.
+
+2) When activating python, one needs to type "python2.7-32" instead of
+simply "python"
+
+
+Only then is the pygame module recognizable.  
