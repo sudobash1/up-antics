@@ -385,16 +385,25 @@ class Game(object):
     def resolveEndGame(self):
         if self.state.phase != MENU_PHASE:
             #check mode for appropriate response to game over
-            if self.mode == HUMAN_MODE or self.mode == AI_MODE:
+            if self.mode == HUMAN_MODE:
                 self.state.phase = MENU_PHASE
                                          
                 #notify the user of the winner
                 if self.winner == PLAYER_ONE:
-                    self.ui.notify("Player 1 has won the game!")
+                    self.ui.notify("You have won the game!")
                 else:
-                    self.ui.notify("Player 2 has won the game!")
+                    self.ui.notify("The AI has won the game!")
                     
                 self.errorNotify = True
+
+            if self.mode == AI_MODE:
+                self.state.phase = MENU_PHASE
+                                         
+                #notify the user of the winner
+                winnerName = self.players[self.winner][0].author
+                self.ui.notify(winnerName + " has won the game!")
+                self.errorNotify = True
+
             elif self.mode == TOURNAMENT_MODE:               
                 #adjust the count of games to play for the current pair
                 currentPairing = (self.currentPlayers[PLAYER_ONE].playerId, self.currentPlayers[PLAYER_TWO].playerId)
