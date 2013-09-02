@@ -98,39 +98,14 @@ class AIPlayer(Player):
         #If my inventory is still none, then I don't have one.
         if myInv == None:
             return Move(END, None, None)
-        #If you have the food for an ant tunnel, try to purchase something random.
-        if myInv.foodCount >= CONSTR_STATS[TUNNEL][BUILD_COST]:
-            #First detect whether you have an ant WORKER with nothing under it
-            placeableAnts = []
-            for ant in myInv.ants:
-                if currentState.board[ant.coords[0]][ant.coords[1]].constr == None and ant.type == WORKER and not ant.hasMoved:
-                    placeableAnts.append(ant)
-            #Then detect whether you have an anthill with nothing on top of it
-            placeableHill = False
+        #Try to build an ant
+        if myInv.foodCount >= UNIT_STATS[SOLDIER][COST]:  #is there enough food?
+            #Detect whether the anthill has nothing on top of it
             hill = myInv.getAnthill()
             if currentState.board[hill.coords[0]][hill.coords[1]].ant == None:
-                placeableHill = True
-            #Choose randomly between building ants or tunnels
-            if len(placeableAnts) != 0 and placeableHill:
-                #randint returns up to the max, so no need to add or subtract for placeableHill's sake
-                toPlace = random.randint(0, 5)
-                if toPlace == 5:
-                    #build a tunnel
-                    location = random.randint(0, len(placeableAnts) - 1)
-                    return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
-                else:
-                    #build an ant
-                    return Move(BUILD, [hill.coords], random.randint(WORKER, R_SOLDIER))
-            elif len(placeableAnts) != 0:
-                #build a tunnel
-                location = random.randint(0, len(placeableAnts) - 1)
-                return Move(BUILD, [placeableAnts[location].coords], TUNNEL)
-            elif placeableHill:
-                #build an ant
+                #build a random ant
+                toPlace = random.randint(WORKER, R_SOLDIER)
                 return Move(BUILD, [hill.coords], random.randint(WORKER, R_SOLDIER))
-            else:
-                #I have resources to build, but no place to build things
-                pass
         #See if you can move any ants
         antsToMove = []
         for ant in myInv.ants:
