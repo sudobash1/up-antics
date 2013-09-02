@@ -43,26 +43,6 @@ class GameState(object):
         self.whoseTurn = inputTurn
 
     ##
-    #applyMove
-    #Description: Makes the required changes to the GameState based off of the given move
-    #
-    #Parameters:
-    #   inputMove - The move to make (Move)
-    ##
-    def applyMove(self, inputMove):
-        fromX = fromLoc.getCoords()[0]
-        fromY = fromLoc.getCoords()[1]
-
-        toX = toLoc.getCoords()[0]
-        toY = toLoc.getCoords()[1]
-        
-        tempAnt = self.board[fromX][fromY].getAnt()
-
-        tempAnt.coords = ToLoc.getCoords()
-        self.board[fromX][fromY].ant = None
-        self.board[toX][toY].ant = tempAnt
-
-    ##
     #coordLookup
     #Description: Returns the appropriate coordinates for the given
     #   player to allow both players to play from top of the board.
