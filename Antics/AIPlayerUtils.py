@@ -23,7 +23,7 @@ def legalCoord(coord):
     #make sure we have a tuple or list with two elements in it
     try:
         if (len(coord) != 2):
-            return false;
+            return False
     except TypeError:
         print "ERROR:  parameter to legalCoord was not a tuple or list"
         raise
@@ -46,7 +46,7 @@ def legalCoord(coord):
 def listAdjacent(coord):
     #catch invalid inputs
     if (not legalCoord(coord)):
-        return result;
+        return [];
 
     #this set of coord deltas represent movement in each cardinal direction
     deltas = [ (-1, 0), (1, 0), (0, -1), (0, 1) ]
@@ -221,7 +221,7 @@ def listAllBuildMoves(currentState):
         if (ant.type != WORKER): continue   #only workers can build tunnels
         if (currentState.board[ant.coords[0]][ant.coords[1]].constr == None):
             #see if there is adj food
-            inTheClear = True;   #assume ok to build until proven otherwise
+            inTheClear = True   #assume ok to build until proven otherwise
             for coord in listAdjacent(ant.coords):
                 if (not legalCoord((coord[0],coord[1]))):
                     continue
