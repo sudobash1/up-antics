@@ -1128,12 +1128,22 @@ class Game(object):
     #
     ##
     def startGameCallback(self):
+        #Notice if the user hits this button in mid-game so we can reset (below)
+        reset = False
+        if self.state.phase == PLAY_PHASE:
+            reset = True
+        
         #save the mode
         currMode = self.mode
         #reset the game
         self.initGame()
         #restore the mode
         self.mode = currMode
+
+        #if we are resetting, set the phase to MENU_PHASE with no mode
+        if reset:
+            self.state.phase = MENU_PHASE
+            self.mode = None
         
         if self.mode == None:
             self.ui.notify("Please select a mode.")
