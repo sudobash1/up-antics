@@ -663,6 +663,7 @@ class Game(object):
     def isValidMove(self, move):
         #check for no move
         if move == None:
+            self.errorReport("ERROR: Invalid Move: " + str(move))
             return None
         
         #check that the move is well-formed typewise (tuples, ints, etc)
@@ -812,7 +813,19 @@ class Game(object):
                         self.errorReport("ERROR: Invalid Move: " + str(move))
                         self.errorReport("       Must have at least " + str(buildCost) + " food to build a tunnel.")
                         return False
-            
+            else:  #invalid build start
+                self.errorReport("ERROR: Invalid Move: " + str(move))
+                self.errorReport("       Build location invalid.  Possible cause:")
+                loc = self.state.board[buildCoord[0]][buildCoord[1]]
+                if loc.ant == None:  #building ant
+                    self.errorReport("         - Anthill does not belong to current player")
+                else:
+                    if (move.buildType != TUNNEL):
+                        self.errorReport("         - Anthill is already occupied")
+                    elif (loc.ant.hasMoved):
+                        self.errorReport("         - Worker ant has already moved this turn")
+                    else:
+                        self.errorReport("         - Worker ant does not belong to current player")
         else:
             #invalid numeric move type
             return False
@@ -1084,6 +1097,7 @@ class Game(object):
     ##
     def error(self, errorCode, info):
         errorMsg = "AI ERROR: "
+
         if errorCode == INVALID_PLACEMENT:
             #info is a coord list
             errorMsg += "invalid placement\nCoords given: "
@@ -1091,8 +1105,9 @@ class Game(object):
             for coord in info:
                 errorMsg += "(" + str(coord[0]) + ", " + str(coord[1]) + "), "
             errorMsg += "(" + str(lastCoord[0]) + ", " + str(lastCoord[1]) + ")"
+
         elif errorCode == INVALID_MOVE:
-            #info is a move           
+            #info is a move
             errorMsg += "invalid move: " + str(info) + "\n"
             if info == None:
                 errorMsg += "Move is non-move type: None"
@@ -1106,6 +1121,7 @@ class Game(object):
                 errorMsg += "moveType not a recognized value: " + str(info.moveType)
             elif info.moveType == MOVE_ANT:
                 pass
+
         else: #INVALID_ATTACK
             #info is a coord          
             errorMsg += "invalid attack\n"
