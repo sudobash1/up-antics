@@ -219,6 +219,7 @@ def listAllBuildMoves(currentState):
     #a tunnel
     for ant in myInv.ants:
         if (ant.type != WORKER): continue   #only workers can build tunnels
+        if (ant.hasMoved): continue         #this worker has already moved
         if (currentState.board[ant.coords[0]][ant.coords[1]].constr == None):
             #see if there is adj food
             inTheClear = True   #assume ok to build until proven otherwise
