@@ -1,6 +1,8 @@
+import copy
 from Constants import *
 from Inventory import Inventory
 from Building import Building
+from Location import *
 
 def addCoords(tuple1, tuple2):
     if len(tuple1) != len(tuple2):
@@ -85,6 +87,7 @@ class GameState(object):
         for col in self.board:
             for loc in col:
                 loc.constr = None
+
     ##
     #clone
     #Description: Returns a deep copy of itself
@@ -114,6 +117,7 @@ class GameState(object):
                     ants1.append(newLoc.ant)
                 elif newLoc.ant != None and newLoc.ant.player == PLAYER_TWO:
                     ants2.append(newLoc.ant)
-        #newBoard = [[self.board[row][col].clone() for col in xrange(0,len(self.board))] for row in xrange(0,len(self.board))]
         newInventories = [Inventory(PLAYER_ONE, ants1, cons1, food1), Inventory(PLAYER_TWO, ants2, cons2, food2)]
         return GameState(newBoard, newInventories, self.phase, self.whoseTurn)
+
+
