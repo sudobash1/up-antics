@@ -352,15 +352,18 @@ class Game(object):
                         #clear any currently highlighted squares
                         self.ui.coordList = []
                         
+                        #switch whose turn it is
+                        self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
+
+                        #notify player which AI is acting
+                        nextPlayerName = self.players[self.state.whoseTurn][0].author
+                        self.ui.notify(nextPlayerName + "'s turn.")
+                        
                         #if AI mode, pause to observe move until next or continue is clicked
                         self.pauseForAIMode()
                         if self.state.phase == MENU_PHASE:
                             #if we are in menu phase at this point, a reset was requested so we need to break the game loop.
                             break
-                        
-                        #switch whose turn it is
-                        self.state.whoseTurn = (self.state.whoseTurn + 1) % 2
-
                 else:     
                     #human can give None move, AI can't
                     if not type(currentPlayer) is HumanPlayer.HumanPlayer:
@@ -378,8 +381,9 @@ class Game(object):
             elif self.hasWon(PLAYER_TWO):
                 self.setWinner(PLAYER_TWO)
                 
-            #draw the board (to recognize user input in game loop)
+            #redraw the board periodically and check for user input
             self.ui.drawBoard(self.state, self.mode)
+            
         #end game loop
     
     def resolveEndGame(self):
@@ -1176,7 +1180,7 @@ class Game(object):
                 self.playerScores = [] # [[author,wins,losses], ...]
                 self.gamesToPlay = [] #((p1.id, p2.id), numGames)
                 self.numGames = None
-            
+    
                 if self.ui.textBoxContent != '':
                     self.numGames = int(self.ui.textBoxContent)
                 else:
