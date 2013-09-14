@@ -321,7 +321,7 @@ def getCurrPlayerQueen(currentState):
 #     types - a tuple of all the ant types wanted (see Constants.py)
 #
 def getAntList(currentState,
-               pid = -3,
+               pid = None,
                types = (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER) ):
 
     #start with a list of all ants that belong to the indicated player(s)
