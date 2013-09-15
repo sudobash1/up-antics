@@ -8,6 +8,7 @@
 #Player IDs
 PLAYER_ONE = 0
 PLAYER_TWO = 1
+NEUTRAL    = 2
 
 #Length of the board (it's square)
 BOARD_LENGTH = 10

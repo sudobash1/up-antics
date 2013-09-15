@@ -171,6 +171,8 @@ class Game(object):
                         if constr.type == ANTHILL or constr.type == TUNNEL:
                             #update the inventory
                             self.state.inventories[self.state.whoseTurn].constrs.append(constr)
+                        else:  #grass and food
+                            self.state.inventories[NEUTRAL].constrs.append(constr)
                     
                     #if AI mode, pause to observe move until next or continue is clicked
                     self.pauseForAIMode()
@@ -557,7 +559,8 @@ class Game(object):
         board = [[Location((col, row)) for row in xrange(0,BOARD_LENGTH)] for col in xrange(0,BOARD_LENGTH)]
         p1Inventory = Inventory(PLAYER_ONE, [], [], 0)
         p2Inventory = Inventory(PLAYER_TWO, [], [], 0)
-        self.state = GameState(board, [p1Inventory, p2Inventory], MENU_PHASE, PLAYER_ONE)
+        neutralInventory = Inventory(NEUTRAL, [], [], 0)
+        self.state = GameState(board, [p1Inventory, p2Inventory, neutralInventory], MENU_PHASE, PLAYER_ONE)
         self.currentPlayers = []
         self.mode = None
         self.errorNotify = False

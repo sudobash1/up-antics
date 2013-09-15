@@ -1,13 +1,20 @@
 import random
 from Constants import *
 from Ant import UNIT_STATS
+from Construction import CONSTR_STATS
 from Move import *
 
 #
 # AIPlayerUtils.py
 #
 # a set of methods that are likely to be handy for all kinds of AI
-# players
+# players.
+#
+# Important Note:  All the methods in this file that take a GameState object
+# will not attempt to access the 'board' member of the at object.  This makes
+# these routines safe for a GameState that has been generated via the
+# GameState.fastclone method.
+#
 
 ##
 # legalCoord
@@ -33,6 +40,111 @@ def legalCoord(coord):
     return ( (x >= 0) and (x <= 9) and (y >= 0) and (y <= 9))
 
 
+##
+# getAntList()
+#
+# builds a list of all ants that meet a given specification
+#
+# Parameters:
+#     currentState - a GameState or Node
+#     pid   - all ants must belong to this player id.  Pass None to
+#             indicate any player
+#     types - a tuple of all the ant types wanted (see Constants.py)
+#
+def getAntList(currentState,
+               pid = None,
+               types = (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER) ):
+
+    #start with a list of all ants that belong to the indicated player(s)
+    allAnts = []
+    for inv in currentState.inventories:
+        if (pid == None) or (pid == inv.player):
+            allAnts += inv.ants
+
+    #fill the result with ants that are of the right type
+    result = []
+    for ant in allAnts:
+        if ant.type in types:
+            result.append(ant)
+
+    return result
+        
+
+##
+# getConstrList()
+#
+# builds a list of all constructs that meet a given specification.
+#
+# Caveat:  if you pass a GameState for the first parameter, food and grass will
+# not be returned.
+#
+# Parameters:
+#     currentState - a GameState or Node
+#     pid   - all ants must belong to this player id.  Pass None to
+#             indicate any player including unowned constructs like grass/food
+#     types - a tuple of all the constr types wanted (see Constants.py)
+#
+def getConstrList(currentState,
+                  pid = None,
+                  types = (ANTHILL, TUNNEL, GRASS, FOOD) ):
+
+    #start with a list of all constrs that belong to the indicated player(s)
+    allConstrs = []
+    for inv in currentState.inventories:
+        if (pid == None) or (pid == inv.player):
+            allConstrs += inv.constrs
+
+    #fill the result with constrs that are of the right type
+    result = []
+    for constr in allConstrs:
+        if constr.type in types:
+            result.append(constr)
+
+    return result
+        
+
+##
+# getConstrAt
+#
+# determines which construct is at a given coordinate
+#
+# Parameters:
+#    state  - a valid GameState object
+#    coords - a valid coordinate (code does not check for invalid!)
+#
+# Return:  the construct at the coordinate or None if there is none
+def getConstrAt(state, coords):
+    #get a list of all constructs
+    allConstrs = getConstrList(state)
+
+    #search for one at the given coord
+    for constr in allConstrs:
+        if (constr.coords == coords):
+            return constr
+
+    return None  #not found
+
+##
+# getAntAt
+#
+# determines which ant is at a given coordinate
+#
+# Parameters:
+#    state  - a valid GameState object
+#    coords - a valid coordinate (code does not check for invalid!)
+#
+# Return:  the ant at the coordinate or None if there is none
+def getAntAt(state, coords):
+    #get a list of all constructs
+    allAnts = getAntList(state)
+
+    #search for one at the given coord
+    for ant in allAnts:
+        if (ant.coords == coords):
+            return ant
+
+    return None  #not found
+    
 
 ##
 # listAdjacent
@@ -68,9 +180,36 @@ def listAdjacent(coord):
     return result
 
 
-
 ##
 # listReachableAdjacent
+#
+# calculates all the adjacent cells that can be reached from a given coord.
+#
+# Parameters:
+#    state        - a GameState object 
+#    coords       - where the ant is
+#    movement     - movement points the ant has
+#
+# Return:  a list of coords (tuples)   
+def listReachableAdjacent(state, coords, movement):
+    #build a list of all adjacent cells
+    oneStep = listAdjacent(coords)
+
+    #winnow the list based upon cell contents and cost to reach
+    candMoves = []
+    for cell in oneStep:
+        ant = getAntAt(state, cell)
+        constr = getConstrAt(state, cell)
+        moveCost = 1  #default cost
+        if (constr != None):
+            moveCost = CONSTR_STATS[constr.type][MOVE_COST]
+        if (ant == None) and (moveCost <= movement):
+            candMoves.append(cell)
+
+    return candMoves
+
+##
+# listReachableAdjacentOLD
 #
 # calculates all the adjacent cells that can be reached from a given coord.
 #
@@ -80,7 +219,7 @@ def listAdjacent(coord):
 #    movement     - movement points ant has
 #
 # Return:  a list of coords (tuples)   
-def listReachableAdjacent(currentState, coords, movement):
+def listReachableAdjacentOLD(currentState, coords, movement):
     #build a list of all adjacent cells
     oneStep = listAdjacent(coords)
 
@@ -94,13 +233,12 @@ def listReachableAdjacent(currentState, coords, movement):
     return candMoves
 
 
-
 ##
 # listAllMovementPaths              <!-- RECURSIVE -->
 #
-# calculates all the legal paths for a single ant to move from a
-# given position on the board.  The ant doesn't actually have to
-# be there for this method to return a valid answer.
+# calculates all the legal paths for a single ant to move from a given position.
+# The ant doesn't actually have to be there for this method to return a valid
+# answer.
 #
 # Parameters:
 #    currentState - current game state
@@ -124,9 +262,14 @@ def listAllMovementPaths(currentState, coords, movement):
 
     #recurse for each adj cell to see if we can take additional steps
     for move in oneStepMoves:
-        #get a list of all moves that will extend this one
+        #figure out what it would cost to get to the current dest
         moveCoords = move[-1]
-        cost = currentState.board[moveCoords[0]][moveCoords[1]].getMoveCost()
+        constrAtDest = getConstrAt(currentState, moveCoords)
+        cost = 1   #default
+        if constrAtDest != None:
+            cost = CONSTR_STATS[constrAtDest.type][MOVE_COST]
+
+        #get a list of all moves that will extend this one
         extensions = listAllMovementPaths(currentState, moveCoords, movement - cost)
 
         #create new moves by adding each extension to the base move
@@ -173,7 +316,11 @@ def stepsToReach(currentState, src, dst):
         #from this one
         nextSteps = listAdjacent(cell)
         for newCell in nextSteps:
-            dist = visited[cell] + currentState.board[newCell[0]][newCell[1]].getMoveCost()
+            constrAtDest = getConstrAt(currentState, newCell)
+            cost = 1  #default
+            if constrAtDest != None:
+                cost = CONSTR_STATS[constrAtDest.type][MOVE_COST]
+            dist = visited[cell] + cost
 
             #if the new distance is best so far, update the visited dict
             if (visited.has_key(newCell)):
@@ -205,7 +352,7 @@ def listAllBuildMoves(currentState):
     #that there is enough food to build
     myInv = getCurrPlayerInventory(currentState)
     hill = myInv.getAnthill()
-    if (currentState.board[hill.coords[0]][hill.coords[1]].ant == None):
+    if (getAntAt(currentState, hill.coords)  == None):
         for type in range(WORKER, R_SOLDIER + 1):
             cost = UNIT_STATS[type][COST]
             if (cost <= myInv.foodCount):
@@ -220,7 +367,7 @@ def listAllBuildMoves(currentState):
     for ant in myInv.ants:
         if (ant.type != WORKER): continue   #only workers can build tunnels
         if (ant.hasMoved): continue         #this worker has already moved
-        if (currentState.board[ant.coords[0]][ant.coords[1]].constr == None):
+        if (getConstrAt(currentState, ant.coords) == None):
             #see if there is adj food
             inTheClear = True   #assume ok to build until proven otherwise
             for coord in listAdjacent(ant.coords):
@@ -228,7 +375,8 @@ def listAllBuildMoves(currentState):
                     continue
 
                 #is there food here?
-                if (currentState.board[coord[0]][coord[1]].constr == FOOD):
+                constrHere = getConstrAt(currentState, coord)
+                if (constrHere != None) and (constrHere.type == FOOD):
                     inTheClear = False
                     break
 
@@ -310,36 +458,6 @@ def getCurrPlayerQueen(currentState):
     return queen
     
 ##
-# getAntList()
-#
-# builds a list of all ants on the board that meet a given specification
-#
-# Parameters:
-#     currentState - curr game state
-#     pid   - all ants must belong to this player id.  Pass None to
-#             indicate any player
-#     types - a tuple of all the ant types wanted (see Constants.py)
-#
-def getAntList(currentState,
-               pid = None,
-               types = (QUEEN, WORKER, DRONE, SOLDIER, R_SOLDIER) ):
-
-    #start with a list of all ants that belong to the indicated player(s)
-    allAnts = []
-    for inv in currentState.inventories:
-        if (pid == None) or (pid == inv.player):
-            allAnts += inv.ants
-
-    #fill the result with ants that are of the right type
-    result = []
-    for ant in allAnts:
-        if ant.type in types:
-            result.append(ant)
-
-    return result
-        
-
-##
 # returns a character representation of a given ant
 # (helper for asciiPrintState)
 def charRepAnt(ant):
@@ -402,19 +520,29 @@ def asciiPrintState(state):
     #select coordinate ranges such that board orientation will match the GUI
     #for either player
     coordRange = range(0,10)
+    colIndexes = " 0123456789"
     if (state.whoseTurn == PLAYER_TWO):
         coordRange = range(9,-1,-1)
+        colIndexes = " 9876543210"
 
     #print the board with a border of column/row indexes
-    print " 0123456789"    #column indexes
+    print colIndexes
     index = 0              #row index
     for x in coordRange:
-        row = str(index)
+        row = str(x)
         for y in coordRange:
-            row += charRepLoc(state.board[y][x])
-        print row + str(index)
+            ant = getAntAt(state, (y, x))
+            if (ant != None):
+                row += charRepAnt(ant)
+            else:
+                constr = getConstrAt(state, (y, x))
+                if (constr != None):
+                    row += charRepConstr(constr)
+                else:
+                    row += "."
+        print row + str(x)
         index += 1
-    print " 0123456789"    #column indexes
+    print colIndexes
 
     #print food totals
     p1Food = state.inventories[0].foodCount

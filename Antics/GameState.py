@@ -18,6 +18,7 @@ def subtractCoords(tuple1, tuple2):
 
 ##
 #GameState
+#
 #Description: The current state of the game.
 #
 #Variables:
@@ -34,7 +35,8 @@ class GameState(object):
     #
     #Parameters:
     #   inputBoard - The Board to be used by the GameState (Board)
-    #   inputInventories - A tuple containing the Inventory for each player ((Inventory, Inventory))
+    #   inputInventories - A tuple containing the Inventory for each player as
+    #    well as a third inventory for grass and food: (Inventory, Inventory, Inventory)
     #   inputPhase - The phase of the game (int)
     #   inputTurn - The ID of the Player who's turn it is (int)
     ##
@@ -71,12 +73,11 @@ class GameState(object):
             
         self.board.reverse()
         
-        for col in self.board:
-            for loc in col:
-                if loc.ant != None:
-                    loc.ant.coords = self.coordLookup(loc.ant.coords, PLAYER_TWO)
-                if loc.constr != None:
-                    loc.constr.coords = self.coordLookup(loc.constr.coords, PLAYER_TWO)
+        for inv in self.inventories:
+            for ant in inv.ants:
+                ant.coords = self.coordLookup(ant.coords, PLAYER_TWO)
+            for constr in inv.constrs:
+                constr.coords = self.coordLookup(constr.coords, PLAYER_TWO)
       
     ##
     #clearConstrs
@@ -100,6 +101,7 @@ class GameState(object):
         ants2 = []
         cons1 = []
         cons2 = []
+        cons3 = []
         food1 = self.inventories[PLAYER_ONE].foodCount
         food2 = self.inventories[PLAYER_TWO].foodCount
         for col in xrange(0,len(self.board)):
@@ -117,7 +119,59 @@ class GameState(object):
                     ants1.append(newLoc.ant)
                 elif newLoc.ant != None and newLoc.ant.player == PLAYER_TWO:
                     ants2.append(newLoc.ant)
-        newInventories = [Inventory(PLAYER_ONE, ants1, cons1, food1), Inventory(PLAYER_TWO, ants2, cons2, food2)]
+        for constr in self.inventories[NEUTRAL].constrs:
+            cons3.append(constr.clone())
+        newInventories = [Inventory(PLAYER_ONE, ants1, cons1, food1),
+                          Inventory(PLAYER_TWO, ants2, cons2, food2),
+                          Inventory(NEUTRAL, [], cons3, 0) ]
         return GameState(newBoard, newInventories, self.phase, self.whoseTurn)
 
 
+    ##
+    #fastclone
+    #
+    #Description: Returns a deep copy of itself *without* a board (which is set
+    # to None).  Omitting the board makes the clone run much faster and, if
+    # necessary, the board can be reconstructed from the inventories.
+    #
+    #Return: a GameState object _almost_ identical to the original
+    ##
+    def fastclone(self):
+        newBoard = None
+        #For speed, preallocate the lists at their eventual size 
+        ants1 = [ None ] * len(self.inventories[PLAYER_ONE].ants)
+        ants2 = [ None ] * len(self.inventories[PLAYER_TWO].ants)
+        cons1 = [ None ] * len(self.inventories[PLAYER_ONE].constrs)
+        cons2 = [ None ] * len(self.inventories[PLAYER_TWO].constrs)
+        cons3 = [ None ] * len(self.inventories[NEUTRAL].constrs)
+        antIndex1 = 0
+        antIndex2 = 0
+        conIndex1 = 0
+        conIndex2 = 0
+        conIndex3 = 0
+
+        #clone all the entries in the inventories
+        for ant in self.inventories[PLAYER_ONE].ants:
+            ants1[antIndex1] = ant
+            antIndex1 += 1
+        for ant in self.inventories[PLAYER_TWO].ants:
+            ants2[antIndex2] = ant
+            antIndex2 += 1
+        for constr in self.inventories[PLAYER_ONE].constrs:
+            cons1[conIndex1] = constr
+            conIndex1 += 1
+        for constr in self.inventories[PLAYER_TWO].constrs:
+            cons2[conIndex2] = constr
+            conIndex2 += 1
+        for constr in self.inventories[NEUTRAL].constrs:
+            cons3[conIndex3] = constr
+            conIndex3 += 1
+
+        #clone the list of inventory objects
+        food1 = self.inventories[PLAYER_ONE].foodCount
+        food2 = self.inventories[PLAYER_TWO].foodCount
+        newInventories = [ Inventory(PLAYER_ONE, ants1, cons1, food1),
+                           Inventory(PLAYER_TWO, ants2, cons2, food2),
+                           Inventory(NEUTRAL, [], cons3, 0) ]
+        
+        return GameState(newBoard, newInventories, self.phase, self.whoseTurn)
