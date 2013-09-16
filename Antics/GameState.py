@@ -152,19 +152,19 @@ class GameState(object):
 
         #clone all the entries in the inventories
         for ant in self.inventories[PLAYER_ONE].ants:
-            ants1[antIndex1] = ant
+            ants1[antIndex1] = ant.clone()
             antIndex1 += 1
         for ant in self.inventories[PLAYER_TWO].ants:
-            ants2[antIndex2] = ant
+            ants2[antIndex2] = ant.clone()
             antIndex2 += 1
         for constr in self.inventories[PLAYER_ONE].constrs:
-            cons1[conIndex1] = constr
+            cons1[conIndex1] = constr.clone()
             conIndex1 += 1
         for constr in self.inventories[PLAYER_TWO].constrs:
-            cons2[conIndex2] = constr
+            cons2[conIndex2] = constr.clone()
             conIndex2 += 1
         for constr in self.inventories[NEUTRAL].constrs:
-            cons3[conIndex3] = constr
+            cons3[conIndex3] = constr.clone()
             conIndex3 += 1
 
         #clone the list of inventory objects
