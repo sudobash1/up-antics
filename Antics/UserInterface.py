@@ -467,6 +467,15 @@ class UserInterface(object):
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
 
+        #Add some underlines under the table headers
+        Yoffset = YStartPixel + self.tournFont.get_height()
+        for index in range(1, len(lengths)):
+            Xoffset = 0 if index == 0 else reduce(lambda x,y: x+y, lengths[:index])
+            Xspacing = -1 * FIELD_SPACING if index == 1 else FIELD_SPACING * (index - 1)
+            startX = XStartPixel + Xoffset + Xspacing
+            endX = startX + lengths[index]
+            pygame.draw.line(self.screen, BLACK, (startX, Yoffset), (endX, Yoffset))
+
         #Draw the elapsed time
         Yoffset = YStartPixel + len(scores) * (self.tournFont.get_height() + FIELD_SPACING)
         if (self.tournamentInProgress):
