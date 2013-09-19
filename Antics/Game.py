@@ -440,6 +440,7 @@ class Game(object):
                     self.numGames = 0                               
                     self.playerScores = []
                     self.mode = TOURNAMENT_MODE
+                    self.ui.tournamentInProgress = False
                 else:
                     #setup game to run again
                     self.mode = TOURNAMENT_MODE
@@ -1183,6 +1184,9 @@ class Game(object):
                 self.playerScores = [] # [[author,wins,losses], ...]
                 self.gamesToPlay = [] #((p1.id, p2.id), numGames)
                 self.numGames = None
+                #notify UI tournament has started
+                self.ui.tournamentStartTime = time.clock()
+                self.ui.tournamentInProgress = True
     
                 if self.ui.textBoxContent != '':
                     self.numGames = int(self.ui.textBoxContent)

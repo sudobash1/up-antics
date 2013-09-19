@@ -455,6 +455,9 @@ class UserInterface(object):
             for index in range(0, len(score)):
                 if self.tournFont.size(str(score[index]))[0] > lengths[index+1]:
                     lengths[index + 1] = self.tournFont.size(str(score[index]))[0]
+        #add some padding for readability
+        lengths = [x + 10 for x in lengths]
+                    
         #Draw the table itself
         for index in range(0, len(scores)):
             for innerDex in range(0, len(scores[index])):
@@ -463,6 +466,19 @@ class UserInterface(object):
                 tempY = YStartPixel + index * (self.tournFont.get_height() + FIELD_SPACING)
                 label = self.tournFont.render(str(scores[index][innerDex]), True, BLACK)
                 self.screen.blit(label, (tempX, tempY))
+
+        #Draw the elapsed time
+        Yoffset = YStartPixel + len(scores) * (self.tournFont.get_height() + FIELD_SPACING)
+        if (self.tournamentInProgress):
+            self.tournamentElapsed = time.clock() - self.tournamentStartTime
+        elapsedMessage = "Elapsed time: "
+        if (not self.tournamentInProgress):
+            elapsedMessage = "Final time: "
+        elapsedMessage += str(int(self.tournamentElapsed) / 60) + "m "
+        elapsedMessage += str(int(self.tournamentElapsed) % 60) + "s"
+        label = self.tournFont.render(elapsedMessage, True, BLACK)
+        self.screen.blit(label, (XStartPixel, Yoffset))
+        
     
     ##
     #drawAICheckList
@@ -941,6 +957,10 @@ class UserInterface(object):
         self.attackList = []
         #Initializing tournament scores
         self.tournamentScores = []
+        #Variables used to track elapsed time during tournaments
+        self.tournamentStartTime = time.clock()
+        self.tournamentElapsed = 0.0
+        self.tournamentInProgress = False
         #Find out if user is choosing AIs
         self.choosingAIs = False
         #Set an initial value for the list of AIs that the game uses.
