@@ -472,11 +472,13 @@ class UserInterface(object):
         if (self.tournamentInProgress):
             self.tournamentElapsed = time.clock() - self.tournamentStartTime
         elapsedMessage = "Elapsed time: "
+        elapsedColor = DARK_RED
         if (not self.tournamentInProgress):
             elapsedMessage = "Final time: "
+            elapsedColor = DARK_GREEN
         elapsedMessage += str(int(self.tournamentElapsed) / 60) + "m "
         elapsedMessage += str(int(self.tournamentElapsed) % 60) + "s"
-        label = self.tournFont.render(elapsedMessage, True, BLACK)
+        label = self.tournFont.render(elapsedMessage, True, elapsedColor)
         self.screen.blit(label, (XStartPixel, Yoffset))
         
     
