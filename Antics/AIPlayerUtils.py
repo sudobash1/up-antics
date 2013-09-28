@@ -279,6 +279,9 @@ def listAllMovementPaths(currentState, coords, movement):
                 newMove.append(cell)
             validMoves.append(newMove)
 
+    #Append the zero-step move (used to activate attack on adjacent foe)
+    validMoves.append([coords])
+
     return validMoves
 
 
