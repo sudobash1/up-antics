@@ -1,0 +1,1 @@
+This game is based on Advance Wars, with an ant theme. The objective of this program is to be used in AI courses, allowing students to plug in AI's they design themselves.
