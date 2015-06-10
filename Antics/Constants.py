@@ -66,6 +66,9 @@ INVALID_PLACEMENT = 0
 INVALID_MOVE = 1
 INVALID_ATTACK = 2
 
+#Max time (seconds) an AI is allowed to make a move
+AI_MOVE_TIMEOUT = 30
+
 ##
 # moveTypeToStr
 #

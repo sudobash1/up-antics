@@ -1,4 +1,5 @@
-import os, re, sys, math, time, random, HumanPlayer
+import os, re, sys, math, multiprocessing, time, random
+import HumanPlayer
 from UserInterface import *
 from Construction import *
 from Constants import *
@@ -10,10 +11,30 @@ from Ant import *
 from Move import *
 
 ##
+#carefulGetMove
+#
+#Description: a method for calling the getMove method on a player in a
+#separate process so as to timeout if it takes too long.  See the use
+#of multiprogramming.Process in the Game.runGame() method below.
+#
+#Parameters
+#  queue - an inter-process queue for passing data back and from
+#          the main process
+##
+def carefulGetMove(queue):
+    player = queue.get()
+    state = queue.get()
+    move = player.getMove(state)
+    queue.put(move)
+    return
+
+
+##
 #Game
 #Description: Keeps track of game logic and manages the play loop.
 ##
 class Game(object):
+
 
     ##
     #__init__
@@ -103,7 +124,15 @@ class Game(object):
                  
                 self.runGame()   
                 self.resolveEndGame()
-                
+
+    ##
+    # runGame
+    #
+    # Description: the main game loop
+    #
+    # ToDo:  This method is way too large and needs to be broken up
+    #
+    ##
     def runGame(self):
         #build a list of things to place for player 1 in setup phase 1
         #1 anthill/queen, 1 tunnel/worker, 9 obstacles
@@ -117,11 +146,12 @@ class Game(object):
                 #if we are in menu phase at this point, a reset was requested so break
                 break
             else:
-                #if the player is player two, flip the board
+                #create a copy of the state to share with the player
                 theState = self.state.clone()
+                #if the player is player two, flip the board
                 if theState.whoseTurn == PLAYER_TWO:
                     theState.flipBoard()
-                
+
             if self.state.phase == SETUP_PHASE_1 or self.state.phase == SETUP_PHASE_2:
                 currentPlayer = self.currentPlayers[self.state.whoseTurn]
                 if type(currentPlayer) is HumanPlayer.HumanPlayer:
@@ -255,8 +285,29 @@ class Game(object):
                             self.ui.notify("Select an ant type to build.")
                         else:
                             self.ui.notify("")
-                #get the move from the current player
-                move = currentPlayer.getMove(theState)
+
+                            
+                #get the move from the current player in a separate
+                #process so that we can time it out
+                move = None
+                if not type(currentPlayer) is HumanPlayer.HumanPlayer:
+                    queue = multiprocessing.Queue()
+                    playerProc = multiprocessing.Process(target=carefulGetMove, args=(queue,))
+                    playerProc.start()
+                    queue.put(currentPlayer)
+                    queue.put(theState)
+                    playerProc.join(AI_MOVE_TIMEOUT)
+                    if  queue.empty():
+                        playerProc.terminate()
+                        move = Move(END, None, None) #default move
+                        print "Timed out waiting for player #" + str(currentPlayer.playerId) + ": " + currentPlayer.author
+                    else:
+                        move = queue.get(False)
+                    queue.close()
+                    queue.join_thread()
+                else:
+                    #get the move from the current player
+                    move = currentPlayer.getMove(theState)
                 
                 if move != None and move.coordList != None:
                     for i in xrange(0,len(move.coordList)):
@@ -1539,5 +1590,21 @@ class Game(object):
             self.ui.notify("")
         self.ui.choosingAIs = False
 
-a = Game()
-a.start()
+
+#Import all the python files in the AI folder so they can be serialized
+sys.path.insert(0, "AI")
+for module in os.listdir("AI"):
+    if module[-3:] != '.py':
+        continue
+    __import__(module[:-3], locals(), globals())
+del module
+
+if __name__ == '__main__':
+    #this is required when using mulitprocessing to get around a Windows idiosyncracy
+    multiprocessing.freeze_support()
+
+    #Create the game
+    a = Game()
+    a.start()
+
+    
