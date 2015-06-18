@@ -1,0 +1,37 @@
+##################
+LINUX INSTRUCTIONS
+##################
+Disclaimer:  These instructions are provided as a courtesy.  They do
+not obligate the instructor to help you debug your installation.  If
+you are having difficulty, use the computer lab instead of your
+personal computer.
+
+Note:  These instructions were written for Debian based distros (e.g.,
+Ubuntu).  You'll have to interpret for other distros.
+
+1. In most cases, python 2.7.x should already have been installed with
+   your OS.  To verify this, simply run 'python -V' in a terminal
+   window.  If you don't have it, then you can probably install it via
+   this command:
+      sudo apt-get install python
+   Or install manually by downloading here:
+      https://www.python.org/downloads/
+   Important: Do not download version 3.x.
+
+3. Next, install pygame 1.9.1 using this command:
+         sudo apt-get install python-pygame
+   Or install manually by downloading here:
+         http://www.pygame.org/download.shtml    
+
+4.  Verify your pygame install is working by executing this command in
+    a terminal:
+        echo "import pygame" | python
+    Verify that doesn't give you an error message.
+
+5.  Download aNTiCS from the course website and unzip the folder in a
+    convenient location.  This should create a folder named Antics.
+    
+6.  To run aNTiCS from the command prompt, navigate to your antics
+    folder and enter this command:
+        "python Game.py" 
+
