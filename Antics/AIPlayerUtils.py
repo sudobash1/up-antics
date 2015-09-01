@@ -238,7 +238,8 @@ def listReachableAdjacentOLD(currentState, coords, movement):
 #
 # calculates all the legal paths for a single ant to move from a given position.
 # The ant doesn't actually have to be there for this method to return a valid
-# answer.
+# answer.  This method does not take queen ant movement restrictions
+# into account.
 #
 # Parameters:
 #    currentState - current game state
@@ -390,6 +391,25 @@ def listAllBuildMoves(currentState):
     return result
 
 ##
+# isPathOkForQueen
+#
+# determines if a given path would move the ant outside of the home
+# territory.  The caller is responsible for providing a legal path.
+# This is a helper method for listAllMovementMoves
+#
+#Parameters:
+#   path - the path to check
+#
+# Return: True if the is okay
+#
+def isPathOkForQueen(path):
+    for coord in path:
+        if (coord[1] == BOARD_LENGTH / 2 - 1) \
+        or (coord[1] == BOARD_LENGTH / 2):
+            return False
+    return True
+    
+##
 # listAllMovementMoves
 #
 # calculates all valid MOVE_ANT moves for the current player in a
@@ -412,6 +432,16 @@ def listAllMovementMoves(currentState):
         allPaths = listAllMovementPaths(currentState,
                                         ant.coords,
                                         UNIT_STATS[ant.type][MOVEMENT])
+
+        #remove moves that take the queen out of her territory
+        if (ant.type == QUEEN):
+            tmpList = []
+            for path in allPaths:
+                if (isPathOkForQueen(path)):
+                    tmpList.append(path)
+            allPaths = tmpList
+
+        #construct the list of moves using the paths
         for path in allPaths:
             result.append(Move(MOVE_ANT, path, None))
 

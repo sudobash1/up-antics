@@ -791,6 +791,15 @@ class Game(object):
                     previousCoord = coord
                     index += 1
                     
+                #Check for Queen ant trying to leave her territory
+                if (antToMove.type == QUEEN):
+                    for coord in move.coordList:
+                        if (coord[1] == BOARD_LENGTH / 2 - 1) \
+                        or (coord[1] == BOARD_LENGTH / 2):
+                            self.errorReport("ERROR: Invalid Move: " + str(move))
+                            self.errorReport("       Queen ant may not leave her own territory")
+                            return False
+                            
                 #within movement range and hasn't moved yet?
                 if (movePoints < 0):
                     self.errorReport("ERROR: Invalid Move: " + str(move))
@@ -888,7 +897,7 @@ class Game(object):
         else:
             #invalid numeric move type
             return False
-        
+            
     ##
     #isValidPlacement
     #Description: Checks that the given placement of Constructions is valid
@@ -917,13 +926,13 @@ class Game(object):
             if items[i].type == ANTHILL or items[i].type == TUNNEL or items[i].type == GRASS:
                 #check targets[i] is within proper boundaries y-wise
                 #must be on own side
-                if not (targets[i][1] >= 0 and targets[i][1] < BOARD_LENGTH / 2 - 1):
+                if not self.isInHomeTerritory(targets[i]):
                     return False
             #check item type
             elif items[i].type == FOOD:
                 #check targets[i] is within proper boundaries y-wise
                 #must be on opponent's side
-                if not (targets[i][1] < BOARD_LENGTH and targets[i][1] >= BOARD_LENGTH / 2 + 1):
+                if not self.isInEnemyTerritory(targets[i]):
                     return False
             else:
                 #I don't know what this type is.
@@ -993,6 +1002,44 @@ class Game(object):
             
         return True
    
+    ##
+    # isInHomeTerritory
+    #
+    # Description: determines whether the position is in the player's
+    # home territory
+    #
+    # Parameters:
+    #   coord - The coord to be checked trying to be checked ((int, int))
+    #
+    # Returns: True if it is and False otherwise
+    #
+    ##
+    def isInHomeTerritory(self, coord):
+        if not self.isValidCoord(coord):
+            return False
+        if not (coord[1] >= 0 and coord[1] < BOARD_LENGTH / 2 - 1):
+            return False
+        return True
+
+    ##
+    # isInEnemyTerritory
+    #
+    # Description: determines whether the position is in the player's
+    # enemy's territory
+    #
+    # Parameters:
+    #   coord - The coord to be checked trying to be checked ((int, int))
+    #
+    # Returns: True if it is and False otherwise
+    #
+    ##
+    def isInEnemyTerritory(self, coord):
+        if not self.isValidCoord(coord):
+            return False
+        if not (coord[1] < BOARD_LENGTH and coord[1] >= BOARD_LENGTH / 2 + 1):
+            return False
+        return True
+
     ##
     #checkMoveStart 
     #Description: Checks if the location is valid to move from.
