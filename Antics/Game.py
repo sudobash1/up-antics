@@ -25,6 +25,7 @@ def carefulGetMove(queue):
     player = queue.get()
     state = queue.get()
     move = player.getMove(state)
+    queue.put(player) #place the player in the queue in case it was changed
     queue.put(move)
     return
 
@@ -293,15 +294,20 @@ class Game(object):
                 if not type(currentPlayer) is HumanPlayer.HumanPlayer:
                     queue = multiprocessing.Queue()
                     playerProc = multiprocessing.Process(target=carefulGetMove, args=(queue,))
+                    playerId = currentPlayer.playerId # Just in case the AI tries to change this and cheat.
                     playerProc.start()
                     queue.put(currentPlayer)
                     queue.put(theState)
                     playerProc.join(AI_MOVE_TIMEOUT)
-                    if  queue.empty():
+                    if queue.qsize() != 2:
                         playerProc.terminate()
                         move = Move(END, None, None) #default move
                         print "Timed out waiting for player #" + str(currentPlayer.playerId) + ": " + currentPlayer.author
                     else:
+                        # save changes to the currentPlayer if any.
+                        currentPlayer = queue.get(False)
+                        self.currentPlayers[self.state.whoseTurn] = currentPlayer
+
                         move = queue.get(False)
                     queue.close()
                     queue.join_thread()
